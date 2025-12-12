@@ -18,6 +18,7 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/postcss": "^4.1.17",
+    "@webext-core/messaging": "^2.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.17",
     "@thedutchcoder/postcss-rem-to-px": "^0.0.2",
+    "@types/chrome": "^0.1.32",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@wxt-dev/module-react": "^1.1.3",

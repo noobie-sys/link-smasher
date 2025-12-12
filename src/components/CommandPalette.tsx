@@ -2,15 +2,7 @@
 
 import * as React from "react"
 import {
-    Calculator,
-    Calendar,
-    CreditCard,
-    Settings,
-    Smile,
-    User,
-} from "lucide-react"
-
-import {
+    Command,
     CommandDialog,
     CommandEmpty,
     CommandGroup,
@@ -20,10 +12,12 @@ import {
     CommandSeparator,
     CommandShortcut,
 } from "@/components/ui/command"
+import { getUserActions } from "@/lib/user.action"
+import { UserAction } from "@/lib/types"
 
 export function CommandPalette() {
     const [open, setOpen] = React.useState(false)
-
+    const [userActions, setUserActions] = React.useState<UserAction[]>([])
     React.useEffect(() => {
         const down = (e: KeyboardEvent) => {
             if (e.key === "j" && (e.metaKey || e.ctrlKey)) {
@@ -36,6 +30,12 @@ export function CommandPalette() {
         return () => document.removeEventListener("keydown", down)
     }, [])
 
+
+    React.useEffect(() => {
+        if (!open) return;
+        getUserActions().then(setUserActions)
+    }, [open])
+
     return (
         <>
             <p className="text-muted-foreground text-sm">
@@ -45,42 +45,28 @@ export function CommandPalette() {
                 </kbd>
             </p>
             <CommandDialog open={open} onOpenChange={setOpen}>
-                <CommandInput placeholder="Type a command or search..." />
-                <CommandList>
-                    <CommandEmpty>No results found.</CommandEmpty>
-                    <CommandGroup heading="Suggestions">
-                        <CommandItem>
-                            <Calendar />
-                            <span>Calendar</span>
-                        </CommandItem>
-                        <CommandItem>
-                            <Smile />
-                            <span>Search Emoji</span>
-                        </CommandItem>
-                        <CommandItem>
-                            <Calculator />
-                            <span>Calculator</span>
-                        </CommandItem>
-                    </CommandGroup>
-                    <CommandSeparator />
-                    <CommandGroup heading="Settings">
-                        <CommandItem>
-                            <User />
-                            <span>Profile</span>
-                            <CommandShortcut>⌘P</CommandShortcut>
-                        </CommandItem>
-                        <CommandItem>
-                            <CreditCard />
-                            <span>Billing</span>
-                            <CommandShortcut>⌘B</CommandShortcut>
-                        </CommandItem>
-                        <CommandItem>
-                            <Settings />
-                            <span>Settings</span>
-                            <CommandShortcut>⌘S</CommandShortcut>
-                        </CommandItem>
-                    </CommandGroup>
-                </CommandList>
+                <Command loop={true} className="max-h-96 min-h-96 rounded-lg shadow-md">
+                    <CommandInput placeholder="Type a command or search..." />
+                    <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        {
+                            userActions?.map(action => (
+                                <CommandItem
+                                    key={action.id}
+                                    value={action.title}
+                                    onSelect={() => {
+                                        action.handler(); setOpen(false);
+                                    }}
+
+                                >
+                                    <span className="flex-1 truncate px-3 text-start">
+                                        {action.title}
+                                    </span>
+                                </CommandItem>
+                            ))
+                        }
+                    </CommandList>
+                </Command>
             </CommandDialog>
         </>
     )

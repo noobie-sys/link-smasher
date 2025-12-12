@@ -1,7 +1,8 @@
 import ReactDOM from "react-dom/client";
+import React, { useState } from "react";
 import "@/index.css";
 import { CommandPalette } from "@/components/CommandPalette";
-import React from "react";
+
 
 export const PortalContext = React.createContext<HTMLElement | null>(null);
 
