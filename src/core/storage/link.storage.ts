@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 export const linkStorage = {
   async get(): Promise<Link[]> {
     const result = await chrome.storage.local.get(STORAGE_KEYS.LINKS);
+    console.log(result);
     return (result[STORAGE_KEYS.LINKS] as Link[]) || [];
   },
 

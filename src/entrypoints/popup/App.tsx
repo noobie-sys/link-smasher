@@ -3,12 +3,15 @@ import { usePopup } from './popup.store';
 export default function App() {
   const { currentTab, links, tag, setTag, saveLink, status } = usePopup();
 
+  console.log(currentTab, links, tag, saveLink, status, "❤️")
+
   if (!currentTab) {
     return <div style={{ padding: '1rem' }}>Loading current tab...</div>;
   }
 
   // Check if current URL is already saved
   const isAlreadySaved = links.some(l => l.url === currentTab.url);
+  console.log(isAlreadySaved, "😭")
 
   return (
     <div style={{ padding: '16px', width: '300px', fontFamily: 'sans-serif' }}>
@@ -26,7 +29,7 @@ export default function App() {
           <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
             <input
               type="text"
-              placeholder="Tag (optional)"
+              placeholder="Tags (comma separated)"
               value={tag}
               onChange={(e) => setTag(e.target.value)}
               style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #ddd' }}
@@ -45,7 +48,13 @@ export default function App() {
             >
               {status === 'saving' ? '...' : 'Save'}
             </button>
+            {status === 'error' && (
+              <div style={{ marginTop: '8px', color: 'red', fontSize: '12px' }}>
+                Error saving link. Please try again.
+              </div>
+            )}
           </div>
+
         )}
       </div>
 
@@ -64,9 +73,11 @@ export default function App() {
                   {link.title || link.url}
                 </a>
                 {link.tags.length > 0 && (
-                  <span style={{ display: 'inline-block', background: '#eee', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', color: '#555', marginTop: '4px' }}>
-                    #{link.tags[0]}
-                  </span>
+                  link.tags.map((t, i) => (
+                    <span key={i} style={{ display: 'inline-block', background: '#eee', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', color: '#555', marginTop: '4px', marginRight: '4px' }}>
+                      #{t}
+                    </span>
+                  ))
                 )}
               </li>
             ))}

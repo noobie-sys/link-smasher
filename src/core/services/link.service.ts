@@ -9,12 +9,31 @@ export const linkService = {
       throw new Error("Invalid URL");
     }
 
+    console.log("Saving link:", dto);
+
     const links = await linkStorage.get();
 
     // Check for duplicates
-    const exists = links.some((l) => l.url === dto.url);
-    if (exists) {
-      return null; // Or throw, but returning null indicates no-op for MVP
+    // Check for duplicates (Upsert logic)
+    const existingIndex = links.findIndex((l) => l.url === dto.url);
+
+    if (existingIndex >= 0) {
+      const existingLink = links[existingIndex];
+      const updatedLink: Link = {
+        ...existingLink,
+        title: dto.title || existingLink.title,
+        // Merge tags, unique only
+        tags: Array.from(
+          new Set([...(existingLink.tags || []), ...(dto.tags || [])])
+        ),
+      };
+
+      const newLinks = [...links];
+      newLinks[existingIndex] = updatedLink;
+
+      await linkStorage.set(newLinks);
+      console.log("Updated existing link:", updatedLink);
+      return updatedLink;
     }
 
     const newLink: Link = {
@@ -23,6 +42,8 @@ export const linkService = {
       hostname: getHostname(dto.url),
       createdAt: Date.now(),
     };
+
+    console.log(newLink, "NewLinks");
 
     // Add to beginning of list (newest first)
     await linkStorage.set([newLink, ...links]);

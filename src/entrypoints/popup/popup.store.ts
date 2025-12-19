@@ -43,13 +43,31 @@ export function usePopup() {
     try {
       const result = await linkService.addLink({
         url: currentTab.url,
-        title: currentTab.title,
-        tags: tag.trim() ? [tag.trim()] : [],
+        title:
+          currentTab.title === "YouTube" ||
+          currentTab.title.includes("youtube.com")
+            ? currentTab.url
+            : currentTab.title,
+        tags: tag.trim() ? tag.split(",").map((t) => t.trim()) : [],
       });
 
+      console.log("RESULTS: ", result);
+
       if (result) {
-        // Refresh list
+        // Optimistic / Immediate update to avoid storage race conditions
+        setLinks((prevLinks) => {
+          const index = prevLinks.findIndex((l) => l.url === result.url);
+          if (index >= 0) {
+            const newLinks = [...prevLinks];
+            newLinks[index] = result;
+            return newLinks;
+          }
+          return [result, ...prevLinks];
+        });
+
+        // Also refresh from storage to be sure
         await loadLinks(currentTab.hostname);
+
         setTag("");
         setStatus("success");
         setTimeout(() => setStatus("idle"), 2000);

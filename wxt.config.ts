@@ -8,5 +8,6 @@ export default defineConfig({
     name: "LinkCrust",
     description:
       "Store all the links here in the browser and access all the links anytime and anywhere",
+    permissions: ["storage", "tabs"],
   },
 });
