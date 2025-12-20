@@ -16,8 +16,8 @@ Build a "Link Smasher" browser extension MVP that allows instant link saving and
 ### 1. Foundation & Configuration 🏗️
 
 - [ ] **Configure WXT & Manifest**
-  - [ ] Update `wxt.config.ts` name to "Link Smasher".
-  - [ ] Verify `permissions`: `storage`, `tabs`.
+  - [x] Update `wxt.config.ts` name to "Link Crust".
+  - [x] Verify `permissions`: `storage`, `tabs`.
   - [ ] Add `commands` to `manifest` (optional, or use content script listeners).
 - [ ] **Content Script Entrypoint**
   - [ ] Create `src/entrypoints/content/index.tsx`.
