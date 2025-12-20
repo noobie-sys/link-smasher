@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { usePopup } from './popup.store';
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
             >
               {status === 'saving' ? '...' : 'Save'}
             </button>
+            <Button>Click Me</Button>
             {status === 'error' && (
               <div style={{ marginTop: '8px', color: 'red', fontSize: '12px' }}>
                 Error saving link. Please try again.
