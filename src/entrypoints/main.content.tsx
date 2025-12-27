@@ -4,17 +4,62 @@ import { createRoot } from 'react-dom/client';
 import React, { useState } from 'react';
 
 import { PortalContext } from '@/context/portal.context';
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { shortcutService } from "@/core/services/shortcut.service";
+import { linkService } from "@/core/services/link.service";
+import { ShortcutAction } from "@/shared/types/shortcut.types";
 
 
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
 
+    React.useEffect(() => {
+        const handleKeydown = async (e: KeyboardEvent) => {
+            const action = await shortcutService.getShortcutAction(e);
+            if (action) {
+                // Prevent default for handled shortcuts
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (action === ShortcutAction.TOGGLE_PALETTE) {
+                    window.dispatchEvent(new CustomEvent("ls-toggle-palette"));
+                } else if (action === ShortcutAction.SAVE_LINK) {
+                    try {
+                        const url = window.location.href;
+                        const title = document.title || url;
+                        const result = await linkService.addLink({
+                            url,
+                            title,
+                            tags: []
+                        });
+
+                        if (result) {
+                            toast.success("Link saved!");
+                        } else {
+                            toast.info("Link updated or already exists.");
+                        }
+                    } catch (error) {
+                        console.error("Failed to save link", error);
+                        toast.error("Failed to save link.");
+                    }
+                }
+            }
+        };
+
+        // Listen on document, but use capture to ensure we get it first if needed, 
+        // though bubbling is usually fine.
+        document.addEventListener("keydown", handleKeydown);
+        return () => document.removeEventListener("keydown", handleKeydown);
+    }, []);
+
     return (
         <React.StrictMode>
             <PortalContext.Provider value={portalContainer} >
                 <div ref={setPortalContainer} id="command-portal-container">
                     <CommandMenu />
+                    {portalContainer && <Toaster container={portalContainer} />}
                 </div>
             </PortalContext.Provider>
         </React.StrictMode>
