@@ -1,3 +1,4 @@
 export const STORAGE_KEYS = {
-  LINKS: "links",
-} as const;
+  LINKS: "ls_links",
+  SHORTCUTS: "ls_shortcuts",
+};
