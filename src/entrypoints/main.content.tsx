@@ -1,19 +1,19 @@
 import { CommandMenu } from '@/components/command-pallete';
+import { LinkDialog } from '@/components/link-dialog';
 import '@/index.css';
 import { createRoot } from 'react-dom/client';
 import React, { useState } from 'react';
 
 import { PortalContext } from '@/context/portal.context';
 import { Toaster } from "@/components/ui/sonner";
-import { toast } from "sonner";
 import { shortcutService } from "@/core/services/shortcut.service";
-import { linkService } from "@/core/services/link.service";
 import { ShortcutAction } from "@/shared/types/shortcut.types";
 
 
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
+    const [linkDialogOpen, setLinkDialogOpen] = useState(false)
 
     React.useEffect(() => {
         const handleKeydown = async (e: KeyboardEvent) => {
@@ -26,24 +26,8 @@ const ContentRoot = () => {
                 if (action === ShortcutAction.TOGGLE_PALETTE) {
                     window.dispatchEvent(new CustomEvent("ls-toggle-palette"));
                 } else if (action === ShortcutAction.SAVE_LINK) {
-                    try {
-                        const url = window.location.href;
-                        const title = document.title || url;
-                        const result = await linkService.addLink({
-                            url,
-                            title,
-                            tags: []
-                        });
-
-                        if (result) {
-                            toast.success("Link saved!");
-                        } else {
-                            toast.info("Link updated or already exists.");
-                        }
-                    } catch (error) {
-                        console.error("Failed to save link", error);
-                        toast.error("Failed to save link.");
-                    }
+                    // Open the link dialog instead of directly saving
+                    setLinkDialogOpen(true);
                 }
             }
         };
@@ -58,7 +42,8 @@ const ContentRoot = () => {
         <React.StrictMode>
             <PortalContext.Provider value={portalContainer} >
                 <div ref={setPortalContainer} id="command-portal-container">
-                    <CommandMenu />
+                    {/* <CommandMenu /> */}
+                    <LinkDialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen} />
                     {portalContainer && <Toaster container={portalContainer} />}
                 </div>
             </PortalContext.Provider>
