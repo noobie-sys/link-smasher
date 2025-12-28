@@ -6,6 +6,7 @@
 export type KeyboardHandler = (event: KeyboardEvent) => void | Promise<void>;
 
 export interface KeyboardShortcut {
+  id?: string; // Optional ID for tracking and updating shortcuts
   key: string;
   metaKey?: boolean;
   ctrlKey?: boolean;
@@ -16,6 +17,7 @@ export interface KeyboardShortcut {
 
 class KeyboardService {
   private shortcuts: Map<string, KeyboardShortcut> = new Map();
+  private shortcutsById: Map<string, string> = new Map(); // Map ID to shortcut key
   private isListening = false;
   private boundHandler: ((e: KeyboardEvent) => void) | null = null;
 
@@ -26,6 +28,16 @@ class KeyboardService {
     const id = this.getShortcutId(shortcut);
     this.shortcuts.set(id, shortcut);
 
+    // Track by ID if provided
+    if (shortcut.id) {
+      // Unregister existing shortcut with same ID if any
+      const existingId = this.shortcutsById.get(shortcut.id);
+      if (existingId && existingId !== id) {
+        this.shortcuts.delete(existingId);
+      }
+      this.shortcutsById.set(shortcut.id, id);
+    }
+
     // Auto-start listening if not already
     if (!this.isListening) {
       this.startListening();
@@ -34,10 +46,65 @@ class KeyboardService {
     // Return unregister function
     return () => {
       this.shortcuts.delete(id);
+      if (shortcut.id) {
+        this.shortcutsById.delete(shortcut.id);
+      }
       if (this.shortcuts.size === 0) {
         this.stopListening();
       }
     };
+  }
+
+  /**
+   * Update an existing shortcut by ID
+   */
+  updateShortcut(id: string, newShortcut: Omit<KeyboardShortcut, "handler">): boolean {
+    const existingKey = this.shortcutsById.get(id);
+    if (!existingKey) {
+      return false;
+    }
+
+    const existing = this.shortcuts.get(existingKey);
+    if (!existing) {
+      return false;
+    }
+
+    // Create new shortcut with same handler
+    const updated: KeyboardShortcut = {
+      ...newShortcut,
+      id,
+      handler: existing.handler,
+    };
+
+    const newKey = this.getShortcutId(updated);
+    
+    // Remove old shortcut
+    this.shortcuts.delete(existingKey);
+    
+    // Add new shortcut
+    this.shortcuts.set(newKey, updated);
+    this.shortcutsById.set(id, newKey);
+
+    return true;
+  }
+
+  /**
+   * Unregister a shortcut by ID
+   */
+  unregisterById(id: string): boolean {
+    const key = this.shortcutsById.get(id);
+    if (!key) {
+      return false;
+    }
+
+    this.shortcuts.delete(key);
+    this.shortcutsById.delete(id);
+
+    if (this.shortcuts.size === 0) {
+      this.stopListening();
+    }
+
+    return true;
   }
 
   /**
@@ -109,6 +176,7 @@ class KeyboardService {
    */
   clear(): void {
     this.shortcuts.clear();
+    this.shortcutsById.clear();
     this.stopListening();
   }
 }

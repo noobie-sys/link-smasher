@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { shortcutService } from "@/core/services/shortcut.service";
-import { ShortcutDef, KeyCombo } from "@/shared/types/shortcut.types";
+import { keyboardConfigService, KeyboardShortcutConfig, ShortcutAction } from "@/core/services/keyboard-config.service";
 
-const KeyDisplay = ({ combo }: { combo?: KeyCombo }) => {
+const KeyDisplay = ({ combo }: { combo?: KeyboardShortcutConfig["defaultCombo"] }) => {
     if (!combo) return <span>None</span>;
     const parts = [];
     if (combo.metaKey) parts.push("⌘");
@@ -20,7 +19,7 @@ const KeyDisplay = ({ combo }: { combo?: KeyCombo }) => {
 };
 
 export function ShortcutSettings() {
-    const [shortcuts, setShortcuts] = useState<ShortcutDef[]>([]);
+    const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
     const [recordingId, setRecordingId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -28,18 +27,18 @@ export function ShortcutSettings() {
     }, []);
 
     const loadShortcuts = async () => {
-        const list = await shortcutService.getShortcuts();
+        const list = await keyboardConfigService.getShortcuts();
         setShortcuts(list);
     };
 
-    const handleKeyDown = async (e: React.KeyboardEvent, shortcut: ShortcutDef) => {
+    const handleKeyDown = async (e: React.KeyboardEvent, shortcut: KeyboardShortcutConfig) => {
         e.preventDefault();
         e.stopPropagation();
 
         // Ignore modifier-only keydowns
         if (["Meta", "Control", "Alt", "Shift"].includes(e.key)) return;
 
-        const newCombo: KeyCombo = {
+        const newCombo = {
             key: e.key,
             metaKey: e.metaKey,
             ctrlKey: e.ctrlKey,
@@ -48,11 +47,20 @@ export function ShortcutSettings() {
         };
 
         try {
-            await shortcutService.updateShortcut(shortcut.id, newCombo);
+            await keyboardConfigService.updateShortcut(shortcut.id as ShortcutAction, newCombo);
             await loadShortcuts();
             setRecordingId(null);
         } catch (err) {
             console.error("Failed to update shortcut", err);
+        }
+    };
+
+    const handleReset = async (shortcut: KeyboardShortcutConfig) => {
+        try {
+            await keyboardConfigService.resetShortcut(shortcut.id as ShortcutAction);
+            await loadShortcuts();
+        } catch (err) {
+            console.error("Failed to reset shortcut", err);
         }
     };
 
@@ -75,36 +83,57 @@ export function ShortcutSettings() {
                             <div style={{ fontSize: "11px", color: "#666" }}>{s.description}</div>
                         </div>
 
-                        {recordingId === s.id ? (
-                            <div
-                                style={{
-                                    padding: "4px 8px",
-                                    background: "#e3f2fd",
-                                    border: "1px solid #2196f3",
-                                    borderRadius: "4px",
-                                    color: "#0d47a1",
-                                    fontSize: "12px",
-                                    cursor: "pointer",
-                                    outline: "none",
-                                    minWidth: "60px",
-                                    textAlign: "center"
-                                }}
-                                tabIndex={0}
-                                onKeyDown={(e) => handleKeyDown(e, s)}
-                                onBlur={() => setRecordingId(null)}
-                                autoFocus
-                            >
-                                Recording...
-                            </div>
-                        ) : (
-                            <div
-                                onClick={() => setRecordingId(s.id)}
-                                style={{ cursor: "pointer" }}
-                                title="Click to edit"
-                            >
-                                <KeyDisplay combo={s.currentCombo} />
-                            </div>
-                        )}
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            {recordingId === s.id ? (
+                                <div
+                                    style={{
+                                        padding: "4px 8px",
+                                        background: "#e3f2fd",
+                                        border: "1px solid #2196f3",
+                                        borderRadius: "4px",
+                                        color: "#0d47a1",
+                                        fontSize: "12px",
+                                        cursor: "pointer",
+                                        outline: "none",
+                                        minWidth: "60px",
+                                        textAlign: "center"
+                                    }}
+                                    tabIndex={0}
+                                    onKeyDown={(e) => handleKeyDown(e, s)}
+                                    onBlur={() => setRecordingId(null)}
+                                    autoFocus
+                                >
+                                    Recording...
+                                </div>
+                            ) : (
+                                <>
+                                    <div
+                                        onClick={() => setRecordingId(s.id)}
+                                        style={{ cursor: "pointer" }}
+                                        title="Click to edit"
+                                    >
+                                        <KeyDisplay combo={s.currentCombo} />
+                                    </div>
+                                    {s.currentCombo && JSON.stringify(s.currentCombo) !== JSON.stringify(s.defaultCombo) && (
+                                        <button
+                                            onClick={() => handleReset(s)}
+                                            style={{
+                                                padding: "2px 6px",
+                                                background: "transparent",
+                                                border: "1px solid #ccc",
+                                                borderRadius: "4px",
+                                                cursor: "pointer",
+                                                fontSize: "10px",
+                                                color: "#666"
+                                            }}
+                                            title="Reset to default"
+                                        >
+                                            Reset
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
                 ))}
             </div>
