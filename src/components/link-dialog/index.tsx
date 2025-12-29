@@ -82,7 +82,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
       const links = await linkService.getAllLinks()
       setAllLinks(links)
     } catch (error) {
-      console.error("Failed to load all links", error)
+      console.error("Failed to load all links:", error)
       toast.error("Failed to load links")
     } finally {
       setIsLoading(false)

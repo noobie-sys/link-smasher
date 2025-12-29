@@ -42,7 +42,7 @@ const Toaster = (props: ToasterProps) => {
     if (!styleElement) {
       styleElement = document.createElement("style");
       styleElement.setAttribute("data-toast-styles", "true");
-      styleElement.textContent = `
+      const newLocal = styleElement.textContent = `
       
       /* Toast container */
       [data-sonner-toaster] {
@@ -58,7 +58,6 @@ const Toaster = (props: ToasterProps) => {
         display: flex;
         gap: 0.75rem;
         align-items: flex-start;
-        padding: 1rem;
         min-width: 320px;
         max-width: 420px;
 
@@ -67,8 +66,20 @@ const Toaster = (props: ToasterProps) => {
           0 4px 6px -2px rgb(0 0 0 / 0.05);
 
         font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont !important;
-        font-size: 0.875rem;
+        font-size: 0.875rem !important;
         line-height: 1.25rem;
+      }
+
+      /* Ensure all toast content has consistent font size */
+      [data-sonner-toast] * {
+        font-size: 0.875rem !important;
+      }
+
+      /* Toast title/text content */
+      [data-sonner-toast] [data-title],
+      [data-sonner-toast] [data-description] {
+        font-size: 0.875rem !important;
+        line-height: 1.25rem !important;
       }
   `;  
       shadowRoot.appendChild(styleElement);
@@ -132,7 +143,9 @@ const Toaster = (props: ToasterProps) => {
           maxWidth: "400px",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          marginBottom : "4px"
+          marginBottom: "4px",
+          fontSize: "0.875rem",
+          lineHeight: "1.25rem",
         },
         classNames: {
           toast: "toast-styled",
