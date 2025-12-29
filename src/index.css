@@ -125,6 +125,21 @@ div[role="dialog"] {
   z-index: 999999;
 }
 
-div[role="dialog"] {
-  z-index: 999999;
+/* Toast container positioning */
+[data-toast-container] {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+  z-index: 999999 !important;
+}
+
+/* Ensure Sonner toasts are positioned correctly */
+[data-toast-container] [data-sonner-toaster] {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  pointer-events: auto !important;
 }
