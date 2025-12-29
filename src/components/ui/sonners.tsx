@@ -132,9 +132,9 @@ const Toaster = (props: ToasterProps) => {
       toastOptions={{
         duration: 3000,
         style: {
-          background: theme === "dark" ? "#1a1a1a" : "#c8b6ff",
-          color: theme === "dark" ? "#ffffff" : "#001233",
-          border: `1px solid ${theme === "dark" ? "#404040" : "#c8b6ff"}`,
+          background: theme === "dark" ? "#1a1a1a" : "#607744",
+          color: "#ffffff" ,
+          border: `1px solid ${theme === "dark" ? "#404040" : "#607744"}`,
           borderRadius: "12px",
           boxShadow:
             "0 10px 38px -10px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.04)",
