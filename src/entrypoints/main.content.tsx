@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import React, { useState, useRef, useEffect } from 'react';
 
 import { PortalContext } from '@/context/portal.context';
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonners";
 import { toast } from "sonner";
 import { keyboardService } from "@/core/services/keyboard.service";
 import { keyboardConfigService, ShortcutAction } from "@/core/services/keyboard-config.service";
@@ -105,7 +105,6 @@ export default defineContentScript({
     cssInjectionMode: "ui",
 
     async main(ctx) {
-        console.log("Link Smasher: Content script main started");
         try {
             const ui = await createShadowRootUi(ctx, {
                 name: "link-smasher",
@@ -113,7 +112,6 @@ export default defineContentScript({
                 anchor: "body",
                 isolateEvents: ["keydown", "keyup", "keypress", "wheel"],
                 onMount: container => {
-                    console.log("Link Smasher: UI mounting");
                     const app = document.createElement("div");
                     app.id = "link-smasher-root";
                     container.append(app);
@@ -128,7 +126,6 @@ export default defineContentScript({
                 }
             })
             ui.mount()
-            console.log("Link Smasher: UI mounted call finished");
         } catch (e) {
             console.error("Link Smasher: Error mounting UI", e);
         }
