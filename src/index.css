@@ -125,21 +125,20 @@ div[role="dialog"] {
   z-index: 999999;
 }
 
-/* Toast container positioning */
-[data-toast-container] {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none !important;
-  z-index: 999999 !important;
+/* Toast container positioning - styles are injected into shadow DOM */
+/* Additional global toast styles for consistency */
+.toast-styled {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  animation: slideInRight 0.3s ease-out;
 }
 
-/* Ensure Sonner toasts are positioned correctly */
-[data-toast-container] [data-sonner-toaster] {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  pointer-events: auto !important;
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
