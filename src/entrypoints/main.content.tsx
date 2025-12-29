@@ -92,7 +92,7 @@ const ContentRoot = () => {
             <PortalContext.Provider value={portalContainer} >
                 <div ref={setPortalContainer} id="link-smasher-container">
                     <LinkDialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen} />
-                    {portalContainer && <Toaster container={portalContainer} />}
+                    <Toaster />
                 </div>
             </PortalContext.Provider>
         </React.StrictMode>
