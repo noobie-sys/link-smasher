@@ -1,10 +1,14 @@
 import { usePopup } from './popup.store';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ShortcutSettings } from './components/ShortcutSettings';
+import { Select } from '@/components/ui/select';
+
+type SortOption = 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'tags-asc' | 'tags-desc';
 
 export default function App() {
   const { currentTab, links, tag, setTag, saveLink, status } = usePopup();
   const [view, setView] = useState<'home' | 'settings'>('home');
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
 
 
   if (!currentTab) {
@@ -13,6 +17,65 @@ export default function App() {
 
   // Check if current URL is already saved
   const isAlreadySaved = links.some(l => l.url === currentTab.url);
+
+  // Sort links based on selected option
+  const sortedLinks = useMemo(() => {
+    const linksCopy = [...links];
+    
+    switch (sortBy) {
+      case 'name-asc':
+        return linksCopy.sort((a, b) => {
+          const titleA = (a.title || a.url).toLowerCase();
+          const titleB = (b.title || b.url).toLowerCase();
+          return titleA.localeCompare(titleB);
+        });
+      
+      case 'name-desc':
+        return linksCopy.sort((a, b) => {
+          const titleA = (a.title || a.url).toLowerCase();
+          const titleB = (b.title || b.url).toLowerCase();
+          return titleB.localeCompare(titleA);
+        });
+      
+      case 'date-asc':
+        return linksCopy.sort((a, b) => a.createdAt - b.createdAt);
+      
+      case 'date-desc':
+        return linksCopy.sort((a, b) => b.createdAt - a.createdAt);
+      
+      case 'tags-asc':
+        return linksCopy.sort((a, b) => {
+          const tagsA = a.tags.join(',').toLowerCase();
+          const tagsB = b.tags.join(',').toLowerCase();
+          if (tagsA === '' && tagsB === '') return 0;
+          if (tagsA === '') return 1;
+          if (tagsB === '') return -1;
+          return tagsA.localeCompare(tagsB);
+        });
+      
+      case 'tags-desc':
+        return linksCopy.sort((a, b) => {
+          const tagsA = a.tags.join(',').toLowerCase();
+          const tagsB = b.tags.join(',').toLowerCase();
+          if (tagsA === '' && tagsB === '') return 0;
+          if (tagsA === '') return 1;
+          if (tagsB === '') return -1;
+          return tagsB.localeCompare(tagsA);
+        });
+      
+      default:
+        return linksCopy;
+    }
+  }, [links, sortBy]);
+
+  const sortOptions = [
+    { value: 'date-desc', label: 'Newest First' },
+    { value: 'date-asc', label: 'Oldest First' },
+    { value: 'name-asc', label: 'Name (A-Z)' },
+    { value: 'name-desc', label: 'Name (Z-A)' },
+    { value: 'tags-asc', label: 'Tags (A-Z)' },
+    { value: 'tags-desc', label: 'Tags (Z-A)' },
+  ];
 
   return (
     <div style={{ padding: '16px', width: '300px', fontFamily: 'sans-serif' }}>
@@ -95,32 +158,104 @@ export default function App() {
             )}
           </div>
 
-          <h3 style={{ fontSize: '14px', margin: '0 0 8px 0', borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
-            Saved from this site ({links.length})
-          </h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '14px', margin: 0, borderBottom: '1px solid #eee', paddingBottom: '4px', flex: 1 }}>
+              Saved from this site ({links.length})
+            </h3>
+            {links.length > 0 && (
+              <div style={{ width: '140px', marginLeft: '8px' }}>
+                <Select
+                  value={sortBy}
+                  onChange={(value) => setSortBy(value as SortOption)}
+                  options={sortOptions}
+                  placeholder="Sort by..."
+                />
+              </div>
+            )}
+          </div>
 
-          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+          <div 
+            style={{ 
+              maxHeight: '200px', 
+              overflowY: 'auto',
+              transition: 'opacity 0.2s ease'
+            }}
+          >
             {links.length === 0 ? (
               <div style={{ color: '#999', fontSize: '13px', fontStyle: 'italic' }}>No links saved yet.</div>
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {links.map(link => (
-                  <li key={link.id} style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#333', fontSize: '13px', display: 'block' }}>
+                {sortedLinks.map((link, index) => (
+                  <li 
+                    key={link.id} 
+                    style={{ 
+                      padding: '8px 0', 
+                      borderBottom: '1px solid #f0f0f0',
+                      animation: `fadeIn 0.3s ease ${index * 0.03}s both`
+                    }}
+                  >
+                    <a 
+                      href={link.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ 
+                        textDecoration: 'none', 
+                        color: '#333', 
+                        fontSize: '13px', 
+                        display: 'block',
+                        transition: 'color 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#007bff'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
+                    >
                       {link.title || link.url}
                     </a>
                     {link.tags.length > 0 && (
-                      link.tags.map((t, i) => (
-                        <span key={i} style={{ display: 'inline-block', background: '#eee', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', color: '#555', marginTop: '4px', marginRight: '4px' }}>
-                          #{t}
-                        </span>
-                      ))
+                      <div style={{ marginTop: '4px' }}>
+                        {link.tags.map((t, i) => (
+                          <span 
+                            key={i} 
+                            style={{ 
+                              display: 'inline-block', 
+                              background: '#eee', 
+                              padding: '2px 6px', 
+                              borderRadius: '4px', 
+                              fontSize: '10px', 
+                              color: '#555', 
+                              marginRight: '4px',
+                              transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = '#007bff';
+                              e.currentTarget.style.color = '#fff';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = '#eee';
+                              e.currentTarget.style.color = '#555';
+                            }}
+                          >
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </li>
                 ))}
               </ul>
             )}
           </div>
+          <style>{`
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+                transform: translateY(-4px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          `}</style>
 
           <div style={{ marginTop: '16px', textAlign: 'center' }}>
             <button

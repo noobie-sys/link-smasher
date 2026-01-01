@@ -9,11 +9,14 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/select"
 import { linkService } from "@/core/services/link.service"
 import { Link } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
 import { ExternalLink, Trash2 } from "lucide-react"
+
+type SortOption = 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'tags-asc' | 'tags-desc';
 
 interface LinkDialogProps {
   open: boolean
@@ -34,6 +37,10 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   // All saved links
   const [allLinks, setAllLinks] = React.useState<Link[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
+  
+  // Sort options
+  const [sortByCurrent, setSortByCurrent] = React.useState<SortOption>('date-desc')
+  const [sortByAll, setSortByAll] = React.useState<SortOption>('date-desc')
 
   // Load current page info when dialog opens
   React.useEffect(() => {
@@ -153,10 +160,81 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  const renderLinkItem = (link: Link) => (
+  // Sort function
+  const sortLinks = (links: Link[], sortBy: SortOption): Link[] => {
+    const linksCopy = [...links]
+    
+    switch (sortBy) {
+      case 'name-asc':
+        return linksCopy.sort((a, b) => {
+          const titleA = (a.title || a.url).toLowerCase()
+          const titleB = (b.title || b.url).toLowerCase()
+          return titleA.localeCompare(titleB)
+        })
+      
+      case 'name-desc':
+        return linksCopy.sort((a, b) => {
+          const titleA = (a.title || a.url).toLowerCase()
+          const titleB = (b.title || b.url).toLowerCase()
+          return titleB.localeCompare(titleA)
+        })
+      
+      case 'date-asc':
+        return linksCopy.sort((a, b) => a.createdAt - b.createdAt)
+      
+      case 'date-desc':
+        return linksCopy.sort((a, b) => b.createdAt - a.createdAt)
+      
+      case 'tags-asc':
+        return linksCopy.sort((a, b) => {
+          const tagsA = (a.tags || []).join(',').toLowerCase()
+          const tagsB = (b.tags || []).join(',').toLowerCase()
+          if (tagsA === '' && tagsB === '') return 0
+          if (tagsA === '') return 1
+          if (tagsB === '') return -1
+          return tagsA.localeCompare(tagsB)
+        })
+      
+      case 'tags-desc':
+        return linksCopy.sort((a, b) => {
+          const tagsA = (a.tags || []).join(',').toLowerCase()
+          const tagsB = (b.tags || []).join(',').toLowerCase()
+          if (tagsA === '' && tagsB === '') return 0
+          if (tagsA === '') return 1
+          if (tagsB === '') return -1
+          return tagsB.localeCompare(tagsA)
+        })
+      
+      default:
+        return linksCopy
+    }
+  }
+
+  // Sorted links
+  const sortedCurrentSiteLinks = React.useMemo(() => {
+    return sortLinks(currentSiteLinks, sortByCurrent)
+  }, [currentSiteLinks, sortByCurrent])
+
+  const sortedAllLinks = React.useMemo(() => {
+    return sortLinks(allLinks, sortByAll)
+  }, [allLinks, sortByAll])
+
+  const sortOptions = [
+    { value: 'date-desc', label: 'Newest First' },
+    { value: 'date-asc', label: 'Oldest First' },
+    { value: 'name-asc', label: 'Name (A-Z)' },
+    { value: 'name-desc', label: 'Name (Z-A)' },
+    { value: 'tags-asc', label: 'Tags (A-Z)' },
+    { value: 'tags-desc', label: 'Tags (Z-A)' },
+  ]
+
+  const renderLinkItem = (link: Link, index?: number) => (
     <div
       key={link.id}
-      className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
+      className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-all duration-200 ease-in-out"
+      style={{
+        animation: `fadeInSlide 0.3s ease ${(index || 0) * 0.03}s both`
+      }}
     >
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-sm truncate">{link.title}</h4>
@@ -203,8 +281,21 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+    <>
+      <style>{`
+        @keyframes fadeInSlide {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Link Smasher</DialogTitle>
         </DialogHeader>
@@ -262,7 +353,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
           </TabsContent>
 
           <TabsContent value="current" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="flex-1 overflow-y-auto space-y-2">
+            <div className="flex-1 flex flex-col min-h-0">
               {isLoading ? (
                 <div className="text-center text-sm text-muted-foreground py-8">
                   Loading...
@@ -273,17 +364,29 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 </div>
               ) : (
                 <>
-                  <div className="text-xs text-muted-foreground mb-2">
-                    {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
+                  <div className="flex items-center justify-between mb-3 gap-3">
+                    <div className="text-xs text-muted-foreground">
+                      {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
+                    </div>
+                    <div className="w-[160px]">
+                      <Select
+                        value={sortByCurrent}
+                        onChange={(value) => setSortByCurrent(value as SortOption)}
+                        options={sortOptions}
+                        placeholder="Sort by..."
+                      />
+                    </div>
                   </div>
-                  {currentSiteLinks.map(renderLinkItem)}
+                  <div className="flex-1 overflow-y-auto space-y-2">
+                    {sortedCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))}
+                  </div>
                 </>
               )}
             </div>
           </TabsContent>
 
           <TabsContent value="all" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="flex-1 overflow-y-auto space-y-2">
+            <div className="flex-1 flex flex-col min-h-0">
               {isLoading ? (
                 <div className="text-center text-sm text-muted-foreground py-8">
                   Loading...
@@ -294,10 +397,22 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 </div>
               ) : (
                 <>
-                  <div className="text-xs text-muted-foreground mb-2">
-                    {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
+                  <div className="flex items-center justify-between mb-3 gap-3">
+                    <div className="text-xs text-muted-foreground">
+                      {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
+                    </div>
+                    <div className="w-[160px]">
+                      <Select
+                        value={sortByAll}
+                        onChange={(value) => setSortByAll(value as SortOption)}
+                        options={sortOptions}
+                        placeholder="Sort by..."
+                      />
+                    </div>
                   </div>
-                  {allLinks.map(renderLinkItem)}
+                  <div className="flex-1 overflow-y-auto space-y-2">
+                    {sortedAllLinks.map((link, index) => renderLinkItem(link, index))}
+                  </div>
                 </>
               )}
             </div>
@@ -305,6 +420,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
         </Tabs>
       </DialogContent>
     </Dialog>
+    </>
   )
 }
 
