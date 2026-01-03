@@ -294,8 +294,8 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
           }
         }
       `}</style>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Link Smasher</DialogTitle>
         </DialogHeader>
@@ -366,7 +366,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 <>
                   <div className="flex items-center justify-between mb-3 gap-3">
                     <div className="text-xs text-muted-foreground">
-                      {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
+                    {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
                     </div>
                     <div className="w-[160px]">
                       <Select
@@ -399,7 +399,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 <>
                   <div className="flex items-center justify-between mb-3 gap-3">
                     <div className="text-xs text-muted-foreground">
-                      {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
+                    {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
                     </div>
                     <div className="w-[160px]">
                       <Select
