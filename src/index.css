@@ -125,6 +125,10 @@ div[role="dialog"] {
   z-index: 999999;
 }
 
+.select-dropdown {
+  z-index: 1000000 !important;
+}
+
 /* Toast container positioning - styles are injected into shadow DOM */
 /* Additional global toast styles for consistency */
 .toast-styled {

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronDownIcon } from "lucide-react"
 
 interface SelectOption {
@@ -19,20 +20,61 @@ interface SelectProps {
 export function Select({ value, onChange, options, placeholder, className }: SelectProps) {
   const [isOpen, setIsOpen] = React.useState(false)
   const selectRef = React.useRef<HTMLDivElement>(null)
+  const dropdownRef = React.useRef<HTMLDivElement>(null)
+  const [dropdownPosition, setDropdownPosition] = React.useState<{ top: number; left: number; width: number } | null>(null)
+
+  // Calculate dropdown position when opening
+  React.useEffect(() => {
+    if (isOpen && selectRef.current) {
+      const updatePosition = () => {
+        if (selectRef.current) {
+          const rect = selectRef.current.getBoundingClientRect()
+          setDropdownPosition({
+            top: rect.bottom + 4,
+            left: rect.left,
+            width: rect.width
+          })
+        }
+      }
+      
+      updatePosition()
+      
+      // Update position on scroll or resize
+      window.addEventListener('scroll', updatePosition, true)
+      window.addEventListener('resize', updatePosition)
+      
+      return () => {
+        window.removeEventListener('scroll', updatePosition, true)
+        window.removeEventListener('resize', updatePosition)
+      }
+    } else {
+      setDropdownPosition(null)
+    }
+  }, [isOpen])
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (
+        selectRef.current && 
+        !selectRef.current.contains(target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target)
+      ) {
         setIsOpen(false)
       }
     }
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+      // Use capture phase to catch events before they bubble
+      document.addEventListener("mousedown", handleClickOutside, true)
+      // Also listen for clicks on the document
+      document.addEventListener("click", handleClickOutside, true)
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside, true)
+      document.removeEventListener("click", handleClickOutside, true)
     }
   }, [isOpen])
 
@@ -42,7 +84,10 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
     <div ref={selectRef} className={className} style={{ position: 'relative' }}>
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation()
+          setIsOpen(!isOpen)
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -81,22 +126,24 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
         />
       </button>
 
-      {isOpen && (
+      {isOpen && dropdownPosition && createPortal(
         <div
+          ref={dropdownRef}
+          className="select-dropdown"
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            marginTop: '4px',
+            position: 'fixed',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            width: `${dropdownPosition.width}px`,
             background: '#fff',
             border: '1px solid #ddd',
             borderRadius: '6px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            zIndex: 1000000,
             overflow: 'hidden',
             animation: 'slideDown 0.2s ease',
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <style>{`
             @keyframes slideDown {
@@ -114,7 +161,9 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
             <button
               key={option.value}
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 onChange(option.value)
                 setIsOpen(false)
               }}
@@ -145,7 +194,8 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
               {option.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
