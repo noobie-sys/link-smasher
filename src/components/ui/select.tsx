@@ -53,27 +53,32 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
   }, [isOpen])
 
   React.useEffect(() => {
+    if (!isOpen) return
+
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
-      if (
-        selectRef.current && 
-        !selectRef.current.contains(target) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(target)
-      ) {
-        setIsOpen(false)
+      
+      // If click is inside dropdown, don't close
+      if (dropdownRef.current?.contains(target)) {
+        return
       }
+      
+      // If click is inside select button, don't close (button handles its own toggle)
+      if (selectRef.current?.contains(target)) {
+        return
+      }
+      
+      // Click is outside both, close dropdown
+      setIsOpen(false)
     }
 
-    if (isOpen) {
-      // Use capture phase to catch events before they bubble
-      document.addEventListener("mousedown", handleClickOutside, true)
-      // Also listen for clicks on the document
+    // Use a small delay to ensure dropdown clicks register first
+    const timeoutId = setTimeout(() => {
       document.addEventListener("click", handleClickOutside, true)
-    }
+    }, 10)
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside, true)
+      clearTimeout(timeoutId)
       document.removeEventListener("click", handleClickOutside, true)
     }
   }, [isOpen])
@@ -142,7 +147,9 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
             zIndex: 1000000,
             overflow: 'hidden',
             animation: 'slideDown 0.2s ease',
+            pointerEvents: 'auto',
           }}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
           <style>{`
@@ -162,10 +169,13 @@ export function Select({ value, onChange, options, placeholder, className }: Sel
               key={option.value}
               type="button"
               onClick={(e) => {
-                e.preventDefault()
                 e.stopPropagation()
+                e.preventDefault()
                 onChange(option.value)
                 setIsOpen(false)
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation()
               }}
               style={{
                 display: 'block',
