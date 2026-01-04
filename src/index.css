@@ -127,6 +127,11 @@ div[role="dialog"] {
 
 .select-dropdown {
   z-index: 1000000 !important;
+  pointer-events: auto !important;
+}
+
+.select-dropdown button {
+  pointer-events: auto !important;
 }
 
 /* Toast container positioning - styles are injected into shadow DOM */
