@@ -41,6 +41,10 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   // Sort options
   const [sortByCurrent, setSortByCurrent] = React.useState<SortOption>('date-desc')
   const [sortByAll, setSortByAll] = React.useState<SortOption>('date-desc')
+  
+  // Search queries
+  const [searchCurrent, setSearchCurrent] = React.useState("")
+  const [searchAll, setSearchAll] = React.useState("")
 
   // Load current page info when dialog opens
   React.useEffect(() => {
@@ -210,14 +214,32 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     }
   }
 
-  // Sorted links
+  // Filter function
+  const filterLinks = (links: Link[], searchQuery: string): Link[] => {
+    if (!searchQuery.trim()) {
+      return links
+    }
+    
+    const query = searchQuery.toLowerCase().trim()
+    return links.filter(link => {
+      const titleMatch = (link.title || "").toLowerCase().includes(query)
+      const urlMatch = link.url.toLowerCase().includes(query)
+      const tagsMatch = (link.tags || []).some(tag => tag.toLowerCase().includes(query))
+      
+      return titleMatch || urlMatch || tagsMatch
+    })
+  }
+
+  // Sorted and filtered links
   const sortedCurrentSiteLinks = React.useMemo(() => {
-    return sortLinks(currentSiteLinks, sortByCurrent)
-  }, [currentSiteLinks, sortByCurrent])
+    const sorted = sortLinks(currentSiteLinks, sortByCurrent)
+    return filterLinks(sorted, searchCurrent)
+  }, [currentSiteLinks, sortByCurrent, searchCurrent])
 
   const sortedAllLinks = React.useMemo(() => {
-    return sortLinks(allLinks, sortByAll)
-  }, [allLinks, sortByAll])
+    const sorted = sortLinks(allLinks, sortByAll)
+    return filterLinks(sorted, searchAll)
+  }, [allLinks, sortByAll, searchAll])
 
   const sortOptions = [
     { value: 'date-desc', label: 'Newest First' },
@@ -364,9 +386,18 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 </div>
               ) : (
                 <>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      placeholder="Search links..."
+                      value={searchCurrent}
+                      onChange={(e) => setSearchCurrent(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
+                    />
+                  </div>
                   <div className="flex items-center justify-between mb-3 gap-3">
                     <div className="text-xs text-muted-foreground">
-                    {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
+                      {sortedCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
                     </div>
                     <div className="w-[160px]">
                       <Select
@@ -378,7 +409,13 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-2">
-                    {sortedCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))}
+                    {sortedCurrentSiteLinks.length === 0 ? (
+                      <div className="text-center text-sm text-muted-foreground py-8">
+                        No links match your search
+                      </div>
+                    ) : (
+                      sortedCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
+                    )}
                   </div>
                 </>
               )}
@@ -397,9 +434,18 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                 </div>
               ) : (
                 <>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      placeholder="Search links..."
+                      value={searchAll}
+                      onChange={(e) => setSearchAll(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
+                    />
+                  </div>
                   <div className="flex items-center justify-between mb-3 gap-3">
                     <div className="text-xs text-muted-foreground">
-                    {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
+                      {sortedAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
                     </div>
                     <div className="w-[160px]">
                       <Select
@@ -411,7 +457,13 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-2">
-                    {sortedAllLinks.map((link, index) => renderLinkItem(link, index))}
+                    {sortedAllLinks.length === 0 ? (
+                      <div className="text-center text-sm text-muted-foreground py-8">
+                        No links match your search
+                      </div>
+                    ) : (
+                      sortedAllLinks.map((link, index) => renderLinkItem(link, index))
+                    )}
                   </div>
                 </>
               )}
