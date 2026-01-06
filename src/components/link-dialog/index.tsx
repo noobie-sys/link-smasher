@@ -9,14 +9,11 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { Select } from "@/components/ui/select"
 import { linkService } from "@/core/services/link.service"
 import { Link } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
 import { ExternalLink, Trash2 } from "lucide-react"
-
-type SortOption = 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'tags-asc' | 'tags-desc';
 
 interface LinkDialogProps {
   open: boolean
@@ -37,10 +34,6 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   // All saved links
   const [allLinks, setAllLinks] = React.useState<Link[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
-  
-  // Sort options
-  const [sortByCurrent, setSortByCurrent] = React.useState<SortOption>('date-desc')
-  const [sortByAll, setSortByAll] = React.useState<SortOption>('date-desc')
   
   // Search queries
   const [searchCurrent, setSearchCurrent] = React.useState("")
@@ -164,56 +157,6 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     return new Date(timestamp).toLocaleDateString()
   }
 
-  // Sort function
-  const sortLinks = (links: Link[], sortBy: SortOption): Link[] => {
-    const linksCopy = [...links]
-    
-    switch (sortBy) {
-      case 'name-asc':
-        return linksCopy.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase()
-          const titleB = (b.title || b.url).toLowerCase()
-          return titleA.localeCompare(titleB)
-        })
-      
-      case 'name-desc':
-        return linksCopy.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase()
-          const titleB = (b.title || b.url).toLowerCase()
-          return titleB.localeCompare(titleA)
-        })
-      
-      case 'date-asc':
-        return linksCopy.sort((a, b) => a.createdAt - b.createdAt)
-      
-      case 'date-desc':
-        return linksCopy.sort((a, b) => b.createdAt - a.createdAt)
-      
-      case 'tags-asc':
-        return linksCopy.sort((a, b) => {
-          const tagsA = (a.tags || []).join(',').toLowerCase()
-          const tagsB = (b.tags || []).join(',').toLowerCase()
-          if (tagsA === '' && tagsB === '') return 0
-          if (tagsA === '') return 1
-          if (tagsB === '') return -1
-          return tagsA.localeCompare(tagsB)
-        })
-      
-      case 'tags-desc':
-        return linksCopy.sort((a, b) => {
-          const tagsA = (a.tags || []).join(',').toLowerCase()
-          const tagsB = (b.tags || []).join(',').toLowerCase()
-          if (tagsA === '' && tagsB === '') return 0
-          if (tagsA === '') return 1
-          if (tagsB === '') return -1
-          return tagsB.localeCompare(tagsA)
-        })
-      
-      default:
-        return linksCopy
-    }
-  }
-
   // Filter function
   const filterLinks = (links: Link[], searchQuery: string): Link[] => {
     if (!searchQuery.trim()) {
@@ -230,25 +173,14 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     })
   }
 
-  // Sorted and filtered links
-  const sortedCurrentSiteLinks = React.useMemo(() => {
-    const sorted = sortLinks(currentSiteLinks, sortByCurrent)
-    return filterLinks(sorted, searchCurrent)
-  }, [currentSiteLinks, sortByCurrent, searchCurrent])
+  // Filtered links
+  const filteredCurrentSiteLinks = React.useMemo(() => {
+    return filterLinks(currentSiteLinks, searchCurrent)
+  }, [currentSiteLinks, searchCurrent])
 
-  const sortedAllLinks = React.useMemo(() => {
-    const sorted = sortLinks(allLinks, sortByAll)
-    return filterLinks(sorted, searchAll)
-  }, [allLinks, sortByAll, searchAll])
-
-  const sortOptions = [
-    { value: 'date-desc', label: 'Newest First' },
-    { value: 'date-asc', label: 'Oldest First' },
-    { value: 'name-asc', label: 'Name (A-Z)' },
-    { value: 'name-desc', label: 'Name (Z-A)' },
-    { value: 'tags-asc', label: 'Tags (A-Z)' },
-    { value: 'tags-desc', label: 'Tags (Z-A)' },
-  ]
+  const filteredAllLinks = React.useMemo(() => {
+    return filterLinks(allLinks, searchAll)
+  }, [allLinks, searchAll])
 
   const renderLinkItem = (link: Link, index?: number) => (
     <div
@@ -395,26 +327,16 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                       className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
                     />
                   </div>
-                  <div className="flex items-center justify-between mb-3 gap-3">
-                    <div className="text-xs text-muted-foreground">
-                      {sortedCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
-                    </div>
-                    <div className="w-[160px]">
-                      <Select
-                        value={sortByCurrent}
-                        onChange={(value) => setSortByCurrent(value as SortOption)}
-                        options={sortOptions}
-                        placeholder="Sort by..."
-                      />
-                    </div>
+                  <div className="text-xs text-muted-foreground mb-3">
+                    {filteredCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-2">
-                    {sortedCurrentSiteLinks.length === 0 ? (
+                    {filteredCurrentSiteLinks.length === 0 ? (
                       <div className="text-center text-sm text-muted-foreground py-8">
                         No links match your search
                       </div>
                     ) : (
-                      sortedCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
+                      filteredCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
                     )}
                   </div>
                 </>
@@ -443,26 +365,16 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                       className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
                     />
                   </div>
-                  <div className="flex items-center justify-between mb-3 gap-3">
-                    <div className="text-xs text-muted-foreground">
-                      {sortedAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
-                    </div>
-                    <div className="w-[160px]">
-                      <Select
-                        value={sortByAll}
-                        onChange={(value) => setSortByAll(value as SortOption)}
-                        options={sortOptions}
-                        placeholder="Sort by..."
-                      />
-                    </div>
+                  <div className="text-xs text-muted-foreground mb-3">
+                    {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
                   </div>
                   <div className="flex-1 overflow-y-auto space-y-2">
-                    {sortedAllLinks.length === 0 ? (
+                    {filteredAllLinks.length === 0 ? (
                       <div className="text-center text-sm text-muted-foreground py-8">
                         No links match your search
                       </div>
                     ) : (
-                      sortedAllLinks.map((link, index) => renderLinkItem(link, index))
+                      filteredAllLinks.map((link, index) => renderLinkItem(link, index))
                     )}
                   </div>
                 </>
