@@ -1,14 +1,10 @@
 import { usePopup } from './popup.store';
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ShortcutSettings } from './components/ShortcutSettings';
-import { Select } from '@/components/ui/select';
-
-type SortOption = 'name-asc' | 'name-desc' | 'date-asc' | 'date-desc' | 'tags-asc' | 'tags-desc';
 
 export default function App() {
   const { currentTab, links, tag, setTag, saveLink, status } = usePopup();
   const [view, setView] = useState<'home' | 'settings'>('home');
-  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
 
 
   if (!currentTab) {
@@ -17,65 +13,6 @@ export default function App() {
 
   // Check if current URL is already saved
   const isAlreadySaved = links.some(l => l.url === currentTab.url);
-
-  // Sort links based on selected option
-  const sortedLinks = useMemo(() => {
-    const linksCopy = [...links];
-    
-    switch (sortBy) {
-      case 'name-asc':
-        return linksCopy.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase();
-          const titleB = (b.title || b.url).toLowerCase();
-          return titleA.localeCompare(titleB);
-        });
-      
-      case 'name-desc':
-        return linksCopy.sort((a, b) => {
-          const titleA = (a.title || a.url).toLowerCase();
-          const titleB = (b.title || b.url).toLowerCase();
-          return titleB.localeCompare(titleA);
-        });
-      
-      case 'date-asc':
-        return linksCopy.sort((a, b) => a.createdAt - b.createdAt);
-      
-      case 'date-desc':
-        return linksCopy.sort((a, b) => b.createdAt - a.createdAt);
-      
-      case 'tags-asc':
-        return linksCopy.sort((a, b) => {
-          const tagsA = a.tags.join(',').toLowerCase();
-          const tagsB = b.tags.join(',').toLowerCase();
-          if (tagsA === '' && tagsB === '') return 0;
-          if (tagsA === '') return 1;
-          if (tagsB === '') return -1;
-          return tagsA.localeCompare(tagsB);
-        });
-      
-      case 'tags-desc':
-        return linksCopy.sort((a, b) => {
-          const tagsA = a.tags.join(',').toLowerCase();
-          const tagsB = b.tags.join(',').toLowerCase();
-          if (tagsA === '' && tagsB === '') return 0;
-          if (tagsA === '') return 1;
-          if (tagsB === '') return -1;
-          return tagsB.localeCompare(tagsA);
-        });
-      
-      default:
-        return linksCopy;
-    }
-  }, [links, sortBy]);
-
-  const sortOptions = [
-    { value: 'date-desc', label: 'Newest First' },
-    { value: 'date-asc', label: 'Oldest First' },
-    { value: 'name-asc', label: 'Name (A-Z)' },
-    { value: 'name-desc', label: 'Name (Z-A)' },
-    { value: 'tags-asc', label: 'Tags (A-Z)' },
-    { value: 'tags-desc', label: 'Tags (Z-A)' },
-  ];
 
   return (
     <div style={{ padding: '16px', width: '300px', fontFamily: 'sans-serif' }}>
@@ -158,20 +95,10 @@ export default function App() {
             )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ fontSize: '14px', margin: 0, borderBottom: '1px solid #eee', paddingBottom: '4px', flex: 1 }}>
+          <div style={{ marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '14px', margin: 0, borderBottom: '1px solid #eee', paddingBottom: '4px' }}>
               Saved from this site ({links.length})
             </h3>
-            {links.length > 0 && (
-              <div style={{ width: '140px', marginLeft: '8px' }}>
-                <Select
-                  value={sortBy}
-                  onChange={(value) => setSortBy(value as SortOption)}
-                  options={sortOptions}
-                  placeholder="Sort by..."
-                />
-              </div>
-            )}
           </div>
 
           <div 
@@ -185,7 +112,7 @@ export default function App() {
               <div style={{ color: '#999', fontSize: '13px', fontStyle: 'italic' }}>No links saved yet.</div>
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                {sortedLinks.map((link, index) => (
+                {links.map((link, index) => (
                   <li 
                     key={link.id} 
                     style={{ 
