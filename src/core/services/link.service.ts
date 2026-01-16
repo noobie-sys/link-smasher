@@ -9,8 +9,6 @@ export const linkService = {
       throw new Error("Invalid URL");
     }
 
-    console.log("Saving link:", dto);
-
     const links = await linkStorage.get();
 
     // Check for duplicates
