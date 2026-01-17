@@ -25,7 +25,10 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   const [currentUrl, setCurrentUrl] = React.useState("")
   const [currentTitle, setCurrentTitle] = React.useState("")
   const [tags, setTags] = React.useState("")
+  const [notes, setNotes] = React.useState("")
   const [saving, setSaving] = React.useState(false)
+  
+  const MAX_NOTES_LENGTH = 200
   
   // Current website links
   const [currentSiteLinks, setCurrentSiteLinks] = React.useState<Link[]>([])
@@ -110,11 +113,13 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
         url: currentUrl,
         title: currentTitle || currentUrl,
         tags: tagsArray,
+        notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
       })
 
       if (result) {
         toast.success("Link saved successfully!")
         setTags("")
+        setNotes("")
         // Refresh current site links
         await loadCurrentSiteLinks(currentHostname)
         // Switch to current site tab to show the saved link
@@ -168,8 +173,9 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
       const titleMatch = (link.title || "").toLowerCase().includes(query)
       const urlMatch = link.url.toLowerCase().includes(query)
       const tagsMatch = (link.tags || []).some(tag => tag.toLowerCase().includes(query))
+      const notesMatch = (link.notes || "").toLowerCase().includes(query)
       
-      return titleMatch || urlMatch || tagsMatch
+      return titleMatch || urlMatch || tagsMatch || notesMatch
     })
   }
 
@@ -195,6 +201,11 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
         <p className="text-xs text-muted-foreground truncate mt-1">
           {link.url}
         </p>
+        {link.notes && (
+          <p className="text-xs text-muted-foreground italic mt-1 line-clamp-2">
+            {link.notes}
+          </p>
+        )}
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xs text-muted-foreground">
             {formatDate(link.createdAt)}
@@ -294,6 +305,24 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
                   className="w-full px-3 py-2 rounded-md border bg-background text-sm"
                   placeholder="tag1, tag2, tag3"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</label>
+                <input
+                  type="text"
+                  value={notes}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
+                    setNotes(value)
+                  }}
+                  maxLength={MAX_NOTES_LENGTH}
+                  className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                  placeholder="Add a short note..."
+                />
+                <div className="text-xs text-muted-foreground text-right">
+                  {notes.length}/{MAX_NOTES_LENGTH}
+                </div>
               </div>
 
               <Button

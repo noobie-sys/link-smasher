@@ -4,6 +4,7 @@ export interface Link {
   title: string;
   hostname: string;
   tags: string[];
+  notes?: string;
   createdAt: number;
 }
 
