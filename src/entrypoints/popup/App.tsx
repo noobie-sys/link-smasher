@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { ShortcutSettings } from './components/ShortcutSettings';
 
 export default function App() {
-  const { currentTab, links, tag, setTag, saveLink, status } = usePopup();
+  const { currentTab, links, tag, setTag, notes, setNotes, saveLink, status } = usePopup();
   const [view, setView] = useState<'home' | 'settings'>('home');
+  
+  const MAX_NOTES_LENGTH = 200;
 
 
   if (!currentTab) {
@@ -63,28 +65,51 @@ export default function App() {
             {isAlreadySaved ? (
               <div style={{ marginTop: '8px', color: 'green', fontSize: '13px' }}>✓ This page is saved</div>
             ) : (
-              <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+              <div style={{ marginTop: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Tags (comma separated)"
+                    value={tag}
+                    onChange={(e) => setTag(e.target.value)}
+                    style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #ddd', fontSize: '12px' }}
+                  />
+                  <button
+                    onClick={saveLink}
+                    disabled={status === 'saving'}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    {status === 'saving' ? '...' : 'Save'}
+                  </button>
+                </div>
                 <input
                   type="text"
-                  placeholder="Tags (comma separated)"
-                  value={tag}
-                  onChange={(e) => setTag(e.target.value)}
-                  style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #ddd' }}
-                />
-                <button
-                  onClick={saveLink}
-                  disabled={status === 'saving'}
-                  style={{
-                    padding: '6px 12px',
-                    background: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
+                  placeholder="Notes (max 200 chars)"
+                  value={notes}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, MAX_NOTES_LENGTH);
+                    setNotes(value);
                   }}
-                >
-                  {status === 'saving' ? '...' : 'Save'}
-                </button>
+                  maxLength={MAX_NOTES_LENGTH}
+                  style={{ 
+                    width: '100%', 
+                    padding: '6px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ddd',
+                    fontSize: '12px'
+                  }}
+                />
+                <div style={{ fontSize: '10px', color: '#999', marginTop: '4px', textAlign: 'right' }}>
+                  {notes.length}/{MAX_NOTES_LENGTH}
+                </div>
                 {status === 'error' && (
                   <div style={{ marginTop: '8px', color: 'red', fontSize: '12px' }}>
                     Error saving link. Please try again.
@@ -137,6 +162,11 @@ export default function App() {
                     >
                       {link.title || link.url}
                     </a>
+                    {link.notes && (
+                      <div style={{ marginTop: '4px', fontSize: '11px', color: '#666', fontStyle: 'italic' }}>
+                        {link.notes}
+                      </div>
+                    )}
                     {link.tags.length > 0 && (
                       <div style={{ marginTop: '4px' }}>
                         {link.tags.map((t, i) => (

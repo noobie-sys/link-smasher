@@ -24,6 +24,8 @@ export const linkService = {
         tags: Array.from(
           new Set([...(existingLink.tags || []), ...(dto.tags || [])])
         ),
+        // Update notes if provided
+        notes: dto.notes !== undefined ? dto.notes : existingLink.notes,
       };
 
       const newLinks = [...links];
