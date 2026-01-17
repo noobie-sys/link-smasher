@@ -11,6 +11,7 @@ export function usePopup() {
   } | null>(null);
   const [links, setLinks] = useState<Link[]>([]);
   const [tag, setTag] = useState("");
+  const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">(
     "idle"
   );
@@ -49,6 +50,7 @@ export function usePopup() {
             ? currentTab.url
             : currentTab.title,
         tags: tag.trim() ? tag.split(",").map((t) => t.trim()) : [],
+        notes: notes.trim().slice(0, 200) || undefined,
       });
 
       console.log("RESULTS: ", result);
@@ -69,6 +71,7 @@ export function usePopup() {
         await loadLinks(currentTab.hostname);
 
         setTag("");
+        setNotes("");
         setStatus("success");
         setTimeout(() => setStatus("idle"), 2000);
       } else {
@@ -85,6 +88,8 @@ export function usePopup() {
     links,
     tag,
     setTag,
+    notes,
+    setNotes,
     saveLink,
     status,
   };
