@@ -13,7 +13,7 @@ import { linkService } from "@/core/services/link.service"
 import { Link } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
-import { ExternalLink, Trash2 } from "lucide-react"
+import { ExternalLink, Trash2, Pencil } from "lucide-react"
 
 interface LinkDialogProps {
   open: boolean
@@ -29,6 +29,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   const [tags, setTags] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [saving, setSaving] = React.useState(false)
+  const [editingLinkId, setEditingLinkId] = React.useState<string | null>(null)
 
   const MAX_NOTES_LENGTH = 200
 
@@ -48,24 +49,11 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   React.useEffect(() => {
     if (open) {
       if (linkToEdit) {
-        // Edit mode
-        setCurrentUrl(linkToEdit.url)
-        setCurrentTitle(linkToEdit.title)
-        setTags(linkToEdit.tags.join(", "))
-        setNotes(linkToEdit.notes || "")
-        setActiveTab("save")
+        // Edit mode from externals
+        startEditing(linkToEdit)
       } else {
         // New link mode
-        const url = window.location.href
-        const title = document.title || url
-
-        // Don't overwrite if we just switched tabs within the dialog, 
-        // but do reset if we just opened the dialog fresh.
-        // Actually, simple logic: if just opening, reset to current page.
-        setCurrentUrl(url)
-        setCurrentTitle(title)
-        setTags("")
-        setNotes("")
+        resetForm()
       }
 
       const url = window.location.href
@@ -79,8 +67,32 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       if (activeTab === "all") {
         loadAllLinks()
       }
+    } else {
+      // Cleanup when closing
+      setEditingLinkId(null)
     }
   }, [open, linkToEdit])
+
+  const resetForm = () => {
+    const url = window.location.href
+    const title = document.title || url
+    setCurrentUrl(url)
+    setCurrentTitle(title)
+    setTags("")
+    setNotes("")
+    setEditingLinkId(null)
+  }
+
+  const startEditing = (link: Link) => {
+    setCurrentUrl(link.url)
+    setCurrentTitle(link.title)
+    setTags(link.tags.join(", "))
+    setNotes(link.notes || "")
+    setEditingLinkId(link.id)
+    setActiveTab("save")
+  }
+
+  // ... existing logic ...
 
   // Load links when switching to "all" tab
   React.useEffect(() => {
@@ -130,17 +142,11 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
       let result: Link | null = null;
 
-      if (linkToEdit) {
-        result = await linkService.updateLink(linkToEdit.id, {
+      if (editingLinkId) {
+        result = await linkService.updateLink(editingLinkId, {
           title: currentTitle || currentUrl,
           tags: tagsArray,
           notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
-          // note: we generally don't update URL for existing links as it changes identity logic, 
-          // but if the user edited the URL field, we might want to? 
-          // For now let's assume URL update is not supported or ignored, 
-          // OR we can pass it if we want to allow re-keying. 
-          // linkService.updateLink implementation I wrote kept the ID.
-          // If we pass URL it might update the URL property but ID remains same.
           url: currentUrl
         });
       } else {
@@ -153,12 +159,10 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       }
 
       if (result) {
-        toast.success(linkToEdit ? "Link updated!" : "Link saved successfully!")
+        toast.success(editingLinkId ? "Link updated!" : "Link saved successfully!")
 
-        if (!linkToEdit) {
-          setTags("")
-          setNotes("")
-        }
+        // Reset form to "Add new" state if we were editing, or just clear fields
+        resetForm()
 
         // Refresh current site links
         await loadCurrentSiteLinks(currentHostname)
@@ -274,6 +278,14 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
           title="Open link"
         >
           <ExternalLink className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => startEditing(link)}
+          title="Edit link"
+        >
+          <Pencil className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
