@@ -18,26 +18,28 @@ import { ExternalLink, Trash2 } from "lucide-react"
 interface LinkDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  linkToEdit?: Link | null
+  onEditComplete?: () => void
 }
 
-export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
+export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: LinkDialogProps) {
   const [activeTab, setActiveTab] = React.useState("save")
   const [currentUrl, setCurrentUrl] = React.useState("")
   const [currentTitle, setCurrentTitle] = React.useState("")
   const [tags, setTags] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [saving, setSaving] = React.useState(false)
-  
+
   const MAX_NOTES_LENGTH = 200
-  
+
   // Current website links
   const [currentSiteLinks, setCurrentSiteLinks] = React.useState<Link[]>([])
   const [currentHostname, setCurrentHostname] = React.useState("")
-  
+
   // All saved links
   const [allLinks, setAllLinks] = React.useState<Link[]>([])
   const [isLoading, setIsLoading] = React.useState(false)
-  
+
   // Search queries
   const [searchCurrent, setSearchCurrent] = React.useState("")
   const [searchAll, setSearchAll] = React.useState("")
@@ -45,23 +47,40 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
   // Load current page info when dialog opens
   React.useEffect(() => {
     if (open) {
+      if (linkToEdit) {
+        // Edit mode
+        setCurrentUrl(linkToEdit.url)
+        setCurrentTitle(linkToEdit.title)
+        setTags(linkToEdit.tags.join(", "))
+        setNotes(linkToEdit.notes || "")
+        setActiveTab("save")
+      } else {
+        // New link mode
+        const url = window.location.href
+        const title = document.title || url
+
+        // Don't overwrite if we just switched tabs within the dialog, 
+        // but do reset if we just opened the dialog fresh.
+        // Actually, simple logic: if just opening, reset to current page.
+        setCurrentUrl(url)
+        setCurrentTitle(title)
+        setTags("")
+        setNotes("")
+      }
+
       const url = window.location.href
-      const title = document.title || url
       const hostname = getHostname(url)
-      
-      setCurrentUrl(url)
-      setCurrentTitle(title)
       setCurrentHostname(hostname)
-      
+
       // Load current site links
       loadCurrentSiteLinks(hostname)
-      
+
       // Load all links if on that tab
       if (activeTab === "all") {
         loadAllLinks()
       }
     }
-  }, [open])
+  }, [open, linkToEdit])
 
   // Load links when switching to "all" tab
   React.useEffect(() => {
@@ -109,21 +128,44 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
         .map((t) => t.trim())
         .filter((t) => t.length > 0)
 
-      const result = await linkService.addLink({
-        url: currentUrl,
-        title: currentTitle || currentUrl,
-        tags: tagsArray,
-        notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
-      })
+      let result: Link | null = null;
+
+      if (linkToEdit) {
+        result = await linkService.updateLink(linkToEdit.id, {
+          title: currentTitle || currentUrl,
+          tags: tagsArray,
+          notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
+          // note: we generally don't update URL for existing links as it changes identity logic, 
+          // but if the user edited the URL field, we might want to? 
+          // For now let's assume URL update is not supported or ignored, 
+          // OR we can pass it if we want to allow re-keying. 
+          // linkService.updateLink implementation I wrote kept the ID.
+          // If we pass URL it might update the URL property but ID remains same.
+          url: currentUrl
+        });
+      } else {
+        result = await linkService.addLink({
+          url: currentUrl,
+          title: currentTitle || currentUrl,
+          tags: tagsArray,
+          notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
+        })
+      }
 
       if (result) {
-        toast.success("Link saved successfully!")
-        setTags("")
-        setNotes("")
+        toast.success(linkToEdit ? "Link updated!" : "Link saved successfully!")
+
+        if (!linkToEdit) {
+          setTags("")
+          setNotes("")
+        }
+
         // Refresh current site links
         await loadCurrentSiteLinks(currentHostname)
         // Switch to current site tab to show the saved link
         setActiveTab("current")
+
+        if (onEditComplete) onEditComplete();
       }
     } catch (error) {
       console.error("Failed to save link", error)
@@ -141,7 +183,7 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     try {
       await linkService.deleteLink(id)
       toast.success("Link deleted")
-      
+
       // Refresh the appropriate list
       if (activeTab === "current") {
         await loadCurrentSiteLinks(currentHostname)
@@ -167,14 +209,14 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
     if (!searchQuery.trim()) {
       return links
     }
-    
+
     const query = searchQuery.toLowerCase().trim()
     return links.filter(link => {
       const titleMatch = (link.title || "").toLowerCase().includes(query)
       const urlMatch = link.url.toLowerCase().includes(query)
       const tagsMatch = (link.tags || []).some(tag => tag.toLowerCase().includes(query))
       const notesMatch = (link.notes || "").toLowerCase().includes(query)
-      
+
       return titleMatch || urlMatch || tagsMatch || notesMatch
     })
   }
@@ -259,160 +301,160 @@ export function LinkDialog({ open, onOpenChange }: LinkDialogProps) {
           }
         }
       `}</style>
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Link Smasher</DialogTitle>
-        </DialogHeader>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Link Smasher</DialogTitle>
+          </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="save">Save Link</TabsTrigger>
-            <TabsTrigger value="current">Current Site</TabsTrigger>
-            <TabsTrigger value="all">All Links</TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="save">Save Link</TabsTrigger>
+              <TabsTrigger value="current">Current Site</TabsTrigger>
+              <TabsTrigger value="all">All Links</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="save" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="space-y-4 flex-1 overflow-y-auto">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">URL</label>
-                <input
-                  type="text"
-                  value={currentUrl}
-                  onChange={(e) => setCurrentUrl(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                  placeholder="https://example.com"
-                />
+            <TabsContent value="save" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="space-y-4 flex-1 overflow-y-auto">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">URL</label>
+                  <input
+                    type="text"
+                    value={currentUrl}
+                    onChange={(e) => setCurrentUrl(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                    placeholder="https://example.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Title</label>
+                  <input
+                    type="text"
+                    value={currentTitle}
+                    onChange={(e) => setCurrentTitle(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                    placeholder="Link title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                    placeholder="tag1, tag2, tag3"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</label>
+                  <input
+                    type="text"
+                    value={notes}
+                    onChange={(e) => {
+                      const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
+                      setNotes(value)
+                    }}
+                    maxLength={MAX_NOTES_LENGTH}
+                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
+                    placeholder="Add a short note..."
+                  />
+                  <div className="text-xs text-muted-foreground text-right">
+                    {notes.length}/{MAX_NOTES_LENGTH}
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleSaveLink}
+                  disabled={saving || !currentUrl.trim()}
+                  className="w-full"
+                >
+                  {saving ? "Saving..." : "Save Link"}
+                </Button>
               </div>
+            </TabsContent>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
-                <input
-                  type="text"
-                  value={currentTitle}
-                  onChange={(e) => setCurrentTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                  placeholder="Link title"
-                />
+            <TabsContent value="current" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 flex flex-col min-h-0">
+                {isLoading ? (
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    Loading...
+                  </div>
+                ) : currentSiteLinks.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    No links saved from {currentHostname}
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search links..."
+                        value={searchCurrent}
+                        onChange={(e) => setSearchCurrent(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-3">
+                      {filteredCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-2">
+                      {filteredCurrentSiteLinks.length === 0 ? (
+                        <div className="text-center text-sm text-muted-foreground py-8">
+                          No links match your search
+                        </div>
+                      ) : (
+                        filteredCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
+            </TabsContent>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tags (comma separated)</label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                  placeholder="tag1, tag2, tag3"
-                />
+            <TabsContent value="all" className="flex-1 flex flex-col min-h-0 mt-4">
+              <div className="flex-1 flex flex-col min-h-0">
+                {isLoading ? (
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    Loading...
+                  </div>
+                ) : allLinks.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    No links saved yet
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search links..."
+                        value={searchAll}
+                        onChange={(e) => setSearchAll(e.target.value)}
+                        className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground mb-3">
+                      {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
+                    </div>
+                    <div className="flex-1 overflow-y-auto space-y-2">
+                      {filteredAllLinks.length === 0 ? (
+                        <div className="text-center text-sm text-muted-foreground py-8">
+                          No links match your search
+                        </div>
+                      ) : (
+                        filteredAllLinks.map((link, index) => renderLinkItem(link, index))
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={(e) => {
-                    const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
-                    setNotes(value)
-                  }}
-                  maxLength={MAX_NOTES_LENGTH}
-                  className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                  placeholder="Add a short note..."
-                />
-                <div className="text-xs text-muted-foreground text-right">
-                  {notes.length}/{MAX_NOTES_LENGTH}
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSaveLink}
-                disabled={saving || !currentUrl.trim()}
-                className="w-full"
-              >
-                {saving ? "Saving..." : "Save Link"}
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="current" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="flex-1 flex flex-col min-h-0">
-              {isLoading ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  Loading...
-                </div>
-              ) : currentSiteLinks.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  No links saved from {currentHostname}
-                </div>
-              ) : (
-                <>
-                  <div className="mb-3">
-                    <input
-                      type="text"
-                      placeholder="Search links..."
-                      value={searchCurrent}
-                      onChange={(e) => setSearchCurrent(e.target.value)}
-                      className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
-                    />
-                  </div>
-                  <div className="text-xs text-muted-foreground mb-3">
-                    {filteredCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
-                  </div>
-                  <div className="flex-1 overflow-y-auto space-y-2">
-                    {filteredCurrentSiteLinks.length === 0 ? (
-                      <div className="text-center text-sm text-muted-foreground py-8">
-                        No links match your search
-                      </div>
-                    ) : (
-                      filteredCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="all" className="flex-1 flex flex-col min-h-0 mt-4">
-            <div className="flex-1 flex flex-col min-h-0">
-              {isLoading ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  Loading...
-                </div>
-              ) : allLinks.length === 0 ? (
-                <div className="text-center text-sm text-muted-foreground py-8">
-                  No links saved yet
-                </div>
-              ) : (
-                <>
-                  <div className="mb-3">
-                    <input
-                      type="text"
-                      placeholder="Search links..."
-                      value={searchAll}
-                      onChange={(e) => setSearchAll(e.target.value)}
-                      className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
-                    />
-                  </div>
-                  <div className="text-xs text-muted-foreground mb-3">
-                    {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
-                  </div>
-                  <div className="flex-1 overflow-y-auto space-y-2">
-                    {filteredAllLinks.length === 0 ? (
-                      <div className="text-center text-sm text-muted-foreground py-8">
-                        No links match your search
-                      </div>
-                    ) : (
-                      filteredAllLinks.map((link, index) => renderLinkItem(link, index))
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
