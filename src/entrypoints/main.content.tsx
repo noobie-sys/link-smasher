@@ -9,10 +9,12 @@ import { toast } from "sonner";
 import { keyboardService } from "@/core/services/keyboard.service";
 import { keyboardConfigService, ShortcutAction } from "@/core/services/keyboard-config.service";
 import { linkService } from "@/core/services/link.service";
+import { Link } from "@/shared/types/common.types";
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
     const [linkDialogOpen, setLinkDialogOpen] = useState(false)
+    const [linkToEdit, setLinkToEdit] = useState<Link | null>(null)
     const unregisterRefs = useRef<Map<string, () => void>>(new Map())
 
     // Load and register shortcuts from configuration
@@ -27,7 +29,7 @@ const ContentRoot = () => {
         // Register each shortcut
         for (const shortcut of shortcuts) {
             const combo = shortcut.currentCombo || shortcut.defaultCombo;
-            
+
             const unregister = keyboardService.register({
                 id: shortcut.id,
                 key: combo.key,
@@ -37,6 +39,7 @@ const ContentRoot = () => {
                 shiftKey: combo.shiftKey,
                 handler: async (e) => {
                     if (shortcut.id === ShortcutAction.OPEN_DIALOG) {
+                        setLinkToEdit(null); // Ensure clean state
                         setLinkDialogOpen(true);
                     } else if (shortcut.id === ShortcutAction.SAVE_LINK) {
                         // Save current link directly
@@ -75,8 +78,17 @@ const ContentRoot = () => {
             loadAndRegisterShortcuts();
         };
 
+        // Listen for messages from popup
+        const handleMessage = (message: any, sender: any, sendResponse: any) => {
+            if (message.type === "EDIT_LINK" && message.link) {
+                setLinkToEdit(message.link);
+                setLinkDialogOpen(true);
+            }
+        };
+
         window.addEventListener("ls-shortcut-updated", handleShortcutUpdate);
         window.addEventListener("ls-shortcuts-reset", handleShortcutUpdate);
+        chrome.runtime.onMessage.addListener(handleMessage);
 
         return () => {
             // Cleanup
@@ -84,6 +96,7 @@ const ContentRoot = () => {
             unregisterRefs.current.clear();
             window.removeEventListener("ls-shortcut-updated", handleShortcutUpdate);
             window.removeEventListener("ls-shortcuts-reset", handleShortcutUpdate);
+            chrome.runtime.onMessage.removeListener(handleMessage);
         };
     }, []);
 
@@ -91,7 +104,15 @@ const ContentRoot = () => {
         <React.StrictMode>
             <PortalContext.Provider value={portalContainer} >
                 <div ref={setPortalContainer} id="link-smasher-container">
-                    <LinkDialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen} />
+                    <LinkDialog
+                        open={linkDialogOpen}
+                        onOpenChange={(open) => {
+                            setLinkDialogOpen(open);
+                            if (!open) setLinkToEdit(null);
+                        }}
+                        linkToEdit={linkToEdit}
+                        onEditComplete={() => setLinkToEdit(null)}
+                    />
                     <Toaster />
                 </div>
             </PortalContext.Provider>

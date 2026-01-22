@@ -5,7 +5,7 @@ import { ShortcutSettings } from './components/ShortcutSettings';
 export default function App() {
   const { currentTab, links, tag, setTag, notes, setNotes, saveLink, status } = usePopup();
   const [view, setView] = useState<'home' | 'settings'>('home');
-  
+
   const MAX_NOTES_LENGTH = 200;
 
 
@@ -99,10 +99,10 @@ export default function App() {
                     setNotes(value);
                   }}
                   maxLength={MAX_NOTES_LENGTH}
-                  style={{ 
-                    width: '100%', 
-                    padding: '6px', 
-                    borderRadius: '4px', 
+                  style={{
+                    width: '100%',
+                    padding: '6px',
+                    borderRadius: '4px',
                     border: '1px solid #ddd',
                     fontSize: '12px'
                   }}
@@ -126,9 +126,9 @@ export default function App() {
             </h3>
           </div>
 
-          <div 
-            style={{ 
-              maxHeight: '200px', 
+          <div
+            style={{
+              maxHeight: '200px',
               overflowY: 'auto',
               transition: 'opacity 0.2s ease'
             }}
@@ -138,47 +138,76 @@ export default function App() {
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {links.map((link, index) => (
-                  <li 
-                    key={link.id} 
-                    style={{ 
-                      padding: '8px 0', 
+                  <li
+                    key={link.id}
+                    style={{
+                      padding: '8px 0',
                       borderBottom: '1px solid #f0f0f0',
-                      animation: `fadeIn 0.3s ease ${index * 0.03}s both`
+                      animation: `fadeIn 0.3s ease ${index * 0.03}s both`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
                     }}
                   >
-                    <a 
-                      href={link.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={{ 
-                        textDecoration: 'none', 
-                        color: '#333', 
-                        fontSize: '13px', 
-                        display: 'block',
-                        transition: 'color 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#007bff'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
-                    >
-                      {link.title || link.url}
-                    </a>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          textDecoration: 'none',
+                          color: '#333',
+                          fontSize: '13px',
+                          display: 'block',
+                          transition: 'color 0.2s ease',
+                          flex: 1,
+                          marginRight: '8px'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#007bff'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#333'}
+                      >
+                        {link.title || link.url}
+                      </a>
+                      <button
+                        onClick={async () => {
+                          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                          if (tab?.id) {
+                            chrome.tabs.sendMessage(tab.id, { type: 'EDIT_LINK', link });
+                            window.close(); // Close popup
+                          }
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#007bff',
+                          fontSize: '10px',
+                          cursor: 'pointer',
+                          padding: '2px 4px',
+                          // border: '1px solid #eee',
+                          // borderRadius: '4px'
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </div>
+
                     {link.notes && (
-                      <div style={{ marginTop: '4px', fontSize: '11px', color: '#666', fontStyle: 'italic' }}>
+                      <div style={{ fontSize: '11px', color: '#666', fontStyle: 'italic' }}>
                         {link.notes}
                       </div>
                     )}
                     {link.tags.length > 0 && (
-                      <div style={{ marginTop: '4px' }}>
+                      <div>
                         {link.tags.map((t, i) => (
-                          <span 
-                            key={i} 
-                            style={{ 
-                              display: 'inline-block', 
-                              background: '#eee', 
-                              padding: '2px 6px', 
-                              borderRadius: '4px', 
-                              fontSize: '10px', 
-                              color: '#555', 
+                          <span
+                            key={i}
+                            style={{
+                              display: 'inline-block',
+                              background: '#eee',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              color: '#555',
                               marginRight: '4px',
                               transition: 'all 0.2s ease'
                             }}
