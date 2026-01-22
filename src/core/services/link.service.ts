@@ -22,7 +22,7 @@ export const linkService = {
         title: dto.title || existingLink.title,
         // Merge tags, unique only
         tags: Array.from(
-          new Set([...(existingLink.tags || []), ...(dto.tags || [])])
+          new Set([...(existingLink.tags || []), ...(dto.tags || [])]),
         ),
         // Update notes if provided
         notes: dto.notes !== undefined ? dto.notes : existingLink.notes,
@@ -59,6 +59,34 @@ export const linkService = {
     return await linkStorage.get();
   },
 
+  /**
+   * Updates an existing link.
+   * Replaces tags and notes with the new values provided.
+   */
+  async updateLink(id: string, updates: Partial<Link>): Promise<Link | null> {
+    const links = await linkStorage.get();
+    const index = links.findIndex((l) => l.id === id);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const currentLink = links[index];
+    const updatedLink: Link = {
+      ...currentLink,
+      ...updates,
+      id: currentLink.id, // Ensure ID doesn't change
+      createdAt: currentLink.createdAt, // Ensure CreatedAt doesn't change
+    };
+
+    const newLinks = [...links];
+    newLinks[index] = updatedLink;
+
+    await linkStorage.set(newLinks);
+    console.log("Updated link:", updatedLink);
+    return updatedLink;
+  },
+
   async deleteLink(id: string): Promise<void> {
     const links = await linkStorage.get();
     const filtered = links.filter((l) => l.id !== id);
@@ -83,7 +111,7 @@ export const linkService = {
           item.id &&
           item.url &&
           item.hostname &&
-          typeof item.createdAt === "number"
+          typeof item.createdAt === "number",
       ) as Link[];
 
       if (validLinks.length === 0) {

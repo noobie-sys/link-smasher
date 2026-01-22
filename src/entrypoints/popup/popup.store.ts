@@ -13,7 +13,7 @@ export function usePopup() {
   const [tag, setTag] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">(
-    "idle"
+    "idle",
   );
 
   useEffect(() => {
