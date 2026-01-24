@@ -57,13 +57,18 @@ export function usePopup() {
 
       if (result) {
         // Optimistic / Immediate update to avoid storage race conditions
+        // We check if the link already exists in the local state.
+        // If it does (edit case), we replace it.
+        // If it doesn't (new link case), we prepend it.
         setLinks((prevLinks) => {
           const index = prevLinks.findIndex((l) => l.url === result.url);
           if (index >= 0) {
+            // Update existing link
             const newLinks = [...prevLinks];
             newLinks[index] = result;
             return newLinks;
           }
+          // Add new link to the top (newest first)
           return [result, ...prevLinks];
         });
 
