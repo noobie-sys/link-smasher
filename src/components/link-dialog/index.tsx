@@ -92,6 +92,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setActiveTab("save")
   }
 
+  const handleTabChange = (value: string) => {
+    if (editingLinkId) {
+      resetForm()
+    }
+    setActiveTab(value)
+  }
+
   // ... existing logic ...
 
   // Load links when switching to "all" tab
@@ -319,7 +326,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
             <DialogTitle>Link Smasher</DialogTitle>
           </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="save">Save Link</TabsTrigger>
               <TabsTrigger value="current">Current Site</TabsTrigger>
