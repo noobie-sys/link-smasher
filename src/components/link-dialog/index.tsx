@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { linkService } from "@/core/services/link.service"
 import { Link } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
@@ -458,15 +459,22 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                     <div className="text-xs text-muted-foreground mb-3">
                       {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
                     </div>
-                    <div className="flex-1 overflow-y-auto space-y-2">
-                      {filteredAllLinks.length === 0 ? (
-                        <div className="text-center text-sm text-muted-foreground py-8">
-                          No links match your search
-                        </div>
-                      ) : (
-                        filteredAllLinks.map((link, index) => renderLinkItem(link, index))
-                      )}
-                    </div>
+                    {/* 
+                  Implemented ScrollArea component for the "All Links" section.
+                  The scrollbar will now appear when the user interacts with this area (hover/scroll).
+                  It will automatically hide if the content is not sufficient to scroll.
+                */}
+                    <ScrollArea className="flex-1">
+                      <div className="space-y-2 pr-4">
+                        {filteredAllLinks.length === 0 ? (
+                          <div className="text-center text-sm text-muted-foreground py-8">
+                            No links match your search
+                          </div>
+                        ) : (
+                          filteredAllLinks.map((link, index) => renderLinkItem(link, index))
+                        )}
+                      </div>
+                    </ScrollArea>
                   </>
                 )}
               </div>
