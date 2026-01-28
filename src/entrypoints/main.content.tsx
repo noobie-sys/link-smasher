@@ -86,9 +86,18 @@ const ContentRoot = () => {
             }
         };
 
+        // Close dialog when tab becomes hidden
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setLinkDialogOpen(false);
+                setLinkToEdit(null);
+            }
+        };
+
         window.addEventListener("ls-shortcut-updated", handleShortcutUpdate);
         window.addEventListener("ls-shortcuts-reset", handleShortcutUpdate);
         chrome.runtime.onMessage.addListener(handleMessage);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
             // Cleanup
@@ -97,6 +106,7 @@ const ContentRoot = () => {
             window.removeEventListener("ls-shortcut-updated", handleShortcutUpdate);
             window.removeEventListener("ls-shortcuts-reset", handleShortcutUpdate);
             chrome.runtime.onMessage.removeListener(handleMessage);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, []);
 
