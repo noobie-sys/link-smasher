@@ -10,6 +10,7 @@ import { keyboardService } from "@/core/services/keyboard.service";
 import { keyboardConfigService, ShortcutAction } from "@/core/services/keyboard-config.service";
 import { linkService } from "@/core/services/link.service";
 import { Link } from "@/shared/types/common.types";
+import { ExtensionMessage } from "@/shared/types/message.types";
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
@@ -79,9 +80,14 @@ const ContentRoot = () => {
         };
 
         // Listen for messages from popup
-        const handleMessage = (message: any, sender: any, sendResponse: any) => {
-            if (message.type === "EDIT_LINK" && message.link) {
-                setLinkToEdit(message.link);
+        const handleMessage = (
+            message: unknown,
+            sender: chrome.runtime.MessageSender,
+            sendResponse: (response?: any) => void
+        ) => {
+            const msg = message as ExtensionMessage;
+            if (msg.type === "EDIT_LINK" && msg.link) {
+                setLinkToEdit(msg.link);
                 setLinkDialogOpen(true);
             }
         };
