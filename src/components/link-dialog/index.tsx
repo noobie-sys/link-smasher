@@ -82,6 +82,9 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setTags("")
     setNotes("")
     setEditingLinkId(null)
+    setActiveTab("save")
+    setSearchCurrent("")
+    setSearchAll("")
   }
 
   const startEditing = (link: Link) => {
