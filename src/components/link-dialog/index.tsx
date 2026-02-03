@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import React from "react"
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,9 @@ import { Link } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
 import { ExternalLink, Trash2, Pencil } from "lucide-react"
+import { Input } from "../ui/input"
+import { Label } from "../ui/label"
+
 
 interface LinkDialogProps {
   open: boolean
@@ -24,30 +27,30 @@ interface LinkDialogProps {
 }
 
 export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: LinkDialogProps) {
-  const [activeTab, setActiveTab] = React.useState("save")
-  const [currentUrl, setCurrentUrl] = React.useState("")
-  const [currentTitle, setCurrentTitle] = React.useState("")
-  const [tags, setTags] = React.useState("")
-  const [notes, setNotes] = React.useState("")
-  const [saving, setSaving] = React.useState(false)
-  const [editingLinkId, setEditingLinkId] = React.useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("save")
+  const [currentUrl, setCurrentUrl] = useState("")
+  const [currentTitle, setCurrentTitle] = useState("")
+  const [tags, setTags] = useState("")
+  const [notes, setNotes] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
 
   const MAX_NOTES_LENGTH = 200
 
   // Current website links
-  const [currentSiteLinks, setCurrentSiteLinks] = React.useState<Link[]>([])
-  const [currentHostname, setCurrentHostname] = React.useState("")
+  const [currentSiteLinks, setCurrentSiteLinks] = useState<Link[]>([])
+  const [currentHostname, setCurrentHostname] = useState("")
 
   // All saved links
-  const [allLinks, setAllLinks] = React.useState<Link[]>([])
-  const [isLoading, setIsLoading] = React.useState(false)
+  const [allLinks, setAllLinks] = useState<Link[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   // Search queries
-  const [searchCurrent, setSearchCurrent] = React.useState("")
-  const [searchAll, setSearchAll] = React.useState("")
+  const [searchCurrent, setSearchCurrent] = useState("")
+  const [searchAll, setSearchAll] = useState("")
 
   // Load current page info when dialog opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       if (linkToEdit) {
         // Edit mode from externals
@@ -106,7 +109,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   // ... existing logic ...
 
   // Load links when switching to "all" tab
-  React.useEffect(() => {
+  useEffect(() => {
     if (open && activeTab === "all") {
       loadAllLinks()
     }
@@ -237,11 +240,11 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }
 
   // Filtered links
-  const filteredCurrentSiteLinks = React.useMemo(() => {
+  const filteredCurrentSiteLinks = useMemo(() => {
     return filterLinks(currentSiteLinks, searchCurrent)
   }, [currentSiteLinks, searchCurrent])
 
-  const filteredAllLinks = React.useMemo(() => {
+  const filteredAllLinks = useMemo(() => {
     return filterLinks(allLinks, searchAll)
   }, [allLinks, searchAll])
 
@@ -312,18 +315,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
   return (
     <>
-      <style>{`
-        @keyframes fadeInSlide {
-          from {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
@@ -339,9 +331,9 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
             <TabsContent value="save" className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="space-y-4 flex-1 overflow-y-auto">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">URL</label>
-                  <input
+                <div className="space-y-2 space-x-4">
+                  <Label className="text-sm font-medium">URL</Label>
+                  <Input
                     type="text"
                     value={currentUrl}
                     onChange={(e) => setCurrentUrl(e.target.value)}
@@ -351,8 +343,8 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Title</label>
-                  <input
+                  <Label className="text-sm font-medium">Title</Label>
+                  <Input
                     type="text"
                     value={currentTitle}
                     onChange={(e) => setCurrentTitle(e.target.value)}
@@ -362,8 +354,8 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Tags (comma separated)</label>
-                  <input
+                  <Label className="text-sm font-medium">Tags (comma separated)</Label>
+                  <Input
                     type="text"
                     value={tags}
                     onChange={(e) => setTags(e.target.value)}
@@ -373,8 +365,8 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</label>
-                  <input
+                  <Label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</Label>
+                  <Input
                     type="text"
                     value={notes}
                     onChange={(e) => {
@@ -451,7 +443,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                 ) : (
                   <>
                     <div className="mb-3">
-                      <input
+                      <Input
                         type="text"
                         placeholder="Search links..."
                         value={searchAll}
