@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import { ExternalLink, Trash2, Pencil } from "lucide-react"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { Textarea } from "../ui/textarea"
 
 
 interface LinkDialogProps {
@@ -249,75 +250,77 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }, [allLinks, searchAll])
 
   const renderLinkItem = (link: Link, index?: number) => (
-    <div
-      key={link.id}
-      className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-all duration-200 ease-in-out"
-      style={{
-        animation: `fadeInSlide 0.3s ease ${(index || 0) * 0.03}s both`
-      }}
-    >
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm truncate">{link.title}</h4>
-        <p className="text-xs text-muted-foreground truncate mt-1">
-          {link.url}
-        </p>
-        {link.notes && (
-          <p className="text-xs text-muted-foreground italic mt-1 line-clamp-2">
-            {link.notes}
+    <ScrollArea className="flex-1 overflow-hidden">
+      <div
+        key={link.id}
+        className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-all duration-200 ease-in-out"
+        style={{
+          animation: `fadeInSlide 0.3s ease ${(index || 0) * 0.03}s both`
+        }}
+      >
+        <div className="flex-1 min-w-0">
+          <h4 className="font-medium text-sm truncate">{link.title}</h4>
+          <p className="text-xs text-muted-foreground truncate mt-1">
+            {link.url}
           </p>
-        )}
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-muted-foreground">
-            {formatDate(link.createdAt)}
-          </span>
-          {link.tags && link.tags.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              {link.tags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+          {link.notes && (
+            <p className="text-xs text-muted-foreground italic mt-1 line-clamp-2">
+              {link.notes}
+            </p>
           )}
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-xs text-muted-foreground">
+              {formatDate(link.createdAt)}
+            </span>
+            {link.tags && link.tags.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {link.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => handleOpenLink(link.url)}
+            title="Open link"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => startEditing(link)}
+            title="Edit link"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => handleDeleteLink(link.id)}
+            title="Delete link"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => handleOpenLink(link.url)}
-          title="Open link"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => startEditing(link)}
-          title="Edit link"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => handleDeleteLink(link.id)}
-          title="Delete link"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+    </ScrollArea>
   )
 
   return (
     <>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle>Link Smasher</DialogTitle>
           </DialogHeader>
@@ -366,8 +369,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</Label>
-                  <Input
-                    type="text"
+                  <Textarea
                     value={notes}
                     onChange={(e) => {
                       const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
@@ -459,17 +461,16 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                   The scrollbar will now appear when the user interacts with this area (hover/scroll).
                   It will automatically hide if the content is not sufficient to scroll.
                 */}
-                    <ScrollArea className="flex-1">
-                      <div className="space-y-2 pr-4">
-                        {filteredAllLinks.length === 0 ? (
-                          <div className="text-center text-sm text-muted-foreground py-8">
-                            No links match your search
-                          </div>
-                        ) : (
-                          filteredAllLinks.map((link, index) => renderLinkItem(link, index))
-                        )}
-                      </div>
-                    </ScrollArea>
+
+                    <div className="space-y-2 pr-4">
+                      {filteredAllLinks.length === 0 ? (
+                        <div className="text-center text-sm text-muted-foreground py-8">
+                          No links match your search
+                        </div>
+                      ) : (
+                        filteredAllLinks.map((link, index) => renderLinkItem(link, index))
+                      )}
+                    </div>
                   </>
                 )}
               </div>
