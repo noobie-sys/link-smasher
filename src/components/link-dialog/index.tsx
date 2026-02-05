@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ interface LinkDialogProps {
 }
 
 export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: LinkDialogProps) {
+  // Default to Save tab
   const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Save)
   const [currentUrl, setCurrentUrl] = useState("")
   const [currentTitle, setCurrentTitle] = useState("")
@@ -52,28 +53,34 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   // Load current page info when dialog opens
   useEffect(() => {
     if (open) {
+      const url = window.location.href
+      const hostname = getHostname(url)
+      setCurrentHostname(hostname)
+
       if (linkToEdit) {
         // Edit mode from externals
         startEditing(linkToEdit)
       } else {
         // New link mode
-        resetForm()
+        // We ensure the form is clean. The tab is already reset to Save on close.
+        const title = document.title || url
+        setCurrentUrl(url)
+        setCurrentTitle(title)
       }
-
-      const url = window.location.href
-      const hostname = getHostname(url)
-      setCurrentHostname(hostname)
 
       // Load current site links
       loadCurrentSiteLinks(hostname)
 
-      // Load all links if on that tab
+      // Only load all links if we are actually ON the All tab (which shouldn't happen on fresh open unless we change logic)
+      // Since we reset to Save on close, activeTab will be Save here (or previous render's value). 
+      // Because we reset on close, the 'stale' value of activeTab should be Save.
       if (activeTab === ActiveTab.All) {
         loadAllLinks()
       }
     } else {
       // Cleanup when closing
       setEditingLinkId(null)
+      resetForm() // Reset everything (including Tab to Save) so it's ready for next open
     }
   }, [open, linkToEdit])
 
@@ -323,7 +330,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Link Smasher</DialogTitle>
+            <DialogTitle>Link Crust</DialogTitle>
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
@@ -457,11 +464,6 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                     <div className="text-xs text-muted-foreground mb-3">
                       {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
                     </div>
-                    {/* 
-                  Implemented ScrollArea component for the "All Links" section.
-                  The scrollbar will now appear when the user interacts with this area (hover/scroll).
-                  It will automatically hide if the content is not sufficient to scroll.
-                */}
 
                     <div className="space-y-2 pr-4">
                       {filteredAllLinks.length === 0 ? (
