@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { linkService } from "@/core/services/link.service"
-import { Link } from "@/shared/types/common.types"
+import { Link, ActiveTab } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
 import { ExternalLink, Trash2, Pencil } from "lucide-react"
@@ -28,7 +28,7 @@ interface LinkDialogProps {
 }
 
 export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: LinkDialogProps) {
-  const [activeTab, setActiveTab] = useState("save")
+  const [activeTab, setActiveTab] = useState<ActiveTab>(ActiveTab.Save)
   const [currentUrl, setCurrentUrl] = useState("")
   const [currentTitle, setCurrentTitle] = useState("")
   const [tags, setTags] = useState("")
@@ -41,7 +41,6 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   // Current website links
   const [currentSiteLinks, setCurrentSiteLinks] = useState<Link[]>([])
   const [currentHostname, setCurrentHostname] = useState("")
-
   // All saved links
   const [allLinks, setAllLinks] = useState<Link[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -69,7 +68,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       loadCurrentSiteLinks(hostname)
 
       // Load all links if on that tab
-      if (activeTab === "all") {
+      if (activeTab === ActiveTab.All) {
         loadAllLinks()
       }
     } else {
@@ -78,7 +77,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     }
   }, [open, linkToEdit])
 
-  const resetForm = () => {
+  const clearFormNodes = () => {
     const url = window.location.href
     const title = document.title || url
     setCurrentUrl(url)
@@ -86,9 +85,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setTags("")
     setNotes("")
     setEditingLinkId(null)
-    setActiveTab("save")
     setSearchCurrent("")
     setSearchAll("")
+  }
+
+  const resetForm = () => {
+    clearFormNodes()
+    setActiveTab(ActiveTab.Save)
   }
 
   const startEditing = (link: Link) => {
@@ -97,24 +100,22 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setTags(link.tags.join(", "))
     setNotes(link.notes || "")
     setEditingLinkId(link.id)
-    setActiveTab("save")
+    setActiveTab(ActiveTab.Save)
   }
 
   const handleTabChange = (value: string) => {
+    const newTab = value as ActiveTab
     if (editingLinkId) {
-      resetForm()
+      clearFormNodes()
     }
-    setActiveTab(value)
-  }
+    setActiveTab(newTab)
 
-  // ... existing logic ...
-
-  // Load links when switching to "all" tab
-  useEffect(() => {
-    if (open && activeTab === "all") {
+    if (newTab === ActiveTab.All) {
       loadAllLinks()
+    } else if (newTab === ActiveTab.Current) {
+      loadCurrentSiteLinks(currentHostname)
     }
-  }, [activeTab, open])
+  }
 
   const loadCurrentSiteLinks = async (hostname: string) => {
     setIsLoading(true)
@@ -182,7 +183,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
         // Refresh current site links
         await loadCurrentSiteLinks(currentHostname)
         // Switch to current site tab to show the saved link
-        setActiveTab("current")
+        setActiveTab(ActiveTab.Current)
 
         if (onEditComplete) onEditComplete();
       }
@@ -204,9 +205,9 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       toast.success("Link deleted")
 
       // Refresh the appropriate list
-      if (activeTab === "current") {
+      if (activeTab === ActiveTab.Current) {
         await loadCurrentSiteLinks(currentHostname)
-      } else if (activeTab === "all") {
+      } else if (activeTab === ActiveTab.All) {
         await loadAllLinks()
       }
     } catch (error) {
@@ -327,12 +328,12 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="save">Save Link</TabsTrigger>
-              <TabsTrigger value="current">Current Site</TabsTrigger>
-              <TabsTrigger value="all">All Links</TabsTrigger>
+              <TabsTrigger value={ActiveTab.Save}>Save Link</TabsTrigger>
+              <TabsTrigger value={ActiveTab.Current}>Current Site</TabsTrigger>
+              <TabsTrigger value={ActiveTab.All}>All Links</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="save" className="flex-1 flex flex-col min-h-0 mt-4">
+            <TabsContent value={ActiveTab.Save} className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="space-y-4 flex-1 overflow-y-auto">
                 <div className="space-y-2 space-x-4">
                   <Label className="text-sm font-medium">URL</Label>
@@ -394,7 +395,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
               </div>
             </TabsContent>
 
-            <TabsContent value="current" className="flex-1 flex flex-col min-h-0 mt-4">
+            <TabsContent value={ActiveTab.Current} className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 flex flex-col min-h-0">
                 {isLoading ? (
                   <div className="text-center text-sm text-muted-foreground py-8">
@@ -432,7 +433,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
               </div>
             </TabsContent>
 
-            <TabsContent value="all" className="flex-1 flex flex-col min-h-0 mt-4">
+            <TabsContent value={ActiveTab.All} className="flex-1 flex flex-col min-h-0 mt-4">
               <div className="flex-1 flex flex-col min-h-0">
                 {isLoading ? (
                   <div className="text-center text-sm text-muted-foreground py-8">

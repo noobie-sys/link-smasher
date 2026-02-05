@@ -9,3 +9,9 @@ export interface Link {
 }
 
 export type LinkDTO = Omit<Link, "id" | "createdAt" | "hostname">;
+
+export enum ActiveTab {
+  Save = "save",
+  Current = "current",
+  All = "all",
+}
