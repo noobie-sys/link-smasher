@@ -4,20 +4,22 @@ import React, { useState, useEffect, useMemo } from "react"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { linkService } from "@/core/services/link.service"
 import { Link, ActiveTab } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
 import { toast } from "sonner"
-import { ExternalLink, Trash2, Pencil } from "lucide-react"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
+
+// New components
+import { CustomDialogHeader } from "./components/dialog-header"
+import { CustomDialogFooter } from "./components/dialog-footer"
+import { SearchBar } from "./components/search-bar"
+import { LinkList } from "./components/link-list"
 
 
 interface LinkDialogProps {
@@ -71,9 +73,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       // Load current site links
       loadCurrentSiteLinks(hostname)
 
-      // Only load all links if we are actually ON the All tab (which shouldn't happen on fresh open unless we change logic)
-      // Since we reset to Save on close, activeTab will be Save here (or previous render's value). 
-      // Because we reset on close, the 'stale' value of activeTab should be Save.
+      // Only load all links if we are actually ON the All tab
       if (activeTab === ActiveTab.All) {
         loadAllLinks()
       }
@@ -227,10 +227,6 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     window.open(url, "_blank")
   }
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString()
-  }
-
   // Filter function
   const filterLinks = (links: Link[], searchQuery: string): Link[] => {
     if (!searchQuery.trim()) {
@@ -257,228 +253,141 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     return filterLinks(allLinks, searchAll)
   }, [allLinks, searchAll])
 
-  const renderLinkItem = (link: Link, index?: number) => (
-    <ScrollArea className="flex-1 overflow-hidden">
-      <div
-        key={link.id}
-        className="flex items-start justify-between gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-all duration-200 ease-in-out"
-        style={{
-          animation: `fadeInSlide 0.3s ease ${(index || 0) * 0.03}s both`
-        }}
-      >
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm truncate">{link.title}</h4>
-          <p className="text-xs text-muted-foreground truncate mt-1">
-            {link.url}
-          </p>
-          {link.notes && (
-            <p className="text-xs text-muted-foreground italic mt-1 line-clamp-2">
-              {link.notes}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-xs text-muted-foreground">
-              {formatDate(link.createdAt)}
-            </span>
-            {link.tags && link.tags.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {link.tags.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => handleOpenLink(link.url)}
-            title="Open link"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => startEditing(link)}
-            title="Edit link"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => handleDeleteLink(link.id)}
-            title="Delete link"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </ScrollArea>
-  )
 
   return (
     <>
-
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Link Crust</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-[420px] max-h-[600px] h-[600px] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl">
+          <CustomDialogHeader onClose={() => onOpenChange(false)} />
 
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value={ActiveTab.Save}>Save Link</TabsTrigger>
-              <TabsTrigger value={ActiveTab.Current}>Current Site</TabsTrigger>
-              <TabsTrigger value={ActiveTab.All}>All Links</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={ActiveTab.Save} className="flex-1 flex flex-col min-h-0 mt-4">
-              <div className="space-y-4 flex-1 overflow-y-auto">
-                <div className="space-y-2 space-x-4">
-                  <Label className="text-sm font-medium">URL</Label>
-                  <Input
-                    type="text"
-                    value={currentUrl}
-                    onChange={(e) => setCurrentUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    placeholder="https://example.com"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Title</Label>
-                  <Input
-                    type="text"
-                    value={currentTitle}
-                    onChange={(e) => setCurrentTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    placeholder="Link title"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Tags (comma separated)</Label>
-                  <Input
-                    type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    placeholder="tag1, tag2, tag3"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Notes (max {MAX_NOTES_LENGTH} chars)</Label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => {
-                      const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
-                      setNotes(value)
-                    }}
-                    maxLength={MAX_NOTES_LENGTH}
-                    className="w-full px-3 py-2 rounded-md border bg-background text-sm"
-                    placeholder="Add a short note..."
-                  />
-                  <div className="text-xs text-muted-foreground text-right">
-                    {notes.length}/{MAX_NOTES_LENGTH}
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleSaveLink}
-                  disabled={saving || !currentUrl.trim()}
-                  className="w-full"
+          <div className="flex-1 overflow-hidden flex flex-col px-4 pt-2">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
+              <TabsList className="grid w-full grid-cols-3 bg-[#1A1A1A] mb-4">
+                <TabsTrigger
+                  value={ActiveTab.Save}
+                  className="data-[state=active]:bg-[#2C2C2C] data-[state=active]:text-[#FFFFFF] text-[#808080]"
                 >
-                  {saving ? "Saving..." : "Save Link"}
-                </Button>
-              </div>
-            </TabsContent>
+                  Save Link
+                </TabsTrigger>
+                <TabsTrigger
+                  value={ActiveTab.Current}
+                  className="data-[state=active]:bg-[#2C2C2C] data-[state=active]:text-[#FFFFFF] text-[#808080]"
+                >
+                  Current Site
+                </TabsTrigger>
+                <TabsTrigger
+                  value={ActiveTab.All}
+                  className="data-[state=active]:bg-[#2C2C2C] data-[state=active]:text-[#FFFFFF] text-[#808080]"
+                >
+                  All Links
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value={ActiveTab.Current} className="flex-1 flex flex-col min-h-0 mt-4">
-              <div className="flex-1 flex flex-col min-h-0">
-                {isLoading ? (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    Loading...
+              <TabsContent value={ActiveTab.Save} className="flex-1 flex flex-col min-h-0 data-[state=inactive]:hidden">
+                <div className="space-y-4 flex-1 overflow-y-auto pr-1">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-300">URL</Label>
+                    <Input
+                      type="text"
+                      value={currentUrl}
+                      onChange={(e) => setCurrentUrl(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
+                      placeholder="https://example.com"
+                    />
                   </div>
-                ) : currentSiteLinks.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    No links saved from {currentHostname}
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-3">
-                      <input
-                        type="text"
-                        placeholder="Search links..."
-                        value={searchCurrent}
-                        onChange={(e) => setSearchCurrent(e.target.value)}
-                        className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-3">
-                      {filteredCurrentSiteLinks.length} of {currentSiteLinks.length} link{currentSiteLinks.length !== 1 ? "s" : ""} from {currentHostname}
-                    </div>
-                    <div className="flex-1 overflow-y-auto space-y-2">
-                      {filteredCurrentSiteLinks.length === 0 ? (
-                        <div className="text-center text-sm text-muted-foreground py-8">
-                          No links match your search
-                        </div>
-                      ) : (
-                        filteredCurrentSiteLinks.map((link, index) => renderLinkItem(link, index))
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </TabsContent>
 
-            <TabsContent value={ActiveTab.All} className="flex-1 flex flex-col min-h-0 mt-4">
-              <div className="flex-1 flex flex-col min-h-0">
-                {isLoading ? (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    Loading...
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-300">Title</Label>
+                    <Input
+                      type="text"
+                      value={currentTitle}
+                      onChange={(e) => setCurrentTitle(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
+                      placeholder="Link title"
+                    />
                   </div>
-                ) : allLinks.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-8">
-                    No links saved yet
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-3">
-                      <Input
-                        type="text"
-                        placeholder="Search links..."
-                        value={searchAll}
-                        onChange={(e) => setSearchAll(e.target.value)}
-                        className="w-full px-3 py-2 rounded-md border bg-background text-sm mb-3"
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-3">
-                      {filteredAllLinks.length} of {allLinks.length} total link{allLinks.length !== 1 ? "s" : ""}
-                    </div>
 
-                    <div className="space-y-2 pr-4">
-                      {filteredAllLinks.length === 0 ? (
-                        <div className="text-center text-sm text-muted-foreground py-8">
-                          No links match your search
-                        </div>
-                      ) : (
-                        filteredAllLinks.map((link, index) => renderLinkItem(link, index))
-                      )}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-300">Tags (comma separated)</Label>
+                    <Input
+                      type="text"
+                      value={tags}
+                      onChange={(e) => setTags(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
+                      placeholder="tag1, tag2, tag3"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-300">Notes</Label>
+                    <Textarea
+                      value={notes}
+                      onChange={(e) => {
+                        const value = e.target.value.slice(0, MAX_NOTES_LENGTH)
+                        setNotes(value)
+                      }}
+                      maxLength={MAX_NOTES_LENGTH}
+                      className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500 min-h-[80px]"
+                      placeholder="Add a short note..."
+                    />
+                    <div className="text-[10px] text-gray-500 text-right">
+                      {notes.length}/{MAX_NOTES_LENGTH}
                     </div>
-                  </>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveLink}
+                    disabled={saving || !currentUrl.trim()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-lg transition-colors"
+                  >
+                    {saving ? "Saving..." : "Save Link"}
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value={ActiveTab.Current} className="flex-1 flex flex-col min-h-0 data-[state=inactive]:hidden">
+                <SearchBar
+                  value={searchCurrent}
+                  onChange={setSearchCurrent}
+                  className="mb-3"
+                  placeholder="Search saved links..."
+                />
+                <LinkList
+                  links={filteredCurrentSiteLinks}
+                  isLoading={isLoading}
+                  headerContent={`${filteredCurrentSiteLinks.length} SAVED ITEMS FROM ${currentHostname.toUpperCase()}`}
+                  onOpen={handleOpenLink}
+                  onEdit={startEditing}
+                  onDelete={handleDeleteLink}
+                  emptyMessage={`No links saved from ${currentHostname}`}
+                />
+              </TabsContent>
+
+              <TabsContent value={ActiveTab.All} className="flex-1 flex flex-col min-h-0 data-[state=inactive]:hidden">
+                <SearchBar
+                  value={searchAll}
+                  onChange={setSearchAll}
+                  className="mb-3"
+                  placeholder="Search saved links..."
+                />
+                <LinkList
+                  links={filteredAllLinks}
+                  isLoading={isLoading}
+                  headerContent={`${filteredAllLinks.length} SAVED ITEMS`}
+                  onOpen={handleOpenLink}
+                  onEdit={startEditing}
+                  onDelete={handleDeleteLink}
+                  emptyMessage="No links saved yet"
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <CustomDialogFooter
+            version="1.4.2"
+            onSettings={() => console.log("Settings Clicked")}
+            onExport={() => console.log("Export Clicked")}
+          />
         </DialogContent>
       </Dialog>
     </>
