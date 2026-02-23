@@ -26,7 +26,7 @@ const formatDate = (timestamp: number) => {
 
 export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
     return (
-        <div className="group w-full min-w-0 relative flex items-start p-4 mb-3 rounded-xl bg-[#232323] hover:bg-[#2a2a2a] border border-gray-500/40  hover:border-gray-700 transition-all duration-200">
+        <div className="group w-[600px] min-w-0 text-ellipsis relative flex items-start p-4 mb-3 rounded-xl bg-[#232323] hover:bg-[#2a2a2a] border border-gray-500/40  hover:border-gray-700 transition-all duration-200">
 
             {/* Icon / Image Placeholder */}
             <div className="shrink-0 mr-4">
@@ -44,7 +44,7 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 truncate">
                 <div className="flex justify-between items-start ">
                     <h3 className="text-sm font-medium text-gray-200  overflow-hidden text-clip pr-8 group-hover:text-white transition-colors">
                         {link.title || link.url}
@@ -70,7 +70,7 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-500 truncate mt-0.5 mb-2 font-mono opacity-70">
+                <p className="text-xs text-gray-500 text-ellipsis mt-0.5 mb-2 font-mono opacity-70">
                     {link.url.replace(/^https?:\/\//, '')}
                 </p>
 
