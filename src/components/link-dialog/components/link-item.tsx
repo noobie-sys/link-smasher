@@ -26,7 +26,7 @@ const formatDate = (timestamp: number) => {
 
 export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
     return (
-        <div className="group relative flex items-start p-4 mb-3 rounded-xl bg-[#232323] hover:bg-[#2a2a2a] border border-transparent hover:border-gray-700 transition-all duration-200">
+        <div className="group w-full min-w-0 relative flex items-start p-4 mb-3 rounded-xl bg-[#232323] hover:bg-[#2a2a2a] border border-gray-500/40  hover:border-gray-700 transition-all duration-200">
 
             {/* Icon / Image Placeholder */}
             <div className="shrink-0 mr-4">
@@ -45,8 +45,8 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-start">
-                    <h3 className="text-sm font-medium text-gray-200 truncate pr-8 group-hover:text-white transition-colors">
+                <div className="flex justify-between items-start ">
+                    <h3 className="text-sm font-medium text-gray-200  overflow-hidden text-clip pr-8 group-hover:text-white transition-colors">
                         {link.title || link.url}
                     </h3>
 

@@ -258,10 +258,9 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[420px] max-h-[600px] h-[600px] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl">
-          <CustomDialogHeader onClose={() => onOpenChange(false)} />
 
           <div className="flex-1 overflow-hidden flex flex-col px-4 pt-2">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0 mt-8">
               <TabsList className="grid w-full grid-cols-3 bg-[#1A1A1A] mb-4">
                 <TabsTrigger
                   value={ActiveTab.Save}
