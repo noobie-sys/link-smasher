@@ -1,5 +1,11 @@
 import { Link, LinkDTO } from "@/shared/types/common.types";
-import { linkStorage } from "@/core/storage/link.storage";
+import {
+  deleteLink as deleteLinkFromStorage,
+  getLinks as getAllLinksFromStorage,
+  saveLink as saveLinkToStorage,
+  updateLinkInStorage,
+} from "@/core/storage/link.storage";
+import { setStorage } from "@/core/storage/storage.util";
 import { generateId } from "@/core/utils/id.util";
 import { getHostname, isValidUrl } from "@/core/utils/url.util";
 
@@ -9,7 +15,7 @@ export const linkService = {
       throw new Error("Invalid URL");
     }
 
-    const links = await linkStorage.get();
+    const links = await getAllLinksFromStorage();
 
     // Check for duplicates
     // Check for duplicates (Upsert logic)
@@ -28,10 +34,7 @@ export const linkService = {
         notes: dto.notes !== undefined ? dto.notes : existingLink.notes,
       };
 
-      const newLinks = [...links];
-      newLinks[existingIndex] = updatedLink;
-
-      await linkStorage.set(newLinks);
+      await updateLinkInStorage(existingLink.id, updatedLink);
       console.log("Updated existing link:", updatedLink);
       return updatedLink;
     }
@@ -45,18 +48,17 @@ export const linkService = {
 
     console.log(newLink, "NewLinks");
 
-    // Add to beginning of list (newest first)
-    await linkStorage.set([newLink, ...links]);
+    await saveLinkToStorage(newLink);
     return newLink;
   },
 
   async getLinksByHostname(hostname: string): Promise<Link[]> {
-    const links = await linkStorage.get();
+    const links = await getAllLinksFromStorage();
     return links.filter((l) => l.hostname === hostname);
   },
 
   async getAllLinks(): Promise<Link[]> {
-    return await linkStorage.get();
+    return await getAllLinksFromStorage();
   },
 
   /**
@@ -64,37 +66,19 @@ export const linkService = {
    * Replaces tags and notes with the new values provided.
    */
   async updateLink(id: string, updates: Partial<Link>): Promise<Link | null> {
-    const links = await linkStorage.get();
-    const index = links.findIndex((l) => l.id === id);
-
-    if (index === -1) {
-      return null;
+    const updated = await updateLinkInStorage(id, updates);
+    if (updated) {
+      console.log("Updated link:", updated);
     }
-
-    const currentLink = links[index];
-    const updatedLink: Link = {
-      ...currentLink,
-      ...updates,
-      id: currentLink.id, // Ensure ID doesn't change
-      createdAt: currentLink.createdAt, // Ensure CreatedAt doesn't change
-    };
-
-    const newLinks = [...links];
-    newLinks[index] = updatedLink;
-
-    await linkStorage.set(newLinks);
-    console.log("Updated link:", updatedLink);
-    return updatedLink;
+    return updated;
   },
 
   async deleteLink(id: string): Promise<void> {
-    const links = await linkStorage.get();
-    const filtered = links.filter((l) => l.id !== id);
-    await linkStorage.set(filtered);
+    await deleteLinkFromStorage(id);
   },
 
   async exportLinks(): Promise<string> {
-    const links = await linkStorage.get();
+    const links = await getAllLinksFromStorage();
     return JSON.stringify(links, null, 2);
   },
 
@@ -118,7 +102,7 @@ export const linkService = {
         return 0;
       }
 
-      const currentLinks = await linkStorage.get();
+      const currentLinks = await getAllLinksFromStorage();
       // Merge: imported links take precedence or just add?
       // Requirement said "prevent duplicate URLs".
       // We'll filter out imported links that already exist in current storage
@@ -126,7 +110,8 @@ export const linkService = {
       const newLinks = validLinks.filter((l) => !existingUrls.has(l.url));
 
       if (newLinks.length > 0) {
-        await linkStorage.set([...newLinks, ...currentLinks]);
+        // Import skips Supabase for now; links are local-only until edited/synced.
+        await setStorage("links", [...newLinks, ...currentLinks]);
       }
 
       return newLinks.length;
