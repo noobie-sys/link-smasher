@@ -41,19 +41,13 @@ export function LinkList({
     }
 
     return (
-        <div className={`flex flex-col flex-1 w-full
-    max-w-full
-    sm:max-w-xl
-    md:max-w-2xl
-    lg:max-w-3xl
-    xl:max-w-4xl
-    2xl:max-w-5xl  min-h-0 ${className}`}>
+        <div className={`flex flex-col flex-1 w-full min-w-0 max-w-full overflow-hidden min-h-0 ${className}`}>
             {headerContent && (
                 <div className="px-1 py-3 text-xs font-medium text-gray-500 uppercase tracking-widest border-b border-transparent mb-1 flex items-center justify-between">
                     {headerContent}
                 </div>
             )}
-            <ScrollArea className="flex-1 -mr-3 pr-3 w-full ">
+            <ScrollArea className="flex-1 w-full min-w-0 overflow-x-hidden">
                 <div className="pb-4">
                     {links.map((link) => (
                         <LinkItem

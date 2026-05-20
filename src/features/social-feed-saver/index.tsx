@@ -96,7 +96,7 @@ const PLATFORM_CONFIGS: Record<string, {
         category: "Reddit Thread",
         platform: "Reddit",
         // Reddit often uses a specific structure, we ensure top right alignment stays clean
-        iconPosition: { top: "12px", right: "56px" },
+        iconPosition: { top: "0px", right: "100px" },
         extract: (el) => {
             const text = el.getAttribute("post-title") || el.querySelector("h3")?.textContent?.trim() || "";
             const author = el.getAttribute("author") || el.querySelector("[data-testid='post_author_link']")?.textContent?.trim() || "";
@@ -275,8 +275,8 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "36px",
-                height: "36px",
+                width: "28px",
+                height: "28px",
                 borderRadius: "50%",
                 backgroundColor: isHovered ? theme.hoverBg : theme.bgColor,
                 color: isSaved ? "#22C55E" : theme.color, // Highlight green if saved safely
@@ -288,7 +288,7 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
                 opacity: isSaving ? 0.5 : 1,
             }}
         >
-            {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+            {isSaved ? <BookmarkCheck size={12} /> : <Bookmark size={12} />}
         </button>,
         container
     );

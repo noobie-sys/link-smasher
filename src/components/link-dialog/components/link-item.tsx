@@ -26,7 +26,7 @@ const formatDate = (timestamp: number) => {
 
 export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
     return (
-        <div className="group w-[600px] min-w-0 text-ellipsis relative flex items-start p-4 mb-3 rounded-xl bg-[#232323] hover:bg-[#2a2a2a] border border-gray-500/40  hover:border-gray-700 transition-all duration-200">
+        <div className="group relative flex w-full min-w-0 max-w-full items-start overflow-hidden rounded-xl border border-gray-500/40 bg-[#232323] p-4 mb-3 text-ellipsis transition-all duration-200 hover:border-gray-700 hover:bg-[#2a2a2a]">
 
             {/* Icon / Image Placeholder */}
             <div className="shrink-0 mr-4">
@@ -45,13 +45,13 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
 
             {/* Content */}
             <div className="flex-1 min-w-0 truncate">
-                <div className="flex justify-between items-start ">
-                    <h3 className="text-sm font-medium text-gray-200  overflow-hidden text-clip pr-8 group-hover:text-white transition-colors">
+                <div className="flex min-w-0 justify-between items-start gap-2">
+                    <h3 className="text-sm font-medium text-gray-200 overflow-hidden text-clip pr-8 group-hover:text-white transition-colors">
                         {link.title || link.url}
                     </h3>
 
                     {/* Actions */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-3 right-3 flex items-center gap-1 bg-[#232323] pl-2 rounded-l-lg shadow-[-10px_0_10px_-5px_rgba(0,0,0,0.5)]">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-3 flex items-center gap-1 pl-2 rounded-l-lg">
                         {onOpen && (
                             <Button variant="ghost" size="icon-sm" onClick={() => onOpen(link.url)} className="h-7 w-7 text-gray-400 hover:text-white hover:bg-gray-700">
                                 <ExternalLink className="h-3.5 w-3.5" />
@@ -70,11 +70,12 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
                     </div>
                 </div>
 
-                <p className="text-xs text-gray-500 text-ellipsis mt-0.5 mb-2 font-mono opacity-70">
-                    {link.url.replace(/^https?:\/\//, '')}
-                </p>
+
 
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
+                    <p className="text-xs font-mono text-gray-500 truncate max-w-sm opacity-70">
+                        {link.url.replace(/^https?:\/\//, '')}
+                    </p>
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1.5">
                         {link.tags && link.tags.length > 0 ? (
