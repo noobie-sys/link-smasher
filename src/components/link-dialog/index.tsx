@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { linkService } from "@/core/services/link.service"
 import { Link, ActiveTab } from "@/shared/types/common.types"
 import { getHostname } from "@/core/utils/url.util"
@@ -38,6 +40,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const MAX_NOTES_LENGTH = 200
 
@@ -99,6 +102,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   const resetForm = () => {
     clearFormNodes()
     setActiveTab(ActiveTab.Save)
+    setSelectedCategory(null)
   }
 
   const startEditing = (link: Link) => {
@@ -116,6 +120,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       clearFormNodes()
     }
     setActiveTab(newTab)
+    setSelectedCategory(null)
 
     if (newTab === ActiveTab.All) {
       loadAllLinks()
@@ -253,6 +258,117 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     return filterLinks(allLinks, searchAll)
   }, [allLinks, searchAll])
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    allLinks.forEach((link) => {
+      const cat = link.category || "General";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [allLinks]);
+
+  const activeCategories = useMemo(() => {
+    return Object.keys(categoryCounts).sort((a, b) => categoryCounts[b] - categoryCounts[a]);
+  }, [categoryCounts]);
+
+  const categoryFilteredLinks = useMemo(() => {
+    if (!selectedCategory) return filteredAllLinks;
+    return filteredAllLinks.filter(
+      (link) => (link.category || "General") === selectedCategory
+    );
+  }, [filteredAllLinks, selectedCategory]);
+
+  const getCategoryCardStyle = (category: string | null) => {
+    if (!category) return { border: "border-gray-500/20", glow: "bg-gray-500", textColor: "text-gray-400", icon: "🌐" };
+    const cat = category.toLowerCase();
+    if (cat.includes("development")) {
+      return {
+        border: "border-violet-500/20 hover:border-violet-500/40",
+        glow: "bg-violet-500",
+        textColor: "text-violet-400",
+        icon: "💻"
+      };
+    }
+    if (cat.includes("linkedin")) {
+      return {
+        border: "border-blue-500/20 hover:border-blue-500/40",
+        glow: "bg-blue-500",
+        textColor: "text-blue-400",
+        icon: "🔗"
+      };
+    }
+    if (cat.includes("tweet")) {
+      return {
+        border: "border-slate-500/20 hover:border-slate-500/40",
+        glow: "bg-slate-400",
+        textColor: "text-slate-300",
+        icon: "🐦"
+      };
+    }
+    if (cat.includes("reddit")) {
+      return {
+        border: "border-orange-500/20 hover:border-orange-500/40",
+        glow: "bg-orange-500",
+        textColor: "text-orange-400",
+        icon: "👽"
+      };
+    }
+    if (cat.includes("social")) {
+      return {
+        border: "border-pink-500/20 hover:border-pink-500/40",
+        glow: "bg-pink-500",
+        textColor: "text-pink-400",
+        icon: "📣"
+      };
+    }
+    if (cat.includes("productivity")) {
+      return {
+        border: "border-cyan-500/20 hover:border-cyan-500/40",
+        glow: "bg-cyan-500",
+        textColor: "text-cyan-400",
+        icon: "🎯"
+      };
+    }
+    if (cat.includes("entertainment")) {
+      return {
+        border: "border-rose-500/20 hover:border-rose-500/40",
+        glow: "bg-rose-500",
+        textColor: "text-rose-400",
+        icon: "🎬"
+      };
+    }
+    if (cat.includes("education")) {
+      return {
+        border: "border-indigo-500/20 hover:border-indigo-500/40",
+        glow: "bg-indigo-500",
+        textColor: "text-indigo-400",
+        icon: "📚"
+      };
+    }
+    if (cat.includes("news")) {
+      return {
+        border: "border-amber-500/20 hover:border-amber-500/40",
+        glow: "bg-amber-500",
+        textColor: "text-amber-400",
+        icon: "📰"
+      };
+    }
+    if (cat.includes("shop")) {
+      return {
+        border: "border-emerald-500/20 hover:border-emerald-500/40",
+        glow: "bg-emerald-500",
+        textColor: "text-emerald-400",
+        icon: "🛒"
+      };
+    }
+    return {
+      border: "border-gray-500/20 hover:border-gray-500/40",
+      glow: "bg-gray-500",
+      textColor: "text-gray-400",
+      icon: "🌐"
+    };
+  };
+
 
   return (
     <>
@@ -362,22 +478,100 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                 />
               </TabsContent>
 
-              <TabsContent value={ActiveTab.All} className="flex-1 flex flex-col min-h-0 data-[state=inactive]:hidden">
-                <SearchBar
-                  value={searchAll}
-                  onChange={setSearchAll}
-                  className="mb-3"
-                  placeholder="Search saved links..."
-                />
-                <LinkList
-                  links={filteredAllLinks}
-                  isLoading={isLoading}
-                  headerContent={`${filteredAllLinks.length} SAVED ITEMS`}
-                  onOpen={handleOpenLink}
-                  onEdit={startEditing}
-                  onDelete={handleDeleteLink}
-                  emptyMessage="No links saved yet"
-                />
+              <TabsContent value={ActiveTab.All} className="flex-1 flex flex-col min-h-0 data-[state=inactive]:hidden text-left">
+                {!selectedCategory ? (
+                  <div className="flex flex-col flex-1 min-h-0 text-left">
+                    <SearchBar
+                      value={searchAll}
+                      onChange={setSearchAll}
+                      className="mb-3"
+                      placeholder="Search saved links..."
+                    />
+                    
+                    {filteredAllLinks.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                        <p>No links saved yet</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col flex-1 w-full min-w-0 max-w-full overflow-hidden min-h-0 text-left">
+                        <div className="px-1 py-1 text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 flex items-center justify-between">
+                          <span>Categories</span>
+                          <span className="text-[10px] text-gray-600 normal-case">{allLinks.length} total saved links</span>
+                        </div>
+                        <ScrollArea className="flex-1 w-full min-w-0 overflow-x-hidden">
+                          <div className="grid grid-cols-2 gap-3 pb-4 pr-1">
+                            {activeCategories.map((category) => {
+                              const count = categoryCounts[category] || 0;
+                              const styles = getCategoryCardStyle(category);
+                              return (
+                                <button
+                                  key={category}
+                                  onClick={() => setSelectedCategory(category)}
+                                  className={`group relative flex flex-col justify-between p-4 rounded-xl border ${styles.border} bg-[#232323] hover:bg-[#2a2a2a] text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 cursor-pointer h-24 overflow-hidden`}
+                                >
+                                  {/* Glow effect on hover */}
+                                  <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-md ${styles.glow}`}></div>
+                                  
+                                  <div className="flex items-center justify-between w-full z-10">
+                                    <span className={`text-[10px] uppercase font-bold tracking-wider truncate mr-1 ${styles.textColor}`}>
+                                      {category}
+                                    </span>
+                                    <span className="text-xs shrink-0">
+                                      {styles.icon}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="mt-auto z-10">
+                                    <span className="text-2xl font-bold text-white font-sans tracking-tight leading-none block">
+                                      {count}
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-medium block mt-1">
+                                      {count === 1 ? "Link" : "Links"}
+                                    </span>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col flex-1 min-h-0 text-left">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedCategory(null)}
+                        className="text-gray-400 hover:text-white hover:bg-gray-800 flex items-center gap-1 px-2 py-1 h-7 rounded-lg cursor-pointer text-xs"
+                      >
+                        <ArrowLeft className="h-3.5 w-3.5 mr-0.5" />
+                        <span>Back</span>
+                      </Button>
+                      <div className="h-4 w-px bg-gray-700"></div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 uppercase tracking-wider rounded border ${getCategoryCardStyle(selectedCategory).border} ${getCategoryCardStyle(selectedCategory).textColor} bg-[#232323]`}>
+                        {selectedCategory}
+                      </span>
+                    </div>
+
+                    <SearchBar
+                      value={searchAll}
+                      onChange={setSearchAll}
+                      className="mb-3"
+                      placeholder={`Search in ${selectedCategory}...`}
+                    />
+                    <LinkList
+                      links={categoryFilteredLinks}
+                      isLoading={isLoading}
+                      headerContent={`${categoryFilteredLinks.length} SAVED ITEMS`}
+                      onOpen={handleOpenLink}
+                      onEdit={startEditing}
+                      onDelete={handleDeleteLink}
+                      emptyMessage={`No links saved in ${selectedCategory} yet`}
+                    />
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
