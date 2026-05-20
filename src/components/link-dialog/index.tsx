@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ChevronDown } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { linkService } from "@/core/services/link.service"
 import { Link, ActiveTab } from "@/shared/types/common.types"
@@ -16,6 +16,14 @@ import { toast } from "sonner"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // New components
 import { CustomDialogHeader } from "./components/dialog-header"
@@ -23,6 +31,17 @@ import { CustomDialogFooter } from "./components/dialog-footer"
 import { SearchBar } from "./components/search-bar"
 import { LinkList } from "./components/link-list"
 
+
+const PREDEFINED_CATEGORIES = [
+  "Development",
+  "Social Media",
+  "Productivity",
+  "Entertainment",
+  "News",
+  "Education",
+  "Shopping",
+  "General",
+];
 
 interface LinkDialogProps {
   open: boolean
@@ -38,6 +57,8 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   const [currentTitle, setCurrentTitle] = useState("")
   const [tags, setTags] = useState("")
   const [notes, setNotes] = useState("")
+  const [linkCategory, setLinkCategory] = useState("")
+  const [customCategoryInput, setCustomCategoryInput] = useState("")
   const [saving, setSaving] = useState(false)
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -94,6 +115,8 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setCurrentTitle(title)
     setTags("")
     setNotes("")
+    setLinkCategory("")
+    setCustomCategoryInput("")
     setEditingLinkId(null)
     setSearchCurrent("")
     setSearchAll("")
@@ -110,6 +133,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setCurrentTitle(link.title)
     setTags(link.tags.join(", "))
     setNotes(link.notes || "")
+    setLinkCategory(link.category || "")
     setEditingLinkId(link.id)
     setActiveTab(ActiveTab.Save)
   }
@@ -170,12 +194,15 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
       let result: Link | null = null;
 
+      const categoryValue = linkCategory.trim() || undefined;
+
       if (editingLinkId) {
         result = await linkService.updateLink(editingLinkId, {
           title: currentTitle || currentUrl,
           tags: tagsArray,
           notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
-          url: currentUrl
+          url: currentUrl,
+          category: categoryValue,
         });
       } else {
         result = await linkService.addLink({
@@ -183,6 +210,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
           title: currentTitle || currentUrl,
           tags: tagsArray,
           notes: notes.trim().slice(0, MAX_NOTES_LENGTH) || undefined,
+          category: categoryValue,
         })
       }
 
@@ -422,15 +450,115 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-300">Tags (comma separated)</Label>
-                    <Input
-                      type="text"
-                      value={tags}
-                      onChange={(e) => setTags(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
-                      placeholder="tag1, tag2, tag3"
-                    />
+                  {/* Tags + Category side-by-side row */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-end gap-2">
+                      {/* Tags — wider left slot */}
+                      <div className="flex-1 space-y-1.5 min-w-0">
+                        <Label className="text-sm font-medium text-gray-300">Tags</Label>
+                        <Input
+                          type="text"
+                          value={tags}
+                          onChange={(e) => setTags(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-500 focus-visible:ring-gray-500"
+                          placeholder="tag1, tag2…"
+                        />
+                      </div>
+
+                      {/* Category — Shadcn DropdownMenu */}
+                      <div className="w-[42%] shrink-0 space-y-1.5">
+                        <Label className="text-sm font-medium text-gray-300">Category</Label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex w-full items-center justify-between gap-1 px-3 py-2 rounded-lg bg-[#2C2C2C] text-sm text-left transition-colors hover:bg-[#383838] focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-500"
+                            >
+                              <span className={`truncate ${linkCategory ? "text-white" : "text-gray-500"}`}>
+                                {linkCategory || "Auto…"}
+                              </span>
+                              <ChevronDown className="shrink-0 h-3.5 w-3.5 text-gray-500" />
+                            </button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-52 border-gray-700 text-white p-1 z-[99999]"
+                            style={{ zIndex: 9999999999 }}
+                          >
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
+                              Predefined
+                            </DropdownMenuLabel>
+
+                            {PREDEFINED_CATEGORIES.map((cat) => (
+                              <DropdownMenuItem
+                                key={cat}
+                                onClick={() => {
+                                  setLinkCategory(cat)
+                                  setCustomCategoryInput("")
+                                }}
+                                className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat
+                                  ? "bg-[#2C2C2C] text-white"
+                                  : "text-gray-300 hover:bg-[#2C2C2C] hover:text-white"
+                                  }`}
+                              >
+                                {linkCategory === cat && (
+                                  <span className="mr-1.5 text-[10px]">✓</span>
+                                )}
+                                {cat}
+                              </DropdownMenuItem>
+                            ))}
+
+                            <DropdownMenuSeparator className="bg-gray-700 my-1" />
+
+                            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
+                              Custom
+                            </DropdownMenuLabel>
+
+                            {/* Inline custom category input inside the menu */}
+                            <div className="px-2 pb-1" onPointerDown={(e) => e.stopPropagation()}>
+                              <div className="flex gap-1">
+                                <input
+                                  type="text"
+                                  value={customCategoryInput}
+                                  onChange={(e) => setCustomCategoryInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && customCategoryInput.trim()) {
+                                      setLinkCategory(customCategoryInput.trim())
+                                      setCustomCategoryInput("")
+                                    }
+                                    e.stopPropagation()
+                                  }}
+                                  placeholder="Type & press Enter…"
+                                  className="flex-1 min-w-0 px-2 py-1 rounded-md bg-[#2C2C2C] text-xs text-white placeholder:text-gray-600 border border-gray-700 focus:outline-none focus:border-gray-500"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={!customCategoryInput.trim()}
+                                  onClick={() => {
+                                    if (customCategoryInput.trim()) {
+                                      setLinkCategory(customCategoryInput.trim())
+                                      setCustomCategoryInput("")
+                                    }
+                                  }}
+                                  className="px-2 py-1 rounded-md bg-[#2C2C2C] text-xs text-gray-400 hover:text-white hover:bg-[#383838] border border-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  Set
+                                </button>
+                              </div>
+                            </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+
+                    {/* Custom category hint */}
+                    {linkCategory && !PREDEFINED_CATEGORIES.includes(linkCategory.trim()) && linkCategory.trim() !== "" && (
+                      <p className="text-[10px] text-amber-400/80 flex items-center gap-1 pt-0.5">
+                        <span>✦</span>
+                        <span>Custom category — creates a new card in your library</span>
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -487,7 +615,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                       className="mb-3"
                       placeholder="Search saved links..."
                     />
-                    
+
                     {filteredAllLinks.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
                         <p>No links saved yet</p>
@@ -511,7 +639,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                                 >
                                   {/* Glow effect on hover */}
                                   <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-md ${styles.glow}`}></div>
-                                  
+
                                   <div className="flex items-center justify-between w-full z-10">
                                     <span className={`text-[10px] uppercase font-bold tracking-wider truncate mr-1 ${styles.textColor}`}>
                                       {category}
@@ -520,7 +648,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                                       {styles.icon}
                                     </span>
                                   </div>
-                                  
+
                                   <div className="mt-auto z-10">
                                     <span className="text-2xl font-bold text-white font-sans tracking-tight leading-none block">
                                       {count}
