@@ -46,24 +46,24 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
             {/* Content */}
             <div className="flex-1 min-w-0 truncate">
                 <div className="flex min-w-0 justify-between items-start gap-2">
-                    <h3 className="text-sm font-medium text-gray-200 overflow-hidden text-clip pr-8 group-hover:text-white transition-colors">
+                    <h3 className="text-sm font-medium text-gray-200 overflow-hidden text-clip pr-8 group-hover:text-white transition-colors truncate max-w-sm">
                         {link.title || link.url}
                     </h3>
 
                     {/* Actions */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-3 flex items-center gap-1 pl-2 rounded-l-lg">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-3 flex items-center gap-1 pl-2 rounded-l-lg shadow-lg">
                         {onOpen && (
-                            <Button variant="ghost" size="icon-sm" onClick={() => onOpen(link.url)} className="h-7 w-7 text-gray-400 hover:text-white hover:bg-gray-700">
+                            <Button variant="ghost" size="icon-sm" onClick={() => onOpen(link.url)} className="h-7 w-7 text-gray-400 hover:text-white hover:bg-gray-700 cursor-pointer">
                                 <ExternalLink className="h-3.5 w-3.5" />
                             </Button>
                         )}
                         {onEdit && (
-                            <Button variant="ghost" size="icon-sm" onClick={() => onEdit(link)} className="h-7 w-7 text-gray-400 hover:text-white hover:bg-gray-700">
+                            <Button variant="ghost" size="icon-sm" onClick={() => onEdit(link)} className="h-7 w-7 text-gray-400 hover:text-white hover:bg-gray-700 cursor-pointer">
                                 <Pencil className="h-3.5 w-3.5" />
                             </Button>
                         )}
                         {onDelete && (
-                            <Button variant="ghost" size="icon-sm" onClick={() => onDelete(link.id)} className="h-7 w-7 text-red-400/70 hover:text-red-400 hover:bg-red-900/20">
+                            <Button variant="ghost" size="icon-sm" onClick={() => onDelete(link.id)} className="h-7 w-7 text-red-400/70 hover:text-red-400 hover:bg-red-900/20 cursor-pointer">
                                 <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                         )}
@@ -72,10 +72,10 @@ export function LinkItem({ link, onOpen, onEdit, onDelete }: LinkItemProps) {
 
 
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
-                    <p className="text-xs font-mono text-gray-500 truncate max-w-sm opacity-70">
-                        {link.url.replace(/^https?:\/\//, '')}
-                    </p>
+                <p className="text-xs font-mono text-gray-500 truncate max-w-sm opacity-70">
+                    {link.url.replace(/^https?:\/\//, '')}
+                </p>
+                <div className="flex flex-wrap items-start justify-between gap-2 mt-auto">
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1.5">
                         {link.tags && link.tags.length > 0 ? (

@@ -1,7 +1,7 @@
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
-import { HARDCODED_USER_ID, supabase } from "@/core/supabase/client";
+import { HARDCODED_USER_ID, sql } from "@/core/neon/client";
 import { syncService } from "@/core/services/sync.service";
 
 export const linkStorage = {
@@ -18,61 +18,37 @@ export const linkStorage = {
   },
 };
 
-const toSupabase = (link: Link, userId: string) => ({
-  id: link.id,
-  user_id: userId,
-  url: link.url,
-  title: link.title,
-  hostname: link.hostname,
-  tags: link.tags ?? [],
-  notes: link.notes ?? null,
-  created_at: new Date(link.createdAt).toISOString(),
-});
-
-const fromSupabase = (row: {
-  id: string;
-  user_id: string;
-  url: string;
-  title: string;
-  hostname: string;
-  tags: string[];
-  notes: string | null;
-  created_at: string;
-}): Link => ({
-  id: row.id,
-  url: row.url,
-  title: row.title,
-  hostname: row.hostname,
-  tags: row.tags ?? [],
-  notes: row.notes ?? undefined,
-  createdAt: new Date(row.created_at).getTime(),
-});
-
 export const saveLink = async (link: Link): Promise<void> => {
   const links = await getStorage("links");
   await setStorage("links", [link, ...links]);
 
   try {
-    console.log("[saveLink] Saving link", { id: link.id, url: link.url });
+    console.log("[saveLink] Saving link to Neon", { id: link.id, url: link.url });
 
-    const { error } = await supabase
-      .from("links")
-      .insert(toSupabase(link, HARDCODED_USER_ID));
-
-    if (error) {
-      console.warn("[saveLink] Supabase insert failed, queueing pending item", {
-        id: link.id,
-        error,
-      });
-      const pending = await getStorage("pending");
-      const pendingItem: PendingLink = {
-        ...link,
-        userId: HARDCODED_USER_ID,
-        retryCount: 0,
-        failedAt: Date.now(),
-      };
-      await setStorage("pending", [...pending, pendingItem]);
+    if (!sql) {
+      throw new Error("Neon client not initialized");
     }
+
+    await sql`
+      INSERT INTO links (id, user_id, url, title, hostname, tags, notes, created_at)
+      VALUES (
+        ${link.id},
+        ${HARDCODED_USER_ID},
+        ${link.url},
+        ${link.title},
+        ${link.hostname},
+        ${link.tags ?? []},
+        ${link.notes ?? null},
+        ${link.createdAt}
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        url = EXCLUDED.url,
+        title = EXCLUDED.title,
+        hostname = EXCLUDED.hostname,
+        tags = EXCLUDED.tags,
+        notes = EXCLUDED.notes,
+        synced_at = now()
+    `;
   } catch (err) {
     console.error("[saveLink] Unexpected error, queueing pending item", err);
     const pending = await getStorage("pending");
@@ -122,19 +98,25 @@ export const updateLinkInStorage = async (
   await setStorage("links", newLinks);
 
   try {
-    console.log("[updateLinkInStorage] Updating link in Supabase", { id });
-    const { error } = await supabase
-      .from("links")
-      .update(toSupabase(updatedLink, HARDCODED_USER_ID))
-      .eq("id", id);
+    console.log("[updateLinkInStorage] Updating link in Neon", { id });
 
-    if (error) {
-      console.error("[updateLinkInStorage] Supabase error", error);
+    if (!sql) {
+      throw new Error("Neon client not initialized");
     }
+
+    await sql`
+      UPDATE links
+      SET url = ${updatedLink.url},
+          title = ${updatedLink.title},
+          hostname = ${updatedLink.hostname},
+          tags = ${updatedLink.tags ?? []},
+          notes = ${updatedLink.notes ?? null},
+          synced_at = now()
+      WHERE id = ${id}
+    `;
   } catch (err) {
-    console.error("[updateLinkInStorage] Unexpected error", err);
+    console.error("[updateLinkInStorage] Unexpected error updating in Neon", err);
   }
 
   return updatedLink;
 };
-

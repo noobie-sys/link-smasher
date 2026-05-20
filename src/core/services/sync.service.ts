@@ -1,9 +1,9 @@
-import { HARDCODED_USER_ID, supabase } from "@/core/supabase/client";
+import { HARDCODED_USER_ID, sql } from "@/core/neon/client";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
 
-interface SupabaseLinkRow {
+interface NeonLinkRow {
   id: string;
   user_id: string;
   url: string;
@@ -11,58 +11,55 @@ interface SupabaseLinkRow {
   hostname: string;
   tags: string[];
   notes: string | null;
-  created_at: string;
+  created_at: string | number;
 }
 
 const MAX_PENDING_RETRIES = 5;
 
-const fromSupabase = (row: SupabaseLinkRow): Link => ({
+const fromNeon = (row: NeonLinkRow): Link => ({
   id: row.id,
   url: row.url,
   title: row.title,
   hostname: row.hostname,
   tags: row.tags ?? [],
   notes: row.notes ?? undefined,
-  createdAt: new Date(row.created_at).getTime(),
-});
-
-const toSupabase = (link: Link, userId: string): Omit<SupabaseLinkRow, "created_at"> => ({
-  id: link.id,
-  user_id: userId,
-  url: link.url,
-  title: link.title,
-  hostname: link.hostname,
-  tags: link.tags ?? [],
-  notes: link.notes ?? null,
+  createdAt: Number(row.created_at),
 });
 
 export const syncService = {
+  /**
+   * Syncs links from Neon Database.
+   * Method name is kept as 'syncFromSupabase' to guarantee compatibility and prevent 
+   * breaking references in background scripts and UI components.
+   */
   async syncFromSupabase(): Promise<void> {
     try {
-      console.log("[syncFromSupabase] Starting sync for user", HARDCODED_USER_ID);
-      const { data, error } = await supabase
-        .from("links")
-        .select("*")
-        .eq("user_id", HARDCODED_USER_ID)
-        .order("created_at", { ascending: false });
+      console.log("[syncFromNeon] Starting sync for user", HARDCODED_USER_ID);
 
-      if (error) {
-        console.error("[syncFromSupabase] Supabase error", error);
+      if (!sql) {
+        console.warn("[syncFromNeon] Neon client not initialized.");
         return;
       }
 
-      if (!data) {
-        console.log("[syncFromSupabase] No data returned from Supabase");
+      const rows = (await sql`
+        SELECT id, user_id, url, title, hostname, tags, notes, created_at
+        FROM links
+        WHERE user_id = ${HARDCODED_USER_ID}
+        ORDER BY created_at DESC
+      `) as unknown as NeonLinkRow[];
+
+      if (!rows) {
+        console.log("[syncFromNeon] No data returned from Neon");
         return;
       }
 
-      const links: Link[] = data.map(fromSupabase);
+      const links: Link[] = rows.map(fromNeon);
       await setStorage("links", links);
-      console.log("[syncFromSupabase] Synced links from Supabase", {
+      console.log("[syncFromNeon] Synced links from Neon", {
         count: links.length,
       });
     } catch (err) {
-      console.error("[syncFromSupabase] Unexpected error", err);
+      console.error("[syncFromNeon] Unexpected error during sync", err);
     }
   },
 
@@ -76,39 +73,40 @@ export const syncService = {
 
       const remaining: PendingLink[] = [];
 
+      if (!sql) {
+        console.warn("[syncPending] Neon client not initialized.");
+        return;
+      }
+
       for (const item of pending) {
         try {
           const { userId, retryCount, failedAt, ...link } = item;
 
-          console.log("[syncPending] Attempting to sync pending item", {
+          console.log("[syncPending] Attempting to sync pending item to Neon", {
             id: link.id,
             retryCount,
           });
 
-          const { error } = await supabase
-            .from("links")
-            .insert(toSupabase(link, userId));
-
-          if (error) {
-            const nextRetryCount = retryCount + 1;
-            if (nextRetryCount > MAX_PENDING_RETRIES) {
-              console.warn(
-                "[syncPending] Dropping pending item after max retries",
-                item,
-              );
-            } else {
-              remaining.push({
-                ...item,
-                retryCount: nextRetryCount,
-                failedAt: Date.now(),
-              });
-            }
-          }
+          await sql`
+            INSERT INTO links (id, user_id, url, title, hostname, tags, notes, created_at)
+            VALUES (
+              ${link.id},
+              ${userId},
+              ${link.url},
+              ${link.title},
+              ${link.hostname},
+              ${link.tags ?? []},
+              ${link.notes ?? null},
+              ${link.createdAt}
+            )
+            ON CONFLICT (id) DO NOTHING
+          `;
         } catch (error) {
+          console.error("[syncPending] Failed to sync pending item to Neon", error);
           const nextRetryCount = item.retryCount + 1;
           if (nextRetryCount > MAX_PENDING_RETRIES) {
             console.warn(
-              "[syncPending] Dropping pending item after unexpected error",
+              "[syncPending] Dropping pending item after max retries",
               item,
             );
           } else {
@@ -126,52 +124,22 @@ export const syncService = {
         remaining: remaining.length,
       });
     } catch (err) {
-      console.error("[syncPending] Unexpected error", err);
+      console.error("[syncPending] Unexpected error syncing pending", err);
     }
   },
 
   async syncLinkDelete(id: string): Promise<void> {
     try {
-      console.log("[syncLinkDelete] Deleting link in Supabase", { id });
-      const { error } = await supabase.from("links").delete().eq("id", id);
-      if (error) {
-        console.error("[syncLinkDelete] Supabase error", error);
+      console.log("[syncLinkDelete] Deleting link in Neon", { id });
+      if (!sql) {
+        console.warn("[syncLinkDelete] Neon client not initialized.");
+        return;
       }
+      await sql`
+        DELETE FROM links WHERE id = ${id}
+      `;
     } catch (err) {
-      console.error("[syncLinkDelete] Unexpected error", err);
+      console.error("[syncLinkDelete] Unexpected error deleting in Neon", err);
     }
   },
-
-  // async checkAndRefreshPlan(userId: string): Promise<void> {
-  //   try {
-  //     const lastSyncedAt = await getStorage("plan_synced_at");
-  //     const now = Date.now();
-
-  //     if (lastSyncedAt && now - lastSyncedAt < FOUR_HOURS_MS) {
-  //       return;
-  //     }
-
-  //     const { data, error } = await supabase
-  //       .from<{
-  //         id: string;
-  //         plan: Plan;
-  //       }>("profiles")
-  //       .select("id, plan")
-  //       .eq("id", userId)
-  //       .maybeSingle();
-
-  //     if (error) {
-  //       console.error("[checkAndRefreshPlan] Supabase error", error);
-  //       return;
-  //     }
-
-  //     if (!data) return;
-
-  //     await setStorage("plan", data.plan);
-  //     await setStorage("plan_synced_at", now);
-  //   } catch (err) {
-  //     console.error("[checkAndRefreshPlan] Unexpected error", err);
-  //   }
-  // },
 };
-

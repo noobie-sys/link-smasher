@@ -1,11 +1,15 @@
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { STORAGE_DEFAULTS } from "@/shared/types/storage.types";
 import { syncService } from "@/core/services/sync.service";
+import { initializeDatabase } from "@/core/neon/client";
 
 export default defineBackground(() => {
   console.log("Link Smasher background script initialized (React MVP)");
 
   (async () => {
+    // Automatically initialize the Neon database schema if not already present
+    await initializeDatabase();
+
     const links = await getStorage("links");
 
     console.log("[background] Startup: links in storage", { count: links.length });
@@ -14,7 +18,7 @@ export default defineBackground(() => {
 
     if (!links.length) {
       console.log(
-        "[background] No local links found; syncing from Supabase using hardcoded user",
+        "[background] No local links found; syncing from Neon using hardcoded user",
       );
       await syncService.syncFromSupabase();
     }
