@@ -5,6 +5,7 @@ export interface Link {
   hostname: string;
   tags: string[];
   notes?: string;
+  category?: string;
   createdAt: number;
 }
 

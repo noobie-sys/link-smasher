@@ -238,6 +238,7 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
                 url: urlToSave,
                 title: title,
                 notes: notes,
+                category: config.category,
                 tags: [config.category.toLowerCase().replace(" ", "-"), config.platform.toLowerCase()],
             });
 

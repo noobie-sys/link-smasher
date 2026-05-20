@@ -30,9 +30,15 @@ export async function initializeDatabase() {
         hostname text NOT NULL,
         tags text[] DEFAULT '{}',
         notes text,
+        category text DEFAULT 'General',
         created_at bigint NOT NULL,
         synced_at timestamptz DEFAULT now()
       )
+    `;
+
+    // Gracefully run ALTER TABLE to upgrade existing databases in production/dev
+    await sql`
+      ALTER TABLE links ADD COLUMN IF NOT EXISTS category text DEFAULT 'General'
     `;
     
     console.log("[neon] Database tables initialized successfully.");

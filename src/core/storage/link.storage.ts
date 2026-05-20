@@ -30,7 +30,7 @@ export const saveLink = async (link: Link): Promise<void> => {
     }
 
     await sql`
-      INSERT INTO links (id, user_id, url, title, hostname, tags, notes, created_at)
+      INSERT INTO links (id, user_id, url, title, hostname, tags, notes, category, created_at)
       VALUES (
         ${link.id},
         ${HARDCODED_USER_ID},
@@ -39,6 +39,7 @@ export const saveLink = async (link: Link): Promise<void> => {
         ${link.hostname},
         ${link.tags ?? []},
         ${link.notes ?? null},
+        ${link.category ?? "General"},
         ${link.createdAt}
       )
       ON CONFLICT (id) DO UPDATE SET
@@ -47,6 +48,7 @@ export const saveLink = async (link: Link): Promise<void> => {
         hostname = EXCLUDED.hostname,
         tags = EXCLUDED.tags,
         notes = EXCLUDED.notes,
+        category = EXCLUDED.category,
         synced_at = now()
     `;
   } catch (err) {
@@ -111,6 +113,7 @@ export const updateLinkInStorage = async (
           hostname = ${updatedLink.hostname},
           tags = ${updatedLink.tags ?? []},
           notes = ${updatedLink.notes ?? null},
+          category = ${updatedLink.category ?? "General"},
           synced_at = now()
       WHERE id = ${id}
     `;

@@ -11,6 +11,7 @@ interface NeonLinkRow {
   hostname: string;
   tags: string[];
   notes: string | null;
+  category: string | null;
   created_at: string | number;
 }
 
@@ -23,6 +24,7 @@ const fromNeon = (row: NeonLinkRow): Link => ({
   hostname: row.hostname,
   tags: row.tags ?? [],
   notes: row.notes ?? undefined,
+  category: row.category ?? undefined,
   createdAt: Number(row.created_at),
 });
 
@@ -42,7 +44,7 @@ export const syncService = {
       }
 
       const rows = (await sql`
-        SELECT id, user_id, url, title, hostname, tags, notes, created_at
+        SELECT id, user_id, url, title, hostname, tags, notes, category, created_at
         FROM links
         WHERE user_id = ${HARDCODED_USER_ID}
         ORDER BY created_at DESC
@@ -88,7 +90,7 @@ export const syncService = {
           });
 
           await sql`
-            INSERT INTO links (id, user_id, url, title, hostname, tags, notes, created_at)
+            INSERT INTO links (id, user_id, url, title, hostname, tags, notes, category, created_at)
             VALUES (
               ${link.id},
               ${userId},
@@ -97,6 +99,7 @@ export const syncService = {
               ${link.hostname},
               ${link.tags ?? []},
               ${link.notes ?? null},
+              ${link.category ?? "General"},
               ${link.createdAt}
             )
             ON CONFLICT (id) DO NOTHING

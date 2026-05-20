@@ -8,6 +8,7 @@ import {
 import { setStorage } from "@/core/storage/storage.util";
 import { generateId } from "@/core/utils/id.util";
 import { getHostname, isValidUrl } from "@/core/utils/url.util";
+import { categorizeUrl } from "@/core/utils/categorize";
 
 export const linkService = {
   async addLink(dto: LinkDTO): Promise<Link | null> {
@@ -17,7 +18,6 @@ export const linkService = {
 
     const links = await getAllLinksFromStorage();
 
-    // Check for duplicates
     // Check for duplicates (Upsert logic)
     const existingIndex = links.findIndex((l) => l.url === dto.url);
 
@@ -32,6 +32,8 @@ export const linkService = {
         ),
         // Update notes if provided
         notes: dto.notes !== undefined ? dto.notes : existingLink.notes,
+        // Update category if provided, or retain existing, or auto-categorize
+        category: dto.category || existingLink.category || categorizeUrl(dto.url, dto.title || existingLink.title),
       };
 
       await updateLinkInStorage(existingLink.id, updatedLink);
@@ -41,6 +43,7 @@ export const linkService = {
 
     const newLink: Link = {
       ...dto,
+      category: dto.category || categorizeUrl(dto.url, dto.title),
       id: generateId(),
       hostname: getHostname(dto.url),
       createdAt: Date.now(),
