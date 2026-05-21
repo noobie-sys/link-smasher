@@ -11,12 +11,14 @@ import { keyboardConfigService, ShortcutAction } from "@/core/services/keyboard-
 import { linkService } from "@/core/services/link.service";
 import { Link } from "@/shared/types/common.types";
 import { ExtensionMessage } from "@/shared/types/message.types";
+import { useSavedLinksStore } from "@/core/store/saved-links.store";
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
     const [linkDialogOpen, setLinkDialogOpen] = useState(false)
     const [linkToEdit, setLinkToEdit] = useState<Link | null>(null)
     const unregisterRefs = useRef<Map<string, () => void>>(new Map())
+    const { initialize, isUrlSaved, addUrl } = useSavedLinksStore();
 
     // Load and register shortcuts from configuration
     const loadAndRegisterShortcuts = async () => {
@@ -46,6 +48,13 @@ const ContentRoot = () => {
                         // Save current link directly
                         try {
                             const url = window.location.href;
+
+                            // Skip save entirely if already bookmarked — no database request
+                            if (isUrlSaved(url)) {
+                                toast.info("Already bookmarked!");
+                                return;
+                            }
+
                             const title = document.title || url;
                             const result = await linkService.addLink({
                                 url,
@@ -54,6 +63,7 @@ const ContentRoot = () => {
                             });
 
                             if (result) {
+                                addUrl(url);
                                 toast.success("Link saved!");
                             } else {
                                 toast.info("Link updated or already exists.");
@@ -71,6 +81,9 @@ const ContentRoot = () => {
     };
 
     useEffect(() => {
+        // Initialize Zustand store with saved URLs from local storage
+        initialize();
+
         // Initial load
         loadAndRegisterShortcuts();
 
