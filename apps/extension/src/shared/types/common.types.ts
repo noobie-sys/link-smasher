@@ -1,0 +1,18 @@
+export interface Link {
+  id: string;
+  url: string;
+  title: string;
+  hostname: string;
+  tags: string[];
+  notes?: string;
+  category?: string;
+  createdAt: number;
+}
+
+export type LinkDTO = Omit<Link, "id" | "createdAt" | "hostname">;
+
+export enum ActiveTab {
+  Save = "save",
+  Current = "current",
+  All = "all",
+}
