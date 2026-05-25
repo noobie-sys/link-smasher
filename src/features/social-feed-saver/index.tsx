@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { linkService } from "@/core/services/link.service";
+import { useSavedLinksStore } from "@/core/store/saved-links.store";
 
 // Platform-specific configuration for extracting data and positioning the icon
 const PLATFORM_CONFIGS: Record<string, {
@@ -127,7 +128,8 @@ const PLATFORM_CONFIGS: Record<string, {
  * Individual bookmark button rendered into each post using React Portal.
  * Extracts only its parent post's metadata when clicked.
  */
-const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
+const PostBookmarkButton = ({ post, config }: { post: Element; config: typeof PLATFORM_CONFIGS[string] }) => {
+    const { isUrlSaved, addUrl } = useSavedLinksStore();
     // Container standard DOM div tracking the injection
     const [container] = useState(() => {
         const div = document.createElement("div");
@@ -216,9 +218,19 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
         e.stopPropagation();
 
         try {
-            setIsSaving(true);
             // Run the specific extraction method mapped to this post container from its parent!
             const extracted = config.extract(post);
+
+            // Attempt extracting a specific node's URL, fallback to window.location
+            const urlToSave = extracted.url || window.location.href;
+
+            // Skip save entirely if URL is already bookmarked — no database request
+            if (isUrlSaved(urlToSave)) {
+                toast.info("Already bookmarked!");
+                return;
+            }
+
+            setIsSaving(true);
 
             const title = extracted.author
                 ? config.platform + " Post by " + extracted.author
@@ -231,9 +243,6 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
                 "\n" + extracted.text
             ].filter(Boolean).join("\n");
 
-            // Attempt extracting a specific node's URL, fallback to window.location
-            const urlToSave = extracted.url || window.location.href;
-
             const result = await linkService.addLink({
                 url: urlToSave,
                 title: title,
@@ -242,11 +251,11 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
                 tags: [config.category.toLowerCase().replace(" ", "-"), config.platform.toLowerCase()],
             });
 
-            // Update state pushing it downstream
-            setSavedUrls((prev: Set<string>) => new Set(prev).add(urlToSave));
+            // Update Zustand store so all bookmark buttons reflect this immediately
+            addUrl(urlToSave);
 
             if (result) {
-                toast.success("Social post saved automatically!");
+                toast.success("Social post saved!");
             } else {
                 toast.info("Post updated or already exists.");
             }
@@ -261,7 +270,7 @@ const PostBookmarkButton = ({ post, config, savedUrls, setSavedUrls }: any) => {
     let isSaved = false;
     try {
         const extractedUrl = config.extract(post).url || window.location.href;
-        isSaved = savedUrls.has(extractedUrl);
+        isSaved = isUrlSaved(extractedUrl);
     } catch (e) { }
 
     // Portals attach React nodes completely outside the parent's normal component hierarchy into the standard host document.
@@ -304,7 +313,7 @@ const generateNodeId = () => Math.random().toString(36).substring(2, 11);
  */
 export const SocialFeedSaver = () => {
     const [posts, setPosts] = useState<Element[]>([]);
-    const [savedUrls, setSavedUrls] = useState<Set<string>>(new Set());
+    const initialize = useSavedLinksStore((state) => state.initialize);
 
     // Check if current site aligns with our supported list cleanly
     const getHostnameMatch = () => {
@@ -316,6 +325,11 @@ export const SocialFeedSaver = () => {
     };
 
     const config = getHostnameMatch();
+
+    // Load saved URLs from local storage on mount so bookmarks show as checked after reload
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
 
     useEffect(() => {
         if (!config) return;
@@ -376,8 +390,6 @@ export const SocialFeedSaver = () => {
                     key={post.getAttribute("data-link-smasher-id")}
                     post={post}
                     config={config}
-                    savedUrls={savedUrls}
-                    setSavedUrls={setSavedUrls}
                 />
             ))}
         </>

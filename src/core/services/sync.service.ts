@@ -1,9 +1,9 @@
-import { HARDCODED_USER_ID, sql } from "@/core/neon/client";
+import { HARDCODED_USER_ID, supabase } from "@/core/supabase/client";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
 
-interface NeonLinkRow {
+interface SupabaseLinkRow {
   id: string;
   user_id: string;
   url: string;
@@ -17,7 +17,7 @@ interface NeonLinkRow {
 
 const MAX_PENDING_RETRIES = 5;
 
-const fromNeon = (row: NeonLinkRow): Link => ({
+const fromSupabase = (row: SupabaseLinkRow): Link => ({
   id: row.id,
   url: row.url,
   title: row.title,
@@ -30,38 +30,42 @@ const fromNeon = (row: NeonLinkRow): Link => ({
 
 export const syncService = {
   /**
-   * Syncs links from Neon Database.
+   * Syncs links from Supabase Database.
    * Method name is kept as 'syncFromSupabase' to guarantee compatibility and prevent 
    * breaking references in background scripts and UI components.
    */
   async syncFromSupabase(): Promise<void> {
     try {
-      console.log("[syncFromNeon] Starting sync for user", HARDCODED_USER_ID);
+      console.log("[syncFromSupabase] Starting sync for user", HARDCODED_USER_ID);
 
-      if (!sql) {
-        console.warn("[syncFromNeon] Neon client not initialized.");
+      if (!supabase) {
+        console.warn("[syncFromSupabase] Supabase client not initialized.");
         return;
       }
 
-      const rows = (await sql`
-        SELECT id, user_id, url, title, hostname, tags, notes, category, created_at
-        FROM links
-        WHERE user_id = ${HARDCODED_USER_ID}
-        ORDER BY created_at DESC
-      `) as unknown as NeonLinkRow[];
+      const { data: rows, error } = await supabase
+        .from("links")
+        .select("id, user_id, url, title, hostname, tags, notes, category, created_at")
+        .eq("user_id", HARDCODED_USER_ID)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[syncFromSupabase] Error fetching links from Supabase:", error);
+        return;
+      }
 
       if (!rows) {
-        console.log("[syncFromNeon] No data returned from Neon");
+        console.log("[syncFromSupabase] No data returned from Supabase");
         return;
       }
 
-      const links: Link[] = rows.map(fromNeon);
+      const links: Link[] = (rows as unknown as SupabaseLinkRow[]).map(fromSupabase);
       await setStorage("links", links);
-      console.log("[syncFromNeon] Synced links from Neon", {
+      console.log("[syncFromSupabase] Synced links from Supabase", {
         count: links.length,
       });
     } catch (err) {
-      console.error("[syncFromNeon] Unexpected error during sync", err);
+      console.error("[syncFromSupabase] Unexpected error during sync", err);
     }
   },
 
@@ -75,8 +79,8 @@ export const syncService = {
 
       const remaining: PendingLink[] = [];
 
-      if (!sql) {
-        console.warn("[syncPending] Neon client not initialized.");
+      if (!supabase) {
+        console.warn("[syncPending] Supabase client not initialized.");
         return;
       }
 
@@ -84,28 +88,30 @@ export const syncService = {
         try {
           const { userId, retryCount, failedAt, ...link } = item;
 
-          console.log("[syncPending] Attempting to sync pending item to Neon", {
+          console.log("[syncPending] Attempting to sync pending item to Supabase", {
             id: link.id,
             retryCount,
           });
 
-          await sql`
-            INSERT INTO links (id, user_id, url, title, hostname, tags, notes, category, created_at)
-            VALUES (
-              ${link.id},
-              ${userId},
-              ${link.url},
-              ${link.title},
-              ${link.hostname},
-              ${link.tags ?? []},
-              ${link.notes ?? null},
-              ${link.category ?? "General"},
-              ${link.createdAt}
-            )
-            ON CONFLICT (id) DO NOTHING
-          `;
+          const { error } = await supabase
+            .from("links")
+            .upsert({
+              id: link.id,
+              user_id: userId,
+              url: link.url,
+              title: link.title,
+              hostname: link.hostname,
+              tags: link.tags ?? [],
+              notes: link.notes ?? null,
+              category: link.category ?? "General",
+              created_at: link.createdAt,
+            });
+
+          if (error) {
+            throw error;
+          }
         } catch (error) {
-          console.error("[syncPending] Failed to sync pending item to Neon", error);
+          console.error("[syncPending] Failed to sync pending item to Supabase", error);
           const nextRetryCount = item.retryCount + 1;
           if (nextRetryCount > MAX_PENDING_RETRIES) {
             console.warn(
@@ -133,16 +139,22 @@ export const syncService = {
 
   async syncLinkDelete(id: string): Promise<void> {
     try {
-      console.log("[syncLinkDelete] Deleting link in Neon", { id });
-      if (!sql) {
-        console.warn("[syncLinkDelete] Neon client not initialized.");
+      console.log("[syncLinkDelete] Deleting link in Supabase", { id });
+      if (!supabase) {
+        console.warn("[syncLinkDelete] Supabase client not initialized.");
         return;
       }
-      await sql`
-        DELETE FROM links WHERE id = ${id}
-      `;
+      
+      const { error } = await supabase
+        .from("links")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
     } catch (err) {
-      console.error("[syncLinkDelete] Unexpected error deleting in Neon", err);
+      console.error("[syncLinkDelete] Unexpected error deleting in Supabase", err);
     }
   },
 };
