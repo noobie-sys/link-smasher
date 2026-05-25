@@ -7,33 +7,42 @@ import {
 } from "@/core/storage/link.storage";
 import { setStorage } from "@/core/storage/storage.util";
 import { generateId } from "@/core/utils/id.util";
-import { getHostname, isValidUrl } from "@/core/utils/url.util";
+import { getHostname } from "@/core/utils/url.util";
 import { categorizeUrl } from "@/core/utils/categorize";
+import { LinkDTOSchema, ImportLinksSchema } from "@/shared/validation/schemas";
+import { ZodError } from "zod";
 
 export const linkService = {
   async addLink(dto: LinkDTO): Promise<Link | null> {
-    if (!isValidUrl(dto.url)) {
-      throw new Error("Invalid URL");
+    let validated: typeof dto;
+    try {
+      validated = LinkDTOSchema.parse(dto);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message).join(", ");
+        throw new Error(messages);
+      }
+      throw error;
     }
 
     const links = await getAllLinksFromStorage();
 
     // Check for duplicates (Upsert logic)
-    const existingIndex = links.findIndex((l) => l.url === dto.url);
+    const existingIndex = links.findIndex((l) => l.url === validated.url);
 
     if (existingIndex >= 0) {
       const existingLink = links[existingIndex];
       const updatedLink: Link = {
         ...existingLink,
-        title: dto.title || existingLink.title,
+        title: validated.title || existingLink.title,
         // Merge tags, unique only
         tags: Array.from(
-          new Set([...(existingLink.tags || []), ...(dto.tags || [])]),
+          new Set([...(existingLink.tags || []), ...(validated.tags || [])]),
         ),
         // Update notes if provided
-        notes: dto.notes !== undefined ? dto.notes : existingLink.notes,
+        notes: validated.notes !== undefined ? validated.notes : existingLink.notes,
         // Update category if provided, or retain existing, or auto-categorize
-        category: dto.category || existingLink.category || categorizeUrl(dto.url, dto.title || existingLink.title),
+        category: validated.category || existingLink.category || categorizeUrl(validated.url, validated.title || existingLink.title),
       };
 
       await updateLinkInStorage(existingLink.id, updatedLink);
@@ -42,12 +51,12 @@ export const linkService = {
     }
 
     const newLink: Link = {
-      ...dto,
-      category: dto.category || categorizeUrl(dto.url, dto.title),
+      ...validated,
+      category: validated.category || categorizeUrl(validated.url, validated.title),
       id: generateId(),
-      hostname: getHostname(dto.url),
+      hostname: getHostname(validated.url),
       createdAt: Date.now(),
-    };
+    } as Link;
 
     console.log(newLink, "NewLinks");
 
@@ -69,11 +78,20 @@ export const linkService = {
    * Replaces tags and notes with the new values provided.
    */
   async updateLink(id: string, updates: Partial<Link>): Promise<Link | null> {
-    const updated = await updateLinkInStorage(id, updates);
-    if (updated) {
-      console.log("Updated link:", updated);
+    try {
+      const validated = LinkDTOSchema.partial().parse(updates);
+      const updated = await updateLinkInStorage(id, validated);
+      if (updated) {
+        console.log("Updated link:", updated);
+      }
+      return updated;
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message).join(", ");
+        throw new Error(messages);
+      }
+      throw error;
     }
-    return updated;
   },
 
   async deleteLink(id: string): Promise<void> {
@@ -92,16 +110,10 @@ export const linkService = {
         throw new Error("Invalid format: not an array");
       }
 
-      // Basic validation
-      const validLinks = imported.filter(
-        (item: any) =>
-          item.id &&
-          item.url &&
-          item.hostname &&
-          typeof item.createdAt === "number",
-      ) as Link[];
+      // Validate every imported link strictly using ImportLinksSchema
+      const validatedLinks = ImportLinksSchema.parse(imported);
 
-      if (validLinks.length === 0) {
+      if (validatedLinks.length === 0) {
         return 0;
       }
 
@@ -110,7 +122,7 @@ export const linkService = {
       // Requirement said "prevent duplicate URLs".
       // We'll filter out imported links that already exist in current storage
       const existingUrls = new Set(currentLinks.map((l) => l.url));
-      const newLinks = validLinks.filter((l) => !existingUrls.has(l.url));
+      const newLinks = validatedLinks.filter((l) => !existingUrls.has(l.url));
 
       if (newLinks.length > 0) {
         // Import skips Supabase for now; links are local-only until edited/synced.
@@ -120,7 +132,15 @@ export const linkService = {
       return newLinks.length;
     } catch (e) {
       console.error("Import failed", e);
-      throw new Error("Failed to parse or validate JSON");
+      if (e instanceof ZodError) {
+        const firstError = e.issues[0];
+        const pathStr = firstError.path.join(".");
+        throw new Error(
+          `Invalid link data: ${pathStr ? `field '${pathStr}' ` : ""}${firstError.message}`
+        );
+      }
+      throw new Error(e instanceof Error ? e.message : "Failed to parse or validate JSON");
     }
   },
 };
+

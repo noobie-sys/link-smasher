@@ -4,6 +4,8 @@
  */
 
 import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
+import { KeyboardShortcutComboSchema } from "@/shared/validation/schemas";
+import { ZodError } from "zod";
 
 export interface KeyboardShortcutConfig {
   id: string;
@@ -83,16 +85,31 @@ export const keyboardConfigService = {
     action: ShortcutAction,
     combo: KeyboardShortcutConfig["defaultCombo"]
   ): Promise<void> {
+    let validatedCombo;
+    try {
+      validatedCombo = KeyboardShortcutComboSchema.parse(combo);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message).join(", ");
+        throw new Error(messages);
+      }
+      throw error;
+    }
+
     const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
     const userPrefs =
       (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyboardShortcutConfig["defaultCombo"]>) ||
       {};
 
-    userPrefs[action] = combo;
+    userPrefs[action] = validatedCombo;
     await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
 
     // Dispatch event to notify listeners of shortcut change
-    window.dispatchEvent(new CustomEvent("ls-shortcut-updated", { detail: { action, combo } }));
+    window.dispatchEvent(
+      new CustomEvent("ls-shortcut-updated", {
+        detail: { action, combo: validatedCombo },
+      })
+    );
   },
 
   /**
