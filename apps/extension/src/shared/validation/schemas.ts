@@ -150,6 +150,11 @@ export const LinkSchema = z.object({
     .number()
     .int()
     .positive("Created timestamp must be positive"),
+  updatedAt: z
+    .number()
+    .int()
+    .nonnegative("Updated timestamp must be non-negative")
+    .default(0),
 });
 
 /**

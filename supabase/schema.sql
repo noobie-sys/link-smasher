@@ -6,7 +6,9 @@ CREATE TABLE links (
     hostname text NOT NULL,
     tags text[] DEFAULT '{}',
     notes text,
+    category text DEFAULT 'General',
     created_at bigint NOT NULL,
+    updated_at bigint,
     synced_at timestamptz DEFAULT now()
 );
 

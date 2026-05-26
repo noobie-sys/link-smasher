@@ -72,8 +72,9 @@ export function usePopup() {
           return [result, ...prevLinks];
         });
 
-        // Also refresh from storage to be sure
-        await loadLinks(currentTab.hostname);
+        // No redundant loadLinks() here — the optimistic update above
+        // already has the correct data. Reading from storage again would be
+        // wasted work and cause a UI flicker.
 
         setTag("");
         setNotes("");
