@@ -483,7 +483,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
                           <DropdownMenuContent
                             align="end"
-                            className="w-52 border-gray-700 text-white p-1 z-99999"
+                            className="w-52 border-gray-700 text-white p-1 "
                             style={{ zIndex: 9999999999 }}
                           >
                             <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
