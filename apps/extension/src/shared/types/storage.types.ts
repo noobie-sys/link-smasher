@@ -15,6 +15,7 @@ export interface PendingLink extends Link {
 export interface StorageSchema {
   links: Link[];
   pending: PendingLink[];
+  pendingDeletes: string[];
   user: StoredUser | null;
   plan: Plan;
   plan_synced_at: number | null;
@@ -24,6 +25,7 @@ export interface StorageSchema {
 export const STORAGE_DEFAULTS: StorageSchema = {
   links: [],
   pending: [],
+  pendingDeletes: [],
   user: null,
   plan: "free",
   plan_synced_at: null,

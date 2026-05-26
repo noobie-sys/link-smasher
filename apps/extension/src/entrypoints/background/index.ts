@@ -7,10 +7,25 @@ export default defineBackground(() => {
 
   (async () => {
     const links = await getStorage("links");
+    const pending = await getStorage("pending");
+    const pendingDeletes = await getStorage("pendingDeletes");
 
-    console.log("[background] Startup: links in storage", { count: links.length });
+    console.log("[background] Startup", {
+      links: links.length,
+      pending: pending.length,
+      pendingDeletes: pendingDeletes.length,
+    });
 
-    await syncService.syncPending();
+    // Only sync pending items if there are actually items to sync.
+    // Before: syncPending() ran unconditionally on every service worker wake-up,
+    // doing a wasted storage read even when the queue was empty.
+    if (pending.length > 0) {
+      await syncService.syncPending();
+    }
+
+    if (pendingDeletes.length > 0) {
+      await syncService.syncPendingDeletes();
+    }
 
     if (!links.length) {
       console.log(
@@ -23,6 +38,7 @@ export default defineBackground(() => {
   self.addEventListener("online", () => {
     console.log("[background] Browser came online; syncing pending items");
     void syncService.syncPending();
+    void syncService.syncPendingDeletes();
   });
 
   chrome.runtime.onInstalled.addListener(async () => {
@@ -46,4 +62,3 @@ export default defineBackground(() => {
     console.log("Tab activated:", activeInfo);
   });
 });
-

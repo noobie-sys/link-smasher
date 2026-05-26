@@ -7,9 +7,10 @@ export interface Link {
   notes?: string;
   category?: string;
   createdAt: number;
+  updatedAt: number;
 }
 
-export type LinkDTO = Omit<Link, "id" | "createdAt" | "hostname">;
+export type LinkDTO = Omit<Link, "id" | "createdAt" | "hostname" | "updatedAt">;
 
 export enum ActiveTab {
   Save = "save",
