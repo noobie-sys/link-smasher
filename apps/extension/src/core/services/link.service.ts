@@ -50,17 +50,22 @@ export const linkService = {
       return updatedLink;
     }
 
+    const now = Date.now();
     const newLink: Link = {
       ...validated,
       category: validated.category || categorizeUrl(validated.url, validated.title),
       id: generateId(),
       hostname: getHostname(validated.url),
-      createdAt: Date.now(),
-    } as Link;
+      createdAt: now,
+      updatedAt: now,
+    };
 
     console.log(newLink, "NewLinks");
 
-    await saveLinkToStorage(newLink);
+    // Pass the already-loaded links array to saveLink so it doesn't read storage again.
+    // Before: addLink reads storage (read #1) → saveLink reads storage again (read #2)
+    // After:  addLink reads storage (read #1) → passes it to saveLink → no read #2 ✅
+    await saveLinkToStorage(newLink, links);
     return newLink;
   },
 
@@ -143,4 +148,3 @@ export const linkService = {
     }
   },
 };
-
