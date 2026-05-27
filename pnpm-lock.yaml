@@ -8,6 +8,18 @@ importers:
 
   .:
     devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4.1.17
+        version: 4.1.17
+      '@thedutchcoder/postcss-rem-to-px':
+        specifier: ^0.0.2
+        version: 0.0.2(postcss@8.5.6)
+      autoprefixer:
+        specifier: ^10.4.22
+        version: 10.4.22(postcss@8.5.6)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
       typescript:
         specifier: ^5.9.2
         version: 5.9.3

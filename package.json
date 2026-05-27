@@ -12,6 +12,10 @@
     "start:web": "pnpm --filter web start"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@thedutchcoder/postcss-rem-to-px": "^0.0.2",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
     "typescript": "^5.9.2"
   },
   "pnpm": {
