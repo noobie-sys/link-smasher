@@ -10,6 +10,20 @@ import {
 } from "@/lib/errors";
 
 /**
+ * DEFAULT_CATEGORIES — the 8 built-in system categories.
+ */
+export const DEFAULT_CATEGORIES = [
+  "Development",
+  "Social Media",
+  "Productivity",
+  "Entertainment",
+  "News",
+  "Education",
+  "Shopping",
+  "General",
+] as const;
+
+/**
  * Payload validation schema for creating a new Link.
  */
 const createLinkSchema = z.object({

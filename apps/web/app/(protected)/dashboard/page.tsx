@@ -63,6 +63,14 @@ export default function LinkSaverPage() {
   const [tagsInput, setTagsInput] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Categories Integration State
+  const [categories, setCategories] = useState<{ id: string; name: string; color: string; isSystem: boolean }[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [createCategoryContext, setCreateCategoryContext] = useState<{ mode: "create" | "edit" }>({ mode: "create" });
+
   // Quick Extension Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [hostnameFilter, setHostnameFilter] = useState("");
@@ -76,12 +84,103 @@ export default function LinkSaverPage() {
   const [editCategory, setEditCategory] = useState("");
   const [editTagsInput, setEditTagsInput] = useState("");
 
-  // 1. Initial Load of Saved Links
+  // 1. Initial Load of Saved Links and Categories
   useEffect(() => {
     if (session) {
       fetchLinks();
+      fetchCategories();
     }
   }, [session]);
+
+  // Poll for links every 10 seconds to keep in sync across devices/browsers
+  useEffect(() => {
+    if (!session) return;
+    const interval = setInterval(() => {
+      fetchLinks();
+      fetchCategories();
+    }, 10000); // 10 seconds
+    return () => clearInterval(interval);
+  }, [session]);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoadingCategories(true);
+      const res = await fetch("/api/categories", {
+        headers: {
+          "X-Test-User-Id": session?.user?.id || "",
+        },
+      });
+      const payload = await res.json();
+      if (payload.success && Array.isArray(payload.data)) {
+        setCategories(payload.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories:", err);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  const handleCategorySelectChange = (val: string) => {
+    if (val === "__create_new__") {
+      setCreateCategoryContext({ mode: "create" });
+      setIsCreateCategoryModalOpen(true);
+    } else {
+      setCategory(val);
+    }
+  };
+
+  const handleEditCategorySelectChange = (val: string) => {
+    if (val === "__create_new__") {
+      setCreateCategoryContext({ mode: "edit" });
+      setIsCreateCategoryModalOpen(true);
+    } else {
+      setEditCategory(val);
+    }
+  };
+
+  const handleCreateCategory = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const name = newCategoryName.trim();
+    if (!name) return;
+
+    if (emojiRegex.test(name)) {
+      showStatus("error", "Category name must not contain emojis! 🧠");
+      return;
+    }
+
+    try {
+      setIsCreatingCategory(true);
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Test-User-Id": session?.user?.id || "",
+        },
+        body: JSON.stringify({ name }),
+      });
+      const payload = await res.json();
+      if (payload.success) {
+        showStatus("success", `Category "${payload.data.name}" created!`);
+        await fetchCategories();
+
+        if (createCategoryContext.mode === "create") {
+          setCategory(payload.data.name);
+        } else {
+          setEditCategory(payload.data.name);
+        }
+
+        setIsCreateCategoryModalOpen(false);
+        setNewCategoryName("");
+      } else {
+        showStatus("error", payload.error?.message || "Failed to create category.");
+      }
+    } catch (err) {
+      showStatus("error", "Failed to communicate with API server.");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
 
   const updateRateHeaders = (headers: Headers) => {
     const limit = headers.get("X-RateLimit-Limit");
@@ -422,15 +521,22 @@ export default function LinkSaverPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                    Category (No Emojis)
+                    Category
                   </label>
-                  <Input
+                  <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="Research"
-                    className="bg-black/30 border-border text-white text-xs h-9"
-                    required
-                  />
+                    onChange={(e) => handleCategorySelectChange(e.target.value)}
+                    className="w-full bg-black/30 border border-border text-white text-xs rounded-md px-3 h-9 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all cursor-pointer"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name} className="bg-[#120f24] text-white">
+                        {cat.name}
+                      </option>
+                    ))}
+                    <option value="__create_new__" className="bg-[#120f24] text-primary font-semibold">
+                      ＋ Create custom…
+                    </option>
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
@@ -596,12 +702,20 @@ export default function LinkSaverPage() {
                           className="w-full text-xs bg-black/35 border border-primary/40 text-white rounded px-2.5 py-1 outline-none resize-none focus:ring-1 focus:ring-primary"
                         />
                         <div className="grid grid-cols-2 gap-2">
-                          <Input
+                          <select
                             value={editCategory}
-                            onChange={(e) => setEditCategory(e.target.value)}
-                            placeholder="Category"
-                            className="bg-black/35 border-primary/40 text-white text-xs h-7"
-                          />
+                            onChange={(e) => handleEditCategorySelectChange(e.target.value)}
+                            className="w-full bg-black/35 border border-primary/40 text-white text-xs rounded px-2 h-7 outline-none cursor-pointer"
+                          >
+                            {categories.map((cat) => (
+                              <option key={cat.id} value={cat.name} className="bg-[#120f24] text-white">
+                                {cat.name}
+                              </option>
+                            ))}
+                            <option value="__create_new__" className="bg-[#120f24] text-primary font-semibold">
+                              ＋ Create custom…
+                            </option>
+                          </select>
                           <Input
                             value={editTagsInput}
                             onChange={(e) => setEditTagsInput(e.target.value)}
@@ -686,6 +800,65 @@ export default function LinkSaverPage() {
           )}
         </section>
       </main>
+
+      {/* Premium Category Creation Modal */}
+      {isCreateCategoryModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-[400px] bg-[#120f24]/95 border border-white/[0.08] rounded-2xl p-6 shadow-2xl flex flex-col gap-5 animate-in zoom-in-95 duration-200 text-left">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                <span className="text-xl">🍰</span> Create Custom Category
+              </h3>
+              <p className="text-xs text-slate-400">
+                Custom categories let you group and filter your saved sandbox cards seamlessly. Emojis are not permitted.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateCategory} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="modal-cat-name" className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Category Name
+                </label>
+                <Input
+                  id="modal-cat-name"
+                  type="text"
+                  autoFocus
+                  required
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value.slice(0, 50))}
+                  placeholder="e.g. Developer Guides"
+                  className="bg-black/40 border-border text-white text-sm h-10 w-full"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsCreateCategoryModalOpen(false);
+                    setNewCategoryName("");
+                  }}
+                  className="text-slate-400 hover:text-white hover:bg-white/[0.03] text-xs h-9 rounded-lg"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreatingCategory || !newCategoryName.trim()}
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold text-xs h-9 px-4 rounded-lg shadow-md shadow-primary/20"
+                >
+                  {isCreatingCategory ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                  ) : (
+                    "Create Category"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

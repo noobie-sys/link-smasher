@@ -1,9 +1,9 @@
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
-import { HARDCODED_USER_ID, supabase } from "@/core/supabase/client";
 import { syncService } from "@/core/services/sync.service";
 import { storageMutex } from "@/core/storage/storage.mutex";
+import { apiFetch } from "@/core/api/client";
 
 export const linkStorage = {
   async get(): Promise<Link[]> {
@@ -20,57 +20,43 @@ export const linkStorage = {
 };
 
 /**
- * Save a new link to local storage and sync to Supabase.
+ * Save a new link to local storage, then immediately sync to the Next.js backend.
  *
- * @param link - The link to save
+ * @param link - The fully-formed link to save.
  * @param existingLinks - Optional pre-loaded links array to avoid a redundant storage read.
- *   If provided, we skip the `getStorage("links")` call and use this array directly.
- *   This eliminates the double-read that happens when `linkService.addLink`
- *   reads all links for duplicate checking, and then `saveLink` reads them again.
  */
 export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void> => {
+  // 1. Write locally first (inside mutex for safety)
   const release = await storageMutex.acquire();
   try {
-    const links = existingLinks ?? await getStorage("links");
+    const links = existingLinks ?? (await getStorage("links"));
     await setStorage("links", [link, ...links]);
   } finally {
     release();
   }
 
-  // Supabase sync happens outside the mutex — we don't want to hold the lock
-  // during a network request that could take seconds
+  // 2. Push to Next.js backend (outside mutex — network can take time)
   try {
-    console.log("[saveLink] Saving link to Supabase", { id: link.id, url: link.url });
+    console.log("[link.storage] Saving link to backend:", link.id);
 
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    const { error } = await supabase
-      .from("links")
-      .upsert({
-        id: link.id,
-        user_id: HARDCODED_USER_ID,
+    await apiFetch("/api/links", {
+      method: "POST",
+      body: JSON.stringify({
         url: link.url,
         title: link.title,
         hostname: link.hostname,
         tags: link.tags ?? [],
-        notes: link.notes ?? null,
+        notes: link.notes,
         category: link.category ?? "General",
-        created_at: link.createdAt,
-        updated_at: link.updatedAt,
-        synced_at: new Date().toISOString(),
-      });
-
-    if (error) {
-      throw error;
-    }
+      }),
+    });
   } catch (err) {
-    console.error("[saveLink] Unexpected error, queueing pending item", err);
+    // Network failure — queue for background retry
+    console.error("[link.storage] Backend save failed, queueing pending:", err);
     const pending = await getStorage("pending");
     const pendingItem: PendingLink = {
       ...link,
-      userId: HARDCODED_USER_ID,
+      userId: "", // userId resolved server-side from session; kept for schema compat
       retryCount: 0,
       failedAt: Date.now(),
     };
@@ -79,27 +65,24 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
 };
 
 /**
- * Delete a link from local storage and queue a remote delete.
- * If the Supabase delete fails, the ID is saved to `pendingDeletes`
- * so the background script can retry it later.
+ * Delete a link from local storage and propagate the delete to the backend.
+ * If the backend call fails, the ID is saved to `pendingDeletes` for retry.
  */
 export const deleteLink = async (id: string): Promise<void> => {
   const release = await storageMutex.acquire();
   try {
     const links = await getStorage("links");
-    const filtered = links.filter((l) => l.id !== id);
-    await setStorage("links", filtered);
+    await setStorage("links", links.filter((l) => l.id !== id));
   } finally {
     release();
   }
 
-  console.log("[deleteLink] Deleted link locally", { id });
+  console.log("[link.storage] Deleted link locally:", id);
 
-  // Try to delete from Supabase, queue for retry on failure
   try {
     await syncService.syncLinkDelete(id);
   } catch {
-    console.error("[deleteLink] Failed to delete remotely, queueing for retry", { id });
+    console.error("[link.storage] Backend delete failed, queueing for retry:", id);
     const pendingDeletes = await getStorage("pendingDeletes");
     if (!pendingDeletes.includes(id)) {
       await setStorage("pendingDeletes", [...pendingDeletes, id]);
@@ -112,72 +95,57 @@ export const getLinks = async (): Promise<Link[]> => {
 };
 
 /**
- * Update an existing link in local storage and sync to Supabase.
- * Sets `updatedAt` to the current time for conflict resolution.
- * On Supabase failure, queues to `pending` for retry (same as saveLink).
+ * Update an existing link in local storage and sync the change to the backend.
+ * Sets updatedAt to now for conflict resolution.
+ * On failure, queues to `pending` for background retry.
  */
 export const updateLinkInStorage = async (
   id: string,
-  updates: Partial<Link>,
+  updates: Partial<Link>
 ): Promise<Link | null> => {
-  let updatedLink: Link;
+  let updatedLink!: Link;
 
   const release = await storageMutex.acquire();
   try {
     const links = await getStorage("links");
     const index = links.findIndex((l) => l.id === id);
-
     if (index === -1) return null;
 
-    const currentLink = links[index];
+    const current = links[index];
     updatedLink = {
-      ...currentLink,
+      ...current,
       ...updates,
-      id: currentLink.id,
-      createdAt: currentLink.createdAt,
+      id: current.id,
+      createdAt: current.createdAt,
       updatedAt: Date.now(),
     };
 
     const newLinks = [...links];
     newLinks[index] = updatedLink;
-
     await setStorage("links", newLinks);
   } finally {
     release();
   }
 
-  // Sync to Supabase outside the mutex
+  // Sync to backend
   try {
-    console.log("[updateLinkInStorage] Updating link in Supabase", { id });
+    console.log("[link.storage] Updating link on backend:", id);
 
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    const { error } = await supabase
-      .from("links")
-      .update({
-        url: updatedLink.url,
+    await apiFetch(`/api/links/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
         title: updatedLink.title,
-        hostname: updatedLink.hostname,
         tags: updatedLink.tags ?? [],
-        notes: updatedLink.notes ?? null,
+        notes: updatedLink.notes,
         category: updatedLink.category ?? "General",
-        updated_at: updatedLink.updatedAt,
-        synced_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    if (error) {
-      throw error;
-    }
+      }),
+    });
   } catch (err) {
-    // Queue failed updates for retry — same as saveLink does
-    console.error("[updateLinkInStorage] Unexpected error, queueing pending item", err);
+    console.error("[link.storage] Backend update failed, queueing pending:", err);
     const pending = await getStorage("pending");
     const pendingItem: PendingLink = {
       ...updatedLink,
-      userId: HARDCODED_USER_ID,
+      userId: "",
       retryCount: 0,
       failedAt: Date.now(),
     };

@@ -1,0 +1,53 @@
+import { getStorage, setStorage } from "@/core/storage/storage.util";
+
+const BACKEND_URL = import.meta.env.WXT_BACKEND_URL ?? "http://localhost:3000";
+
+/**
+ * A typed, authenticated HTTP client for the Link Smasher Next.js backend.
+ *
+ * - Automatically reads the cached session token from chrome.storage.local.
+ * - Injects Authorization: Bearer <token> on every request.
+ * - On 401 Unauthorized, clears local auth state so the UI prompts re-login.
+ * - Throws descriptive errors for all non-OK responses.
+ */
+export async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const token = await getStorage("sessionToken");
+
+  const headers = new Headers(options.headers);
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+    // Also send as cookie for servers that check cookies (Better Auth supports both)
+    headers.set("Cookie", `better-auth.session_token=${token}`);
+  }
+  if (!headers.has("Content-Type") && options.body) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  // On 401, clear stale auth so the UI prompts re-login
+  if (response.status === 401) {
+    await setStorage("sessionToken", null);
+    await setStorage("user", null);
+    throw new Error("Session expired. Please log in again at the web portal.");
+  }
+
+  if (!response.ok) {
+    let errorMessage = `HTTP ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      errorMessage = errorBody?.error?.message || errorMessage;
+    } catch {
+      // Ignore JSON parse error on error bodies
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json() as Promise<T>;
+}

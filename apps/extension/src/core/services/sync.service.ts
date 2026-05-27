@@ -1,270 +1,164 @@
-import { HARDCODED_USER_ID, supabase } from "@/core/supabase/client";
+import { apiFetch } from "@/core/api/client";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
 
-interface SupabaseLinkRow {
-  id: string;
-  user_id: string;
-  url: string;
-  title: string;
-  hostname: string;
-  tags: string[];
-  notes: string | null;
-  category: string | null;
-  created_at: string | number;
-  updated_at: string | number | null;
-}
-
 const MAX_PENDING_RETRIES = 5;
 
-const fromSupabase = (row: SupabaseLinkRow): Link => ({
-  id: row.id,
-  url: row.url,
-  title: row.title,
-  hostname: row.hostname,
-  tags: row.tags ?? [],
-  notes: row.notes ?? undefined,
-  category: row.category ?? undefined,
-  createdAt: Number(row.created_at),
-  updatedAt: row.updated_at ? Number(row.updated_at) : Number(row.created_at),
-});
+interface ApiLinkResponse {
+  success: boolean;
+  data: Link | Link[];
+}
 
 export const syncService = {
   /**
-   * Syncs links from Supabase Database.
+   * Pulls the full link list from the Next.js backend and merges it with the
+   * local chrome.storage cache using updatedAt timestamps for conflict resolution.
    *
-   * IMPORTANT: This now MERGES instead of replacing.
+   * Think of it like two toy boxes:
+   * - "Local box" = links on this device (chrome.storage.local)
+   * - "Remote box" = links on the Next.js API (the authoritative cloud copy)
    *
-   * Think of it like two kids both have toy boxes:
-   * - "Local box" = links on this device (chrome.storage)
-   * - "Remote box" = links on Supabase (the cloud)
-   *
-   * Old behavior: dump your local box and copy the remote box exactly.
-   *   Problem: any toys you put in locally while offline get thrown away!
-   *
-   * New behavior: compare both boxes toy by toy:
-   *   - Toy only in remote box? → add it to local
-   *   - Toy only in local box? → keep it (it hasn't been synced yet)
-   *   - Toy in BOTH boxes? → keep whichever was played with more recently
-   *     (the one with the higher `updatedAt` timestamp)
+   * We merge both boxes:
+   * - Remote-only → add locally
+   * - Local-only (unsynced) → keep
+   * - Both → keep the one with the newer updatedAt
    */
-  async syncFromSupabase(): Promise<void> {
+  async syncFromServer(): Promise<void> {
     try {
-      console.log("[syncFromSupabase] Starting merge sync for user", HARDCODED_USER_ID);
+      console.log("[syncService] Pulling links from Next.js backend...");
 
-      if (!supabase) {
-        console.warn("[syncFromSupabase] Supabase client not initialized.");
+      const response = await apiFetch<{ success: boolean; data: Link[] }>("/api/links");
+      if (!response.success || !Array.isArray(response.data)) {
+        console.warn("[syncService] Unexpected response shape from /api/links");
         return;
       }
 
-      const { data: rows, error } = await supabase
-        .from("links")
-        .select("id, user_id, url, title, hostname, tags, notes, category, created_at, updated_at")
-        .eq("user_id", HARDCODED_USER_ID)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("[syncFromSupabase] Error fetching links from Supabase:", error);
-        return;
-      }
-
-      if (!rows) {
-        console.log("[syncFromSupabase] No data returned from Supabase");
-        return;
-      }
-
-      const remoteLinks: Link[] = (rows as unknown as SupabaseLinkRow[]).map(fromSupabase);
+      const remoteLinks = response.data;
       const localLinks = await getStorage("links");
 
-      // Build a lookup map: id → link (for O(1) lookups instead of O(n) scanning)
       const localMap = new Map<string, Link>();
-      for (const link of localLinks) {
-        localMap.set(link.id, link);
-      }
+      for (const link of localLinks) localMap.set(link.id, link);
 
       const remoteMap = new Map<string, Link>();
-      for (const link of remoteLinks) {
-        remoteMap.set(link.id, link);
-      }
+      for (const link of remoteLinks) remoteMap.set(link.id, link);
 
       const merged: Link[] = [];
 
-      // 1. Process all remote links
+      // Process remote links first
       for (const remoteLink of remoteLinks) {
         const localLink = localMap.get(remoteLink.id);
-
         if (!localLink) {
-          // Remote-only link — add it to local
           merged.push(remoteLink);
         } else {
-          // Exists in both — pick the one with the newer updatedAt
           const localTime = localLink.updatedAt || localLink.createdAt;
           const remoteTime = remoteLink.updatedAt || remoteLink.createdAt;
-
-          if (remoteTime >= localTime) {
-            merged.push(remoteLink);
-          } else {
-            merged.push(localLink);
-          }
+          merged.push(remoteTime >= localTime ? remoteLink : localLink);
         }
       }
 
-      // 2. Add local-only links (not in remote — these are unsynced new saves)
+      // Preserve unsynced local-only links
       for (const localLink of localLinks) {
         if (!remoteMap.has(localLink.id)) {
           merged.push(localLink);
         }
       }
 
-      // Sort by createdAt descending (newest first)
       merged.sort((a, b) => b.createdAt - a.createdAt);
-
       await setStorage("links", merged);
-      console.log("[syncFromSupabase] Merged links from Supabase", {
+      await setStorage("lastSyncedAt", Date.now());
+
+      console.log("[syncService] Sync complete:", {
         remote: remoteLinks.length,
         local: localLinks.length,
         merged: merged.length,
       });
     } catch (err) {
-      console.error("[syncFromSupabase] Unexpected error during sync", err);
+      console.error("[syncService] Failed to sync from server:", err);
     }
   },
 
+  /**
+   * Pushes all queued offline saves/updates to the Next.js backend.
+   * Failed items are re-queued with an incremented retryCount (max 5).
+   */
   async syncPending(): Promise<void> {
     try {
       const pending = await getStorage("pending");
-      if (!pending.length) {
-        return;
-      }
+      if (!pending.length) return;
 
+      console.log("[syncService] Syncing pending saves:", pending.length);
       const remaining: PendingLink[] = [];
-
-      if (!supabase) {
-        console.warn("[syncPending] Supabase client not initialized.");
-        return;
-      }
 
       for (const item of pending) {
         try {
-          const { userId, retryCount, failedAt, ...link } = item;
+          const { userId, retryCount, failedAt, id, createdAt, updatedAt, ...rest } = item;
 
-          console.log("[syncPending] Attempting to sync pending item to Supabase", {
-            id: link.id,
-            retryCount,
+          // Try upsert via POST (backend deduplicates by URL)
+          await apiFetch("/api/links", {
+            method: "POST",
+            body: JSON.stringify({
+              ...rest,
+              url: item.url,
+              title: item.title,
+              hostname: item.hostname,
+              tags: item.tags ?? [],
+              notes: item.notes,
+              category: item.category ?? "General",
+            }),
           });
-
-          const { error } = await supabase
-            .from("links")
-            .upsert({
-              id: link.id,
-              user_id: userId,
-              url: link.url,
-              title: link.title,
-              hostname: link.hostname,
-              tags: link.tags ?? [],
-              notes: link.notes ?? null,
-              category: link.category ?? "General",
-              created_at: link.createdAt,
-              updated_at: link.updatedAt,
-            });
-
-          if (error) {
-            throw error;
-          }
         } catch (error) {
-          console.error("[syncPending] Failed to sync pending item to Supabase", error);
+          console.error("[syncService] Failed to sync pending item:", item.id, error);
           const nextRetryCount = item.retryCount + 1;
-          if (nextRetryCount > MAX_PENDING_RETRIES) {
-            console.warn(
-              "[syncPending] Dropping pending item after max retries",
-              item,
-            );
+          if (nextRetryCount <= MAX_PENDING_RETRIES) {
+            remaining.push({ ...item, retryCount: nextRetryCount, failedAt: Date.now() });
           } else {
-            remaining.push({
-              ...item,
-              retryCount: nextRetryCount,
-              failedAt: Date.now(),
-            });
+            console.warn("[syncService] Dropping pending item after max retries:", item.id);
           }
         }
       }
 
       await setStorage("pending", remaining);
-      console.log("[syncPending] Finished syncing pending items", {
-        remaining: remaining.length,
-      });
+      console.log("[syncService] Pending sync done. Remaining:", remaining.length);
     } catch (err) {
-      console.error("[syncPending] Unexpected error syncing pending", err);
+      console.error("[syncService] Unexpected error in syncPending:", err);
     }
   },
 
   /**
-   * Sync pending deletes to Supabase.
-   * Works just like syncPending but for delete operations.
-   *
-   * Why do we need this? Before, if you deleted a link while offline,
-   * the delete was "fire and forget" — if it failed, the link stayed in
-   * Supabase forever like a zombie. Now we retry it.
+   * Pushes all queued offline deletes to the Next.js backend.
+   * Failed IDs are re-queued for retry.
    */
   async syncPendingDeletes(): Promise<void> {
     try {
       const pendingDeletes = await getStorage("pendingDeletes");
-      if (!pendingDeletes.length) {
-        return;
-      }
+      if (!pendingDeletes.length) return;
 
-      if (!supabase) {
-        console.warn("[syncPendingDeletes] Supabase client not initialized.");
-        return;
-      }
-
+      console.log("[syncService] Syncing pending deletes:", pendingDeletes.length);
       const remaining: string[] = [];
 
       for (const id of pendingDeletes) {
         try {
-          console.log("[syncPendingDeletes] Attempting to delete from Supabase", { id });
-
-          const { error } = await supabase
-            .from("links")
-            .delete()
-            .eq("id", id);
-
-          if (error) {
-            throw error;
-          }
+          await apiFetch(`/api/links/${id}`, { method: "DELETE" });
         } catch (error) {
-          console.error("[syncPendingDeletes] Failed to delete from Supabase", { id, error });
+          console.error("[syncService] Failed to delete from server:", id, error);
           remaining.push(id);
         }
       }
 
       await setStorage("pendingDeletes", remaining);
-      console.log("[syncPendingDeletes] Finished syncing pending deletes", {
-        remaining: remaining.length,
-      });
+      console.log("[syncService] Pending delete sync done. Remaining:", remaining.length);
     } catch (err) {
-      console.error("[syncPendingDeletes] Unexpected error", err);
+      console.error("[syncService] Unexpected error in syncPendingDeletes:", err);
     }
   },
 
   /**
-   * Delete a single link from Supabase.
-   * Throws on failure so the caller (link.storage.ts) can queue it for retry.
+   * Deletes a single link from the server.
+   * Throws on failure so the caller can queue it for retry.
    */
   async syncLinkDelete(id: string): Promise<void> {
-    console.log("[syncLinkDelete] Deleting link in Supabase", { id });
-    if (!supabase) {
-      throw new Error("Supabase client not initialized");
-    }
-
-    const { error } = await supabase
-      .from("links")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      throw error;
-    }
+    console.log("[syncService] Deleting link on server:", id);
+    await apiFetch(`/api/links/${id}`, { method: "DELETE" });
   },
 };

@@ -5,8 +5,8 @@ export const authClient = createAuthClient({
   session: {
     // Limits background network checks to at most once every 5 minutes (300 seconds)
     // even if the user clicks back and forth between tabs repeatedly!
-    minRevalidateSeconds: 300,
-  }
+    minRevalidateSeconds: 60,
+  },
 });
 
 export const { useSession, signIn, signUp, signOut } = authClient;
