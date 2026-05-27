@@ -1,28 +1,32 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { signIn, signUp } from "@/lib/auth-client";
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoginSkeleton />}>
-      <LoginForm />
-    </Suspense>
-  );
-}
-
-function LoginForm() {
+export default function SignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [isGooglePending, setIsGooglePending] = useState(false);
+
+  // Real-time password strength checklist per docs/auth/ux-ui.md Section 3
+  const passwordChecks = useMemo(() => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    };
+  }, [password]);
+
+  const isPasswordStrong = Object.values(passwordChecks).every(Boolean);
 
   async function handleGoogleSignIn() {
     setIsGooglePending(true);
@@ -30,7 +34,7 @@ function LoginForm() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: callbackUrl,
+        callbackURL: "/dashboard",
       });
     } catch {
       setError("An unexpected error occurred. Please try again.");
@@ -38,26 +42,32 @@ function LoginForm() {
     }
   }
 
-  async function handleEmailSignIn(e: React.FormEvent) {
+  async function handleEmailSignUp(e: React.FormEvent) {
     e.preventDefault();
+    if (!isPasswordStrong) {
+      setError("Please meet all password requirements before continuing.");
+      return;
+    }
+
     setIsPending(true);
     setError(null);
 
     try {
-      const { error: authError } = await signIn.email({
+      const { error: authError } = await signUp.email({
         email,
         password,
-        callbackURL: callbackUrl,
+        name,
+        callbackURL: "/dashboard",
       });
 
       if (authError) {
         // Generic error message per docs/auth/ux-ui.md - Account Enumeration Defense
-        setError("Invalid credentials. Please double-check your email and password.");
+        setError("Unable to create account. Please check your details and try again.");
         setIsPending(false);
         return;
       }
 
-      router.push(callbackUrl);
+      router.push("/dashboard");
     } catch {
       setError("An unexpected error occurred. Please try again.");
       setIsPending(false);
@@ -71,10 +81,10 @@ function LoginForm() {
       {/* Header */}
       <div className="mb-6 text-center">
         <h1 className="font-display text-2xl font-semibold tracking-tight text-white">
-          Welcome back
+          Create your account
         </h1>
         <p className="mt-1.5 text-sm text-slate-400">
-          Sign in to your account to continue
+          Get started with Link Smasher in seconds
         </p>
       </div>
 
@@ -120,17 +130,37 @@ function LoginForm() {
         <div className="h-px flex-1 bg-white/[0.08]" />
       </div>
 
-      {/* Email/Password Form - Priority 2 per docs/auth/strategy.md */}
-      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-4">
+      {/* Email/Password/Name Form */}
+      <form onSubmit={handleEmailSignUp} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <label
-            htmlFor="login-email"
+            htmlFor="signup-name"
+            className="text-xs font-medium uppercase tracking-wider text-slate-400"
+          >
+            Full Name
+          </label>
+          <input
+            id="signup-name"
+            type="text"
+            name="name"
+            required
+            placeholder="John Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            disabled={isLoading}
+            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all duration-200 focus:border-brand-indigo/50 focus:ring-2 focus:ring-brand-indigo/20 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="signup-email"
             className="text-xs font-medium uppercase tracking-wider text-slate-400"
           >
             Email
           </label>
           <input
-            id="login-email"
+            id="signup-email"
             type="email"
             name="email"
             required
@@ -143,23 +173,14 @@ function LoginForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="login-password"
-              className="text-xs font-medium uppercase tracking-wider text-slate-400"
-            >
-              Password
-            </label>
-            <Link
-              href="/forget-password"
-              className="text-xs text-brand-indigo hover:text-brand-violet transition-colors"
-              tabIndex={-1}
-            >
-              Forgot password?
-            </Link>
-          </div>
+          <label
+            htmlFor="signup-password"
+            className="text-xs font-medium uppercase tracking-wider text-slate-400"
+          >
+            Password
+          </label>
           <input
-            id="login-password"
+            id="signup-password"
             type="password"
             name="password"
             required
@@ -171,14 +192,25 @@ function LoginForm() {
           />
         </div>
 
-        {/* Error Message - Generic per docs/auth/ux-ui.md Section 4 */}
+        {/* Password strength checklist per docs/auth/ux-ui.md Section 3 */}
+        {password.length > 0 && (
+          <div className="flex flex-col gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+            <PasswordCheck passed={passwordChecks.length} label="At least 8 characters" />
+            <PasswordCheck passed={passwordChecks.uppercase} label="One uppercase letter" />
+            <PasswordCheck passed={passwordChecks.lowercase} label="One lowercase letter" />
+            <PasswordCheck passed={passwordChecks.number} label="One number" />
+            <PasswordCheck passed={passwordChecks.special} label="One special character" />
+          </div>
+        )}
+
+        {/* Error Message */}
         {error && (
           <div className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        {/* Submit Button with loading state per docs/auth/ux-ui.md Section 2 */}
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
@@ -191,24 +223,63 @@ function LoginForm() {
           {isPending ? (
             <span className="flex items-center justify-center gap-2">
               <LoadingSpinner />
-              Signing in...
+              Creating account...
             </span>
           ) : (
-            "Sign In"
+            "Create Account"
           )}
         </button>
       </form>
 
-      {/* Sign up link */}
+      {/* Sign in link */}
       <p className="mt-6 text-center text-sm text-slate-400">
-        Don&apos;t have an account?{" "}
+        Already have an account?{" "}
         <Link
-          href="/signup"
+          href="/login"
           className="font-medium text-brand-indigo hover:text-brand-violet transition-colors"
         >
-          Create one
+          Sign in
         </Link>
       </p>
+    </div>
+  );
+}
+
+function PasswordCheck({
+  passed,
+  label,
+}: {
+  passed: boolean;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div
+        className={`flex h-4 w-4 items-center justify-center rounded-full transition-colors duration-200 ${
+          passed
+            ? "bg-emerald-500/20 text-emerald-400"
+            : "bg-white/[0.06] text-slate-600"
+        }`}
+      >
+        {passed ? (
+          <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        ) : (
+          <div className="h-1.5 w-1.5 rounded-full bg-current" />
+        )}
+      </div>
+      <span
+        className={`text-xs transition-colors duration-200 ${
+          passed ? "text-emerald-400" : "text-slate-500"
+        }`}
+      >
+        {label}
+      </span>
     </div>
   );
 }
@@ -234,23 +305,5 @@ function LoadingSpinner() {
         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
       />
     </svg>
-  );
-}
-
-function LoginSkeleton() {
-  return (
-    <div className="animate-pulse">
-      <div className="mb-6 text-center">
-        <div className="mx-auto h-7 w-40 rounded-lg bg-white/[0.06]" />
-        <div className="mx-auto mt-2 h-4 w-56 rounded-lg bg-white/[0.04]" />
-      </div>
-      <div className="h-12 w-full rounded-xl bg-white/[0.04]" />
-      <div className="my-6 h-px bg-white/[0.06]" />
-      <div className="flex flex-col gap-4">
-        <div className="h-16 rounded-xl bg-white/[0.04]" />
-        <div className="h-16 rounded-xl bg-white/[0.04]" />
-        <div className="h-12 rounded-xl bg-white/[0.06]" />
-      </div>
-    </div>
   );
 }

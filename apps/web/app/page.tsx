@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Link2, Copy, Check, Zap, Shield, Search, Globe, 
-  Layers, ChevronRight, ExternalLink, Sparkles, 
+import {
+  Link2, Copy, Check, Zap, Shield, Search, Globe,
+  Layers, ChevronRight, ExternalLink, Sparkles,
   Command, Eye, HelpCircle, ArrowRight, Download, Server
 } from "lucide-react";
 
@@ -19,7 +19,7 @@ const MOCK_LINKS = [
 export default function Home() {
   // Navigation active tab tracking for visual cues
   const [activeTab, setActiveTab] = useState("features");
-  
+
   // Interactive Simulator States
   const [simUrlInput, setSimUrlInput] = useState("");
   const [simTitleInput, setSimTitleInput] = useState("");
@@ -31,7 +31,7 @@ export default function Home() {
   const [isSimHudOpen, setIsSimHudOpen] = useState(true);
   const [isCustomAlias, setIsCustomAlias] = useState(false);
   const [customAliasText, setCustomAliasText] = useState("");
-  
+
   // Stats Animation on Page Mount
   const [savesCount, setSavesCount] = useState(12480);
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function Home() {
   const filteredSimLinks = simSavedLinks.filter(link => {
     // Domain Isolation Filter: mock browser is on 'github.com'
     if (simFilterSite && link.site !== "github.com") return false;
-    
+
     // Search Query Filter
     if (simSearchQuery) {
       const q = simSearchQuery.toLowerCase();
@@ -105,7 +105,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-brand-dark grid-pattern relative selection:bg-brand-magenta/30 overflow-hidden font-sans">
-      
+
       {/* Decorative Radial Background Glows */}
       <div className="absolute inset-0 radial-glow-violet pointer-events-none z-0" />
       <div className="absolute inset-0 radial-glow-magenta pointer-events-none z-0" />
@@ -115,39 +115,39 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-indigo via-brand-violet to-brand-magenta flex items-center justify-center shadow-lg shadow-brand-indigo/20 group-hover:scale-105 transition-transform duration-300">
+            <div className="h-10 w-10 rounded-xl bg-linear-to-tr from-brand-indigo via-brand-violet to-brand-magenta flex items-center justify-center shadow-lg shadow-brand-indigo/20 group-hover:scale-105 transition-transform duration-300">
               <Link2 className="h-5 w-5 text-white" />
             </div>
-            <span className="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
-              Link <span className="bg-gradient-to-r from-brand-indigo to-brand-magenta bg-clip-text text-transparent">Crust</span>
+            <span className="font-display font-bold text-xl tracking-tight bg-linear-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent">
+              Link <span className="bg-linear-to-r from-brand-indigo to-brand-magenta bg-clip-text text-transparent">Crust</span>
             </span>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <a 
-              href="#features" 
+            <a
+              href="#features"
               onClick={() => setActiveTab("features")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "features" ? "text-white bg-white/5" : "text-gray-400 hover:text-white"}`}
             >
               Features
             </a>
-            <a 
-              href="#simulator" 
+            <a
+              href="#simulator"
               onClick={() => setActiveTab("simulator")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "simulator" ? "text-white bg-white/5" : "text-gray-400 hover:text-white"}`}
             >
               Live Demo
             </a>
-            <a 
-              href="#architecture" 
+            <a
+              href="#architecture"
               onClick={() => setActiveTab("architecture")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "architecture" ? "text-white bg-white/5" : "text-gray-400 hover:text-white"}`}
             >
               Technology
             </a>
-            <a 
-              href="#faq" 
+            <a
+              href="#faq"
               onClick={() => setActiveTab("faq")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === "faq" ? "text-white bg-white/5" : "text-gray-400 hover:text-white"}`}
             >
@@ -157,23 +157,23 @@ export default function Home() {
 
           {/* CTA Action Buttons */}
           <div className="flex items-center gap-3">
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              rel="noreferrer" 
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noreferrer"
               className="text-gray-400 hover:text-white transition-colors p-2 hidden sm:block"
             >
               <GithubIcon className="h-5 w-5" />
             </a>
-            <a 
-              href="/login" 
+            <a
+              href="/login"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-white/10"
             >
               Sign In
             </a>
-            <a 
-              href="#download" 
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-brand-indigo to-brand-violet hover:from-brand-indigo hover:to-brand-magenta text-white shadow-lg shadow-brand-indigo/15 hover:shadow-brand-indigo/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-2"
+            <a
+              href="#download"
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-linear-to-r from-brand-indigo to-brand-violet hover:from-brand-indigo hover:to-brand-magenta text-white shadow-lg shadow-brand-indigo/15 hover:shadow-brand-indigo/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-2"
             >
               <Download className="h-4 w-4" /> Install Extension
             </a>
@@ -184,17 +184,17 @@ export default function Home() {
       {/* --- HERO SECTION --- */}
       <section className="relative pt-32 pb-24 md:pt-40 md:pb-36 z-10 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
+
           {/* Hero Left Content */}
           <div className="lg:col-span-6 text-center lg:text-left space-y-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel border border-brand-indigo/20 text-xs font-semibold text-brand-indigo shadow-md shadow-brand-indigo/5">
               <Sparkles className="h-3.5 w-3.5 animate-pulse text-brand-magenta" />
               <span>Context-Aware Link Smasher MVP</span>
             </div>
-            
+
             <h1 className="font-display font-extrabold text-4xl sm:text-5xl xl:text-6xl tracking-tight leading-[1.1] text-white">
               Smash Long URLs.<br />
-              <span className="bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-magenta bg-clip-text text-transparent animate-pulse-slow">
+              <span className="bg-linear-to-r from-brand-indigo via-brand-violet to-brand-magenta bg-clip-text text-transparent animate-pulse-slow">
                 Keep the Context.
               </span>
             </h1>
@@ -206,19 +206,19 @@ export default function Home() {
             {/* Quick stats grid */}
             <div className="grid grid-cols-3 gap-4 pt-4 max-w-md mx-auto lg:mx-0 border-t border-white/5">
               <div>
-                <p className="font-display font-bold text-2xl bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                <p className="font-display font-bold text-2xl bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                   {savesCount.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Links Smashed</p>
               </div>
               <div>
-                <p className="font-display font-bold text-2xl bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                <p className="font-display font-bold text-2xl bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                   100%
                 </p>
                 <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Safe Isolation</p>
               </div>
               <div>
-                <p className="font-display font-bold text-2xl bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                <p className="font-display font-bold text-2xl bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                   &lt; 100ms
                 </p>
                 <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Access Speed</p>
@@ -227,15 +227,15 @@ export default function Home() {
 
             {/* CTA Group */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <a 
-                href="#download" 
-                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-gradient-to-r from-brand-indigo via-brand-violet to-brand-magenta text-white shadow-xl shadow-brand-indigo/20 hover:shadow-brand-indigo/35 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3 group"
+              <a
+                href="#download"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-linear-to-r from-brand-indigo via-brand-violet to-brand-magenta text-white shadow-xl shadow-brand-indigo/20 hover:shadow-brand-indigo/35 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3 group"
               >
                 Get Started Free
                 <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </a>
-              <a 
-                href="#simulator" 
+              <a
+                href="#simulator"
                 className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold glass-panel border border-white/10 hover:border-white/20 text-white/90 hover:text-white hover:bg-white/5 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 Try Interactive Demo
@@ -253,13 +253,13 @@ export default function Home() {
 
           {/* Hero Right Visual: High-fidelity Interactive HUD Simulator */}
           <div id="simulator" className="lg:col-span-6 w-full relative group">
-            
+
             {/* Ambient Glow backing */}
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-brand-indigo to-brand-magenta rounded-2xl blur-2xl opacity-20 group-hover:opacity-30 transition duration-1000 pointer-events-none" />
-            
+            <div className="absolute -inset-1.5 bg-linear-to-r from-brand-indigo to-brand-magenta rounded-2xl blur-2xl opacity-20 group-hover:opacity-30 transition duration-1000 pointer-events-none" />
+
             {/* The Browser Window Container */}
-            <div className="relative rounded-2xl border border-white/10 bg-[#0d091e] overflow-hidden shadow-2xl flex flex-col aspect-[4/3] min-h-[460px] md:min-h-[500px]">
-              
+            <div className="relative rounded-2xl border border-white/10 bg-[#0d091e] overflow-hidden shadow-2xl flex flex-col aspect-4/3 min-h-[460px] md:min-h-[500px]">
+
               {/* Browser Window Header */}
               <div className="bg-[#090616] px-4 py-3 flex items-center gap-3 border-b border-white/5">
                 <div className="flex gap-1.5">
@@ -267,7 +267,7 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
-                
+
                 {/* Simulated URL bar */}
                 <div className="flex-1 bg-[#15102a] rounded-lg px-3 py-1 flex items-center justify-between text-xs text-gray-400 font-light select-none">
                   <div className="flex items-center gap-2 truncate">
@@ -278,7 +278,7 @@ export default function Home() {
                 </div>
 
                 {/* Simulated Extension Icon Trigger */}
-                <button 
+                <button
                   onClick={() => setIsSimHudOpen(!isSimHudOpen)}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isSimHudOpen ? "bg-brand-indigo text-white" : "bg-white/5 text-gray-400 hover:text-white"}`}
                   title="Toggle Link Crust Extension Overlay"
@@ -289,7 +289,7 @@ export default function Home() {
 
               {/* Browser Webpage Content (Mocking GitHub page) */}
               <div className="flex-1 p-6 relative bg-[#0b071a] overflow-hidden select-none">
-                
+
                 {/* Background Webpage Layout Mock */}
                 <div className="space-y-4 opacity-30 filter blur-[0.5px]">
                   <div className="flex items-center gap-3">
@@ -324,7 +324,7 @@ export default function Home() {
                         <span className="text-gray-400 self-center text-sm font-semibold">+</span>
                         <kbd className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-xs text-white font-mono shadow-sm">K</kbd>
                       </div>
-                      <button 
+                      <button
                         onClick={() => setIsSimHudOpen(true)}
                         className="w-full py-2 rounded-lg bg-brand-indigo hover:bg-brand-violet text-white text-xs font-semibold shadow-md transition-colors"
                       >
@@ -337,18 +337,18 @@ export default function Home() {
                 {/* --- MOCK LINK CRUST HUD MODAL (Top Layer Isolated Overlay) --- */}
                 {isSimHudOpen && (
                   <div className="absolute inset-x-6 top-6 bottom-6 glass-panel rounded-xl border border-white/15 shadow-2xl flex flex-col z-20 overflow-hidden animate-fade-in transition-all duration-500 bg-[#0d0822]/90">
-                    
+
                     {/* HUD Header */}
                     <div className="px-4 py-3 bg-white/5 border-b border-white/5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-brand-indigo to-brand-magenta flex items-center justify-center shrink-0">
+                        <div className="w-5 h-5 rounded-md bg-linear-to-tr from-brand-indigo to-brand-magenta flex items-center justify-center shrink-0">
                           <Link2 className="h-3 w-3 text-white" />
                         </div>
                         <span className="font-display font-bold text-xs text-white tracking-wide">LINK CRUST</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-indigo/15 text-brand-indigo font-mono shrink-0 border border-brand-indigo/10">Alt+K</span>
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => setIsSimHudOpen(false)}
                         className="text-gray-500 hover:text-white text-xs font-semibold p-1 hover:bg-white/5 rounded transition-colors"
                       >
@@ -360,7 +360,7 @@ export default function Home() {
                     <form onSubmit={handleSimShorten} className="p-3.5 bg-white/5 border-b border-white/5 space-y-2">
                       <div className="flex gap-2">
                         <div className="relative flex-1">
-                          <input 
+                          <input
                             type="text"
                             placeholder="Paste long URL here..."
                             value={simUrlInput}
@@ -369,10 +369,10 @@ export default function Home() {
                             className="w-full bg-[#15102a] border border-white/15 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand-indigo transition-colors"
                           />
                         </div>
-                        <button 
-                          type="submit" 
+                        <button
+                          type="submit"
                           disabled={isSimSaving || !simUrlInput}
-                          className="px-4 rounded-lg bg-gradient-to-r from-brand-indigo to-brand-magenta hover:opacity-90 disabled:opacity-50 text-white text-xs font-semibold shrink-0 transition-opacity flex items-center gap-1.5 shadow-md shadow-brand-indigo/10"
+                          className="px-4 rounded-lg bg-linear-to-r from-brand-indigo to-brand-magenta hover:opacity-90 disabled:opacity-50 text-white text-xs font-semibold shrink-0 transition-opacity flex items-center gap-1.5 shadow-md shadow-brand-indigo/10"
                         >
                           {isSimSaving ? (
                             <>
@@ -390,8 +390,8 @@ export default function Home() {
 
                       {/* Custom Alias Toggle and Panel */}
                       <div className="flex items-center justify-between text-[11px]">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setIsCustomAlias(!isCustomAlias)}
                           className="text-brand-indigo hover:text-brand-magenta transition-colors font-medium flex items-center gap-1"
                         >
@@ -403,14 +403,14 @@ export default function Home() {
 
                       {isCustomAlias && (
                         <div className="grid grid-cols-2 gap-2 pt-1.5 animate-fade-in">
-                          <input 
+                          <input
                             type="text"
                             placeholder="Display title (e.g. My Repo)"
                             value={simTitleInput}
                             onChange={(e) => setSimTitleInput(e.target.value)}
                             className="bg-[#15102a]/60 border border-white/10 rounded px-2.5 py-1 text-[11px] text-white focus:outline-none focus:border-brand-indigo"
                           />
-                          <input 
+                          <input
                             type="text"
                             placeholder="Alias (e.g. alpha-guide)"
                             value={customAliasText}
@@ -425,7 +425,7 @@ export default function Home() {
                     <div className="px-3.5 py-2.5 bg-[#0f0b24] flex items-center justify-between border-b border-white/5 gap-3">
                       <div className="relative flex-1">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
-                        <input 
+                        <input
                           type="text"
                           placeholder="Search saved links..."
                           value={simSearchQuery}
@@ -433,8 +433,8 @@ export default function Home() {
                           className="w-full bg-[#17122e] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none border border-transparent focus:border-white/5 transition-colors"
                         />
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => setSimFilterSite(!simFilterSite)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition-all ${simFilterSite ? "bg-brand-indigo/15 border-brand-indigo text-brand-indigo" : "bg-transparent border-white/10 text-gray-400 hover:text-white"}`}
                       >
@@ -447,7 +447,7 @@ export default function Home() {
                     <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                       {filteredSimLinks.length > 0 ? (
                         filteredSimLinks.map((link) => (
-                          <div 
+                          <div
                             key={link.id}
                             className="p-2.5 rounded-lg bg-white/5 border border-white/5 hover:border-white/15 hover:bg-white/10 transition-all flex items-start justify-between gap-3 group/item"
                           >
@@ -457,14 +457,14 @@ export default function Home() {
                                 <span className="text-[9px] px-1.5 py-0.2 bg-white/10 text-gray-400 rounded shrink-0">{link.category}</span>
                               </div>
                               <span className="text-[10px] text-gray-500 truncate block">{link.original}</span>
-                              
+
                               <div className="flex items-center gap-1.5 pt-1 text-[11px] font-medium text-brand-indigo">
                                 <Link2 className="h-3 w-3 shrink-0" />
                                 <span className="hover:underline cursor-pointer">{link.short}</span>
                               </div>
                             </div>
 
-                            <button 
+                            <button
                               onClick={() => copySimShortUrl(link.id, link.short)}
                               className={`p-1.5 rounded-md border shrink-0 transition-all ${simCopiedId === link.id ? "bg-green-500/20 border-green-500/30 text-green-400" : "bg-[#15102a] border-white/10 text-gray-400 hover:text-white"}`}
                             >
@@ -487,7 +487,7 @@ export default function Home() {
                     {/* HUD Footer */}
                     <div className="px-4 py-2 bg-white/5 border-t border-white/5 text-[10px] text-gray-500 flex items-center justify-between">
                       <span className="flex items-center gap-1">
-                        <Server className="h-3 w-3 text-brand-indigo" /> 
+                        <Server className="h-3 w-3 text-brand-indigo" />
                         Connected to Supabase
                       </span>
                       <span>5 Saved Items</span>
@@ -521,7 +521,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
+
           {/* Card 1: Alt+S Save */}
           <div className="glass-panel rounded-2xl p-6 border border-white/10 glass-card-hover space-y-6">
             <div className="w-12 h-12 rounded-xl bg-brand-indigo/10 border border-brand-indigo/25 flex items-center justify-center shadow-lg shadow-brand-indigo/5 text-brand-indigo">
@@ -592,18 +592,18 @@ export default function Home() {
       {/* --- HOW IT WORKS SECTION --- */}
       <section className="py-24 relative z-10 px-6 max-w-7xl mx-auto border-t border-white/5 bg-[#070414]/40">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
+
           {/* Column Left: Visual Step Flow */}
           <div className="lg:col-span-5 space-y-8">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel border border-brand-cyan/20 text-xs font-semibold text-brand-cyan">
               <Eye className="h-3.5 w-3.5" />
               <span>Intuitive Workflow</span>
             </div>
-            
+
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight leading-tight">
               A Complete Workflow In Two Keystrokes
             </h2>
-            
+
             <p className="text-gray-400 text-base leading-relaxed font-light">
               We built Link Crust with zero friction in mind. No complex tags, folders, or nested bookmark categories. Save, search, and reuse inside the page you are reading.
             </p>
@@ -616,7 +616,7 @@ export default function Home() {
                   <span className="text-xs text-gray-400 leading-normal block">Paves a quick context entry for the page you are currently viewing.</span>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
                 <div className="w-7 h-7 rounded-full bg-brand-violet/10 border border-brand-violet/30 flex items-center justify-center font-bold text-xs text-brand-violet shrink-0 mt-1">2</div>
                 <div className="space-y-1">
@@ -624,7 +624,7 @@ export default function Home() {
                   <span className="text-xs text-gray-400 leading-normal block">Summons the glassmorphic modal over any webpage, complete with focus trapping.</span>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-4">
                 <div className="w-7 h-7 rounded-full bg-brand-magenta/10 border border-brand-magenta/30 flex items-center justify-center font-bold text-xs text-brand-magenta shrink-0 mt-1">3</div>
                 <div className="space-y-1">
@@ -639,11 +639,11 @@ export default function Home() {
           <div className="lg:col-span-7 relative">
             <div className="absolute -inset-1.5 bg-brand-indigo/15 rounded-2xl blur-xl pointer-events-none" />
             <div className="relative glass-panel rounded-2xl p-8 border border-white/10 flex flex-col gap-6">
-              
+
               <h3 className="font-display font-bold text-lg text-white">Visual Workflow Overview</h3>
-              
+
               <div className="flex flex-col md:flex-row items-center gap-4 justify-between relative">
-                
+
                 {/* Step Box A */}
                 <div className="w-full md:w-48 p-4 rounded-xl bg-white/5 border border-white/5 text-center space-y-3">
                   <div className="w-10 h-10 rounded-lg bg-brand-indigo/10 border border-brand-indigo/25 text-brand-indigo flex items-center justify-center mx-auto text-sm font-mono font-bold">Alt+S</div>
@@ -651,7 +651,7 @@ export default function Home() {
                   <span className="text-[10px] text-gray-500 block">Saves URL, title, and site domain automatically</span>
                 </div>
 
-                <div className="h-6 w-[2px] md:h-[2px] md:w-12 bg-gradient-to-r from-brand-indigo to-brand-violet shrink-0" />
+                <div className="h-6 w-[2px] md:h-[2px] md:w-12 bg-linear-to-r from-brand-indigo to-brand-violet shrink-0" />
 
                 {/* Step Box B */}
                 <div className="w-full md:w-48 p-4 rounded-xl bg-white/5 border border-white/5 text-center space-y-3">
@@ -660,7 +660,7 @@ export default function Home() {
                   <span className="text-[10px] text-gray-500 block">Instant search panel rises as a native top-layer dialog</span>
                 </div>
 
-                <div className="h-6 w-[2px] md:h-[2px] md:w-12 bg-gradient-to-r from-brand-violet to-brand-magenta shrink-0" />
+                <div className="h-6 w-[2px] md:h-[2px] md:w-12 bg-linear-to-r from-brand-violet to-brand-magenta shrink-0" />
 
                 {/* Step Box C */}
                 <div className="w-full md:w-48 p-4 rounded-xl bg-white/5 border border-brand-white/5 text-center space-y-3">
@@ -680,12 +680,12 @@ export default function Home() {
       {/* --- TECHNICAL SHOWCASE: SHADOW DOM ISOLATION --- */}
       <section id="architecture" className="py-24 relative z-10 px-6 max-w-7xl mx-auto border-t border-white/5">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
+
           {/* Left: Graphic representation */}
           <div className="lg:col-span-6 relative order-last lg:order-first">
             <div className="absolute -inset-2 bg-brand-violet/15 rounded-2xl blur-xl pointer-events-none" />
             <div className="relative glass-panel rounded-2xl p-6 border border-white/10 font-mono text-xs text-gray-400 space-y-4">
-              
+
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-brand-indigo" />
@@ -700,7 +700,7 @@ export default function Home() {
                 <div className="pl-4">&lt;<span className="text-brand-indigo">body</span>&gt;</div>
                 <div className="pl-8 text-gray-600">&lt;!-- Host Site CSS Rules Apply Here --&gt;</div>
                 <div className="pl-8">&lt;<span className="text-brand-indigo">div</span> id=<span className="text-green-300">"app-root"</span> class=<span className="text-green-300">"h-full overflow-hidden"</span>&gt;...&lt;/<span className="text-brand-indigo">div</span>&gt;</div>
-                
+
                 {/* Shadow DOM Boundary element */}
                 <div className="pl-8 bg-brand-indigo/10 border border-brand-indigo/35 py-2.5 rounded-lg my-3 px-3">
                   <div className="flex items-center justify-between mb-1.5 text-brand-indigo font-bold text-[10px]">
@@ -730,11 +730,11 @@ export default function Home() {
               <Shield className="h-3.5 w-3.5" />
               <span>Advanced Shadow DOM Injection</span>
             </div>
-            
+
             <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight leading-tight">
               Styles That Never Break The Websites You Read
             </h2>
-            
+
             <p className="text-gray-400 text-base leading-relaxed font-light">
               Many Chrome extension overlays break because they inherit or clash with the styles of the website they are loaded on. E.g., custom button styles, margins, or fonts leaks on client sites.
             </p>
@@ -778,7 +778,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          
+
           <div className="glass-panel rounded-2xl p-6 border border-white/5 space-y-3">
             <h4 className="font-bold text-sm text-white">What is a &quot;Link Smasher&quot;?</h4>
             <p className="text-xs text-gray-400 leading-relaxed font-light">
@@ -813,7 +813,7 @@ export default function Home() {
       {/* --- DOWNLOAD & CTA SECTION --- */}
       <section id="download" className="py-24 relative z-10 px-6 max-w-5xl mx-auto text-center">
         <div className="glass-panel rounded-3xl border border-white/10 p-12 md:p-16 relative overflow-hidden">
-          
+
           {/* Subtle color highlight inside */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-indigo/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -821,23 +821,23 @@ export default function Home() {
             <h2 className="font-display font-extrabold text-3xl sm:text-5xl text-white tracking-tight leading-tight">
               Ready to Upgrade Your Link Management Workflow?
             </h2>
-            
+
             <p className="text-gray-400 text-base md:text-lg font-light leading-relaxed">
               Install the lightweight Link Crust Chrome extension today and experience instant keyboard saves, isolated domain search overlays, and database synchronization.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <a 
-                href="https://chromewebstore.google.com" 
+              <a
+                href="https://chromewebstore.google.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-gradient-to-r from-brand-indigo to-brand-magenta text-white shadow-xl shadow-brand-indigo/20 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-linear-to-r from-brand-indigo to-brand-magenta text-white shadow-xl shadow-brand-indigo/20 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3"
               >
                 <Download className="h-5 w-5" />
                 Add to Chrome (Free)
               </a>
-              <a 
-                href="/login" 
+              <a
+                href="/login"
                 className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold glass-panel border border-white/10 hover:border-white/20 text-white hover:bg-white/5 transition-all duration-200"
               >
                 Access Web Vault
@@ -855,10 +855,10 @@ export default function Home() {
       {/* --- PREMIUIM FOOTER --- */}
       <footer className="border-t border-white/5 py-12 relative z-10 bg-[#06030e]/80">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
-          
+
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-brand-indigo to-brand-magenta flex items-center justify-center shadow shadow-brand-indigo/10">
+              <div className="h-8 w-8 rounded-lg bg-linear-to-tr from-brand-indigo to-brand-magenta flex items-center justify-center shadow shadow-brand-indigo/10">
                 <Link2 className="h-4 w-4 text-white" />
               </div>
               <span className="font-display font-bold text-lg text-white">Link Crust</span>
