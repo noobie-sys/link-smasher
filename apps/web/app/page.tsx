@@ -6,6 +6,7 @@ import {
   Layers, ChevronRight, ExternalLink, Sparkles,
   Command, Eye, HelpCircle, ArrowRight, Download, Server
 } from "lucide-react";
+import { useSession, signOut } from "@/lib/auth-client";
 
 // Mock saved links data for the interactive simulator
 const MOCK_LINKS = [
@@ -17,6 +18,8 @@ const MOCK_LINKS = [
 ];
 
 export default function Home() {
+  const { data: session } = useSession();
+
   // Navigation active tab tracking for visual cues
   const [activeTab, setActiveTab] = useState("features");
 
@@ -165,12 +168,35 @@ export default function Home() {
             >
               <GithubIcon className="h-5 w-5" />
             </a>
-            <a
-              href="/login"
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-white/10"
-            >
-              Sign In
-            </a>
+            {session?.user ? (
+              <>
+                <a
+                  href="/dashboard"
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-white/10"
+                >
+                  Dashboard
+                </a>
+                <button
+                  onClick={() => signOut({
+                    fetchOptions: {
+                      onSuccess: () => {
+                        window.location.reload();
+                      }
+                    }
+                  })}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <a
+                href="/login"
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-all duration-200 border border-white/5 hover:border-white/10"
+              >
+                Sign In
+              </a>
+            )}
             <a
               href="#download"
               className="px-4 py-2 rounded-lg text-sm font-semibold bg-linear-to-r from-brand-indigo to-brand-violet hover:from-brand-indigo hover:to-brand-magenta text-white shadow-lg shadow-brand-indigo/15 hover:shadow-brand-indigo/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-2"
