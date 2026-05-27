@@ -2,6 +2,16 @@ import { getStorage, setStorage } from "@/core/storage/storage.util";
 
 const BACKEND_URL = import.meta.env.WXT_BACKEND_URL ?? "http://localhost:3000";
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
 /**
  * A typed, authenticated HTTP client for the Link Smasher Next.js backend.
  *
@@ -35,7 +45,7 @@ export async function apiFetch<T>(
   if (response.status === 401) {
     await setStorage("sessionToken", null);
     await setStorage("user", null);
-    throw new Error("Session expired. Please log in again at the web portal.");
+    throw new ApiError("Session expired. Please log in again at the web portal.", 401);
   }
 
   if (!response.ok) {
@@ -46,7 +56,7 @@ export async function apiFetch<T>(
     } catch {
       // Ignore JSON parse error on error bodies
     }
-    throw new Error(errorMessage);
+    throw new ApiError(errorMessage, response.status);
   }
 
   return response.json() as Promise<T>;
