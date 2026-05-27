@@ -1,9 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { toNextJsHandler } from "better-auth/next-js";
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({ message: "Auth route placeholder" });
-}
-
-export async function POST(request: NextRequest) {
-  return NextResponse.json({ message: "Auth route placeholder" });
-}
+export const { GET, POST } = toNextJsHandler(auth);

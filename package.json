@@ -13,5 +13,14 @@
   },
   "devDependencies": {
     "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "prisma",
+      "@prisma/engines",
+      "esbuild",
+      "sharp",
+      "spawn-sync"
+    ]
   }
 }
