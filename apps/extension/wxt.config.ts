@@ -12,8 +12,39 @@ export default defineConfig({
   manifest: {
     name: "Link Crust",
     description: "Save and revisit links instantly without breaking your flow.",
-    permissions: ["storage", "tabs", "activeTab", "cookies"],
-    host_permissions: ["http://localhost:3000/*", "https://*.linksmasher.com/*"],
+    permissions: ["storage", "tabs", "activeTab", "cookies", "scripting"],
+    host_permissions: [
+      "http://localhost:3000/*",
+      "https://*.linksmasher.com/*",
+      "<all_urls>",
+      "*://*.linkedin.com/*",
+      "*://*.instagram.com/*",
+      "*://*.x.com/*",
+      "*://*.twitter.com/*",
+      "*://*.facebook.com/*",
+      "*://*.reddit.com/*",
+      "*://*.threads.net/*"
+    ],
     action: {},
+    content_scripts: [
+      {
+        matches: ["<all_urls>"],
+        js: ["content-scripts/main.js"],
+        css: ["content-scripts/main.css"]
+      },
+      {
+        matches: [
+          "*://*.linkedin.com/*",
+          "*://*.instagram.com/*",
+          "*://*.x.com/*",
+          "*://*.twitter.com/*",
+          "*://*.facebook.com/*",
+          "*://*.reddit.com/*",
+          "*://*.threads.net/*"
+        ],
+        js: ["content-scripts/social-feed.js"],
+        css: ["content-scripts/social-feed.css"]
+      }
+    ]
   },
 });
