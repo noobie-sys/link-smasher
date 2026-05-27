@@ -15,9 +15,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions Session[]
-  accounts Account[]
-  links    Link[]
+  sessions   Session[]
+  accounts   Account[]
+  links      Link[]
+  categories Category[]
 }
 
 model Session {
@@ -65,19 +66,40 @@ model Verification {
 }
 
 model Link {
-  id        String   @id
-  userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  url       String
-  title     String
-  hostname  String
-  tags      String[] @default([])
-  notes     String?
-  category  String   @default("General")
-  createdAt BigInt   @map("created_at")
-  updatedAt BigInt?  @map("updated_at")
-  syncedAt  DateTime @default(now()) @map("synced_at")
+  id         String    @id
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url        String
+  title      String
+  hostname   String
+  tags       String[]  @default([])
+  notes      String?
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt  BigInt    @map("created_at")
+  updatedAt  BigInt?   @map("updated_at")
+  syncedAt   DateTime  @default(now()) @map("synced_at")
 
   @@index([userId])
   @@map("links")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String   @default("#6366F1")
+  icon        String?
+  order       Int      @default(0)
+  isSystem    Boolean  @default(false)
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  links       Link[]
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
 }
