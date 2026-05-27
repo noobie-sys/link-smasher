@@ -1,4 +1,4 @@
-import { apiFetch } from "@/core/api/client";
+import { apiFetch, ApiError } from "@/core/api/client";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
@@ -109,6 +109,12 @@ export const syncService = {
           });
         } catch (error) {
           console.error("[syncService] Failed to sync pending item:", item.id, error);
+          
+          if (error instanceof ApiError && error.status === 409) {
+            console.log("[syncService] Item already exists on server (409 Conflict). Removing from queue:", item.id);
+            continue;
+          }
+
           const nextRetryCount = item.retryCount + 1;
           if (nextRetryCount <= MAX_PENDING_RETRIES) {
             remaining.push({ ...item, retryCount: nextRetryCount, failedAt: Date.now() });
@@ -142,6 +148,12 @@ export const syncService = {
           await apiFetch(`/api/links/${id}`, { method: "DELETE" });
         } catch (error) {
           console.error("[syncService] Failed to delete from server:", id, error);
+          
+          if (error instanceof ApiError && error.status === 404) {
+            console.log("[syncService] Link already deleted from server (404 Not Found). Removing from queue:", id);
+            continue;
+          }
+
           remaining.push(id);
         }
       }

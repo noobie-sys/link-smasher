@@ -54,7 +54,10 @@ export const authService = {
       });
 
       if (!response.ok) {
-        console.warn("[authService] Session verification failed:", response.status);
+        console.warn(
+          "[authService] Session verification failed:",
+          response.status,
+        );
         await setStorage("sessionToken", null);
         await setStorage("user", null);
         return false;

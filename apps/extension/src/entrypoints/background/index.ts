@@ -50,6 +50,30 @@ export default defineBackground(() => {
     }
   });
 
+  // 3. Real-Time Session Cookie Listener
+  // Instantly triggers sync when user logs in or out on the web portal.
+  chrome.cookies.onChanged.addListener(async (changeInfo) => {
+    const isSessionCookie = changeInfo.cookie.name === "better-auth.session_token";
+    const isTargetDomain =
+      changeInfo.cookie.domain.includes("localhost") ||
+      changeInfo.cookie.domain.includes("linksmasher.com");
+
+    if (isSessionCookie && isTargetDomain) {
+      console.log(
+        "[background] Session cookie change detected (login/logout). Re-syncing queues...",
+      );
+      const token = await authService.fetchSessionToken();
+      if (token) {
+        // Upload all offline bookmarks saved while logged out
+        await syncService.syncPending();
+        await syncService.syncPendingDeletes();
+        await syncService.syncFromServer();
+      } else {
+        await authService.clearSession();
+      }
+    }
+  });
+
   // 3. Periodic Background Sync Alarm
   chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "sync") {
