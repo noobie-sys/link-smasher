@@ -54,9 +54,10 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
     // Network failure — queue for background retry
     console.error("[link.storage] Backend save failed, queueing pending:", err);
     const pending = await getStorage("pending");
+    const user = await getStorage("user");
     const pendingItem: PendingLink = {
       ...link,
-      userId: "", // userId resolved server-side from session; kept for schema compat
+      userId: user?.id || "",
       retryCount: 0,
       failedAt: Date.now(),
     };
@@ -143,9 +144,10 @@ export const updateLinkInStorage = async (
   } catch (err) {
     console.error("[link.storage] Backend update failed, queueing pending:", err);
     const pending = await getStorage("pending");
+    const user = await getStorage("user");
     const pendingItem: PendingLink = {
       ...updatedLink,
-      userId: "",
+      userId: user?.id || "",
       retryCount: 0,
       failedAt: Date.now(),
     };

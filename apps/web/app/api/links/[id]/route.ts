@@ -54,9 +54,9 @@ export const GET = withApiHandler(async (
     throw new NotFoundError("Link not found.");
   }
 
-  // 3. Format to flat output specification
   const data = {
     id: link.id,
+    userId: link.userId,
     url: link.url,
     title: link.title,
     hostname: link.hostname,
@@ -155,9 +155,9 @@ export const PATCH = withApiHandler(async (
     },
   });
 
-  // 6. Format output
   const data = {
     id: updatedLink.id,
+    userId: updatedLink.userId,
     url: updatedLink.url,
     title: updatedLink.title,
     hostname: updatedLink.hostname,

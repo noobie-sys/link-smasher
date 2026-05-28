@@ -27,6 +27,7 @@ export const DEFAULT_CATEGORIES = [
  * Payload validation schema for creating a new Link.
  */
 const createLinkSchema = z.object({
+  id: z.string().uuid("Invalid ID format").optional(),
   url: z.string().url("Invalid URL format"),
   title: z.string().min(1, "Title is required").max(500),
   hostname: z.string().min(1, "Hostname is required").optional(),
@@ -114,6 +115,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
   // 4. Transform dynamic relations to flat string mapping required by specification
   const data = links.map((link: any) => ({
     id: link.id,
+    userId: link.userId,
     url: link.url,
     title: link.title,
     hostname: link.hostname,
@@ -191,7 +193,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // 7. DB Insertion
   const newLink = await prisma.link.create({
     data: {
-      id: crypto.randomUUID(),
+      id: parsedData.id || crypto.randomUUID(),
       userId: session.user.id,
       url: parsedData.url,
       title: parsedData.title,
@@ -210,6 +212,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // 8. Format response to match flat structure specification
   const data = {
     id: newLink.id,
+    userId: newLink.userId,
     url: newLink.url,
     title: newLink.title,
     hostname: newLink.hostname,

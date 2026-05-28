@@ -105,11 +105,7 @@ export default function LinkSaverPage() {
   const fetchCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const res = await fetch("/api/categories", {
-        headers: {
-          "X-Test-User-Id": session?.user?.id || "",
-        },
-      });
+      const res = await fetch("/api/categories");
       const payload = await res.json();
       if (payload.success && Array.isArray(payload.data)) {
         setCategories(payload.data);
@@ -155,7 +151,6 @@ export default function LinkSaverPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Test-User-Id": session?.user?.id || "",
         },
         body: JSON.stringify({ name }),
       });
@@ -199,12 +194,7 @@ export default function LinkSaverPage() {
   const fetchLinks = async () => {
     try {
       setIsLoading(true);
-      // We pass the test header for seamless dev testing if desired
-      const res = await fetch("/api/links", {
-        headers: {
-          "X-Test-User-Id": session?.user?.id || "",
-        },
-      });
+      const res = await fetch("/api/links");
 
       updateRateHeaders(res.headers);
       const payload = await res.json();
@@ -252,7 +242,6 @@ export default function LinkSaverPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Test-User-Id": session?.user?.id || "",
         },
         body: JSON.stringify({
           url,
@@ -294,9 +283,6 @@ export default function LinkSaverPage() {
       setIsActionPending(true);
       const res = await fetch(`/api/links/${id}`, {
         method: "DELETE",
-        headers: {
-          "X-Test-User-Id": session?.user?.id || "",
-        },
       });
 
       updateRateHeaders(res.headers);
@@ -347,7 +333,6 @@ export default function LinkSaverPage() {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          "X-Test-User-Id": session?.user?.id || "",
         },
         body: JSON.stringify({
           title: editTitle.trim(),

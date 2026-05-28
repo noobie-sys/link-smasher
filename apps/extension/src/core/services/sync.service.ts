@@ -92,13 +92,14 @@ export const syncService = {
 
       for (const item of pending) {
         try {
-          const { userId, retryCount, failedAt, id, createdAt, updatedAt, ...rest } = item;
+          const { userId, retryCount, failedAt, createdAt, updatedAt, ...rest } = item;
 
           // Try upsert via POST (backend deduplicates by URL)
           await apiFetch("/api/links", {
             method: "POST",
             body: JSON.stringify({
               ...rest,
+              id: item.id,
               url: item.url,
               title: item.title,
               hostname: item.hostname,

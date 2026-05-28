@@ -16,30 +16,6 @@ import { auth } from "./auth";
  * session extraction.
  */
 export async function getAuthSession(request: NextRequest) {
-  if (process.env.NODE_ENV === "development") {
-    const testUserId = request.headers.get("x-test-user-id");
-    if (testUserId) {
-      return {
-        user: {
-          id: testUserId,
-          email: "developer-mock@linksmasher.com",
-          name: "Local Developer",
-          emailVerified: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        session: {
-          id: "dev-session-id",
-          userId: testUserId,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          token: "dev-session-token",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      };
-    }
-  }
-
   return await auth.api.getSession({
     headers: await headers(),
   });

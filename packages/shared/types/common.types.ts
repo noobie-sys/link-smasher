@@ -1,5 +1,6 @@
 export interface Link {
   id: string;
+  userId?: string;
   url: string;
   title: string;
   hostname: string;

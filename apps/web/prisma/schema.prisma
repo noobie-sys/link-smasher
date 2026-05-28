@@ -7,13 +7,13 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String   @id
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   sessions   Session[]
   accounts   Account[]
@@ -85,19 +85,19 @@ model Link {
 }
 
 model Category {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  color       String   @default("#6366F1")
+  color       String  @default("#6366F1")
   icon        String?
-  order       Int      @default(0)
-  isSystem    Boolean  @default(false)
-  userId      String   @map("user_id")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order       Int     @default(0)
+  isSystem    Boolean @default(false)
+  userId      String  @map("user_id")
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   links       Link[]
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@unique([userId, name])
   @@index([userId])
