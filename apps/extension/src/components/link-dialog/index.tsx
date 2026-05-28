@@ -24,6 +24,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { categoryService } from "@/core/services/category.service"
+import { Category } from "@/shared/types/category.types"
 
 // New components
 import { CustomDialogHeader } from "./components/dialog-header"
@@ -32,16 +34,7 @@ import { SearchBar } from "./components/search-bar"
 import { LinkList } from "./components/link-list"
 
 
-const PREDEFINED_CATEGORIES = [
-  "Development",
-  "Social Media",
-  "Productivity",
-  "Entertainment",
-  "News",
-  "Education",
-  "Shopping",
-  "General",
-];
+
 
 interface LinkDialogProps {
   open: boolean
@@ -63,6 +56,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   const [editingLinkId, setEditingLinkId] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
+  // Category Integration States
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false)
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false)
+
   const MAX_NOTES_LENGTH = 200
 
   // Current website links
@@ -83,12 +83,14 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       const hostname = getHostname(url)
       setCurrentHostname(hostname)
 
+      // Fetch dynamic categories from Next.js server
+      loadCategories()
+
       if (linkToEdit) {
         // Edit mode from externals
         startEditing(linkToEdit)
       } else {
         // New link mode
-        // We ensure the form is clean. The tab is already reset to Save on close.
         const title = document.title || url
         setCurrentUrl(url)
         setCurrentTitle(title)
@@ -107,6 +109,52 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       resetForm() // Reset everything (including Tab to Save) so it's ready for next open
     }
   }, [open, linkToEdit])
+
+  const loadCategories = async () => {
+    setIsLoadingCategories(true)
+    try {
+      const fetched = await categoryService.fetchCategories()
+      setCategories(fetched)
+    } catch (err) {
+      console.error("Failed to load categories:", err)
+    } finally {
+      setIsLoadingCategories(false)
+    }
+  }
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim()
+    if (!name) return
+
+    const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
+    if (emojiRegex.test(name)) {
+      toast.error("Category name must not contain emojis.")
+      return
+    }
+
+    setIsCreatingCategory(true)
+    try {
+      const newCat = await categoryService.createCategory(name)
+      toast.success(`Category "${newCat.name}" created!`)
+      setLinkCategory(newCat.name)
+      await loadCategories()
+      setIsCreateCategoryModalOpen(false)
+      setNewCategoryName("")
+    } catch (err: any) {
+      console.error("Failed to create category:", err)
+      toast.error(err.message || "Failed to create category")
+    } finally {
+      setIsCreatingCategory(false)
+    }
+  }
+
+  const systemCategories = useMemo(() => {
+    return categories.filter((c) => c.isSystem)
+  }, [categories])
+
+  const customCategories = useMemo(() => {
+    return categories.filter((c) => !c.isSystem)
+  }, [categories])
 
   const clearFormNodes = () => {
     const url = window.location.href
@@ -483,77 +531,77 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
 
                           <DropdownMenuContent
                             align="end"
-                            className="w-52 border-gray-700 text-white p-1 "
+                            className="w-52 border-gray-700 text-white p-1 bg-[#1e1e1e]"
                             style={{ zIndex: 9999999999 }}
                           >
                             <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
                               Predefined
                             </DropdownMenuLabel>
 
-                            {PREDEFINED_CATEGORIES.map((cat) => (
+                            {systemCategories.map((cat) => (
                               <DropdownMenuItem
-                                key={cat}
+                                key={cat.id}
                                 onClick={() => {
-                                  setLinkCategory(cat)
+                                  setLinkCategory(cat.name)
                                   setCustomCategoryInput("")
                                 }}
-                                className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat
+                                className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat.name
                                   ? "bg-[#2C2C2C] text-white"
                                   : "text-gray-300 hover:bg-[#2C2C2C] hover:text-white"
                                   }`}
                               >
-                                {linkCategory === cat && (
+                                {linkCategory === cat.name && (
                                   <span className="mr-1.5 text-[10px]">✓</span>
                                 )}
-                                {cat}
+                                {cat.name}
                               </DropdownMenuItem>
                             ))}
 
+                            {customCategories.length > 0 && (
+                              <>
+                                <DropdownMenuSeparator className="bg-gray-700 my-1" />
+                                <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
+                                  Custom
+                                </DropdownMenuLabel>
+
+                                {customCategories.map((cat) => (
+                                  <DropdownMenuItem
+                                    key={cat.id}
+                                    onClick={() => {
+                                      setLinkCategory(cat.name)
+                                      setCustomCategoryInput("")
+                                    }}
+                                    className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat.name
+                                      ? "bg-[#2C2C2C] text-white"
+                                      : "text-gray-300 hover:bg-[#2C2C2C] hover:text-white"
+                                      }`}
+                                  >
+                                    {linkCategory === cat.name && (
+                                      <span className="mr-1.5 text-[10px]">✓</span>
+                                    )}
+                                    {cat.name}
+                                  </DropdownMenuItem>
+                                ))}
+                              </>
+                            )}
+
                             <DropdownMenuSeparator className="bg-gray-700 my-1" />
-
-                            <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-gray-500 px-2 py-1">
-                              Custom
-                            </DropdownMenuLabel>
-
-                            {/* Inline custom category input inside the menu */}
-                            <div className="px-2 pb-1" onPointerDown={(e) => e.stopPropagation()}>
-                              <div className="flex gap-1">
-                                <input
-                                  type="text"
-                                  value={customCategoryInput}
-                                  onChange={(e) => setCustomCategoryInput(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter" && customCategoryInput.trim()) {
-                                      setLinkCategory(customCategoryInput.trim())
-                                      setCustomCategoryInput("")
-                                    }
-                                    e.stopPropagation()
-                                  }}
-                                  placeholder="Type & press Enter…"
-                                  className="flex-1 min-w-0 px-2 py-1 rounded-md bg-[#2C2C2C] text-xs text-white placeholder:text-gray-600 border border-gray-700 focus:outline-none focus:border-gray-500"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={!customCategoryInput.trim()}
-                                  onClick={() => {
-                                    if (customCategoryInput.trim()) {
-                                      setLinkCategory(customCategoryInput.trim())
-                                      setCustomCategoryInput("")
-                                    }
-                                  }}
-                                  className="px-2 py-1 rounded-md bg-[#2C2C2C] text-xs text-gray-400 hover:text-white hover:bg-[#383838] border border-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                >
-                                  Set
-                                </button>
-                              </div>
-                            </div>
+                            
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setIsCreateCategoryModalOpen(true)
+                              }}
+                              className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-indigo-400 hover:bg-[#2C2C2C] hover:text-indigo-300 transition-colors font-medium flex items-center gap-1"
+                            >
+                              <span>＋</span> Create new category…
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
                     </div>
 
                     {/* Custom category hint */}
-                    {linkCategory && !PREDEFINED_CATEGORIES.includes(linkCategory.trim()) && linkCategory.trim() !== "" && (
+                    {linkCategory && !systemCategories.some(c => c.name === linkCategory.trim()) && linkCategory.trim() !== "" && (
                       <p className="text-[10px] text-amber-400/80 flex items-center gap-1 pt-0.5">
                         <span>✦</span>
                         <span>Custom category — creates a new card in your library</span>
@@ -711,6 +759,62 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
           />
         </DialogContent>
       </Dialog>
+
+      {/* Premium Create Custom Category Overlay Modal */}
+      {isCreateCategoryModalOpen && (
+        <div className="fixed inset-0 z-[99999999999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 transition-all duration-200">
+          <div className="w-full max-w-[320px] bg-[#1e1e1e] border border-gray-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-white">Create Custom Category</h3>
+              <p className="text-xs text-gray-400">
+                Give your category a unique name. Emojis are not permitted.
+              </p>
+            </div>
+
+            <div className="space-y-1.5 text-left">
+              <Label htmlFor="category-name-input" className="text-xs font-medium text-gray-300">
+                Category Name
+              </Label>
+              <Input
+                id="category-name-input"
+                type="text"
+                autoFocus
+                value={newCategoryName}
+                onChange={(e) => {
+                  setNewCategoryName(e.target.value.slice(0, 50))
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newCategoryName.trim() && !isCreatingCategory) {
+                    handleCreateCategory()
+                  }
+                }}
+                placeholder="e.g. AI Research"
+                className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-600 focus-visible:ring-indigo-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 mt-2">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setIsCreateCategoryModalOpen(false)
+                  setNewCategoryName("")
+                }}
+                className="text-gray-400 hover:text-white hover:bg-gray-800 text-xs px-3 py-1.5 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={isCreatingCategory || !newCategoryName.trim()}
+                onClick={handleCreateCategory}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-1.5 h-8 rounded-lg transition-colors cursor-pointer border-0"
+              >
+                {isCreatingCategory ? "Creating..." : "Create"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

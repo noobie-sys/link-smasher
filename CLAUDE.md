@@ -30,7 +30,7 @@ link-smasher/
 
 ### Language
 - **TypeScript** everywhere. No `.js` or `.jsx` files in either app.
-- Use strict mode. Avoid `any` — use `unknown` and narrow with type guards.
+- Use strict mode. Never use any and never type safety until or unless you need it (avoid complex, over-engineered typing).
 
 ### Package Manager
 - **pnpm** is the only package manager. Do NOT use `npm` or `yarn`.

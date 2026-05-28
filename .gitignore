@@ -15,7 +15,7 @@ stats-*.json
 web-ext.config.ts
 .env
 .next
-
+.antigravitycli
 
 # Editor directories and files
 .vscode/*

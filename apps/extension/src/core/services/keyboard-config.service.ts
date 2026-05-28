@@ -38,8 +38,8 @@ const DEFAULT_SHORTCUTS: Record<ShortcutAction, KeyboardShortcutConfig> = {
     name: "Open Link Dialog",
     description: "Open the link management dialog",
     defaultCombo: {
-      key: "j",
-      metaKey: true, // CMD+J
+      key: "s",
+      altKey: true, // ALT+S (non-conflicting in Chrome)
     },
   },
   [ShortcutAction.SAVE_LINK]: {

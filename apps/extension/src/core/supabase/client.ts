@@ -9,8 +9,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
-export const HARDCODED_USER_ID = "dev-user-placeholder";
+/**
+ * The Supabase client is retained for potential future use (e.g. realtime subscriptions).
+ * All authenticated data operations now go through the Next.js API gateway via apiFetch.
+ * Do NOT use this client for CRUD operations or authentication.
+ */
+export const supabase =
+  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;

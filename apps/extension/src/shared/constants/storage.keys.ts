@@ -6,4 +6,6 @@ export const STORAGE_KEYS = {
   PLAN: "plan",
   PLAN_SYNCED_AT: "plan_synced_at",
   MIGRATED: "migrated",
+  SESSION_TOKEN: "sessionToken",
+  LAST_SYNCED_AT: "lastSyncedAt",
 };
