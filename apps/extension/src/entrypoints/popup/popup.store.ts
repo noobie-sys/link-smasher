@@ -13,6 +13,7 @@ export function usePopup() {
     hostname: string;
   } | null>(null);
   const [links, setLinks] = useState<Link[]>([]);
+  const [allLinks, setAllLinks] = useState<Link[]>([]);
   const [tag, setTag] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">(
@@ -24,55 +25,54 @@ export function usePopup() {
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   useEffect(() => {
-    const checkAuthAndLoad = async () => {
+    const bootstrapPopup = async () => {
       setIsLoadingAuth(true);
       try {
-        // Fetch/bootstrap cookie token
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const url = tab?.url || "";
+        const title = tab?.title || "New Tab";
+
+        const isSystemPage =
+          url.startsWith("chrome://") ||
+          url.startsWith("chrome-extension://") ||
+          url.startsWith("about:") ||
+          !url;
+
+        if (isSystemPage) {
+          setCurrentTab({
+            url: "",
+            title: "System Page",
+            hostname: "system-page",
+          });
+        } else {
+          const hostname = getHostname(url);
+          setCurrentTab({
+            url,
+            title,
+            hostname,
+          });
+
+          await loadLinks(hostname);
+        }
+
+        await loadAllLinks();
+
+        // Fetch/bootstrap cookie token after local data is available. Auth controls
+        // cloud sync and dashboard actions, but the popup remains useful offline.
         const token = await authService.fetchSessionToken();
         const storedUser = await getStorage("user");
 
         const authOk = !!(token && storedUser);
         setIsAuthenticated(authOk);
-        setUser(storedUser);
-
-        if (authOk) {
-          // Get Active Tab
-          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-          const url = tab?.url || "";
-          const title = tab?.title || "New Tab";
-
-          const isSystemPage =
-            url.startsWith("chrome://") ||
-            url.startsWith("chrome-extension://") ||
-            url.startsWith("about:") ||
-            !url;
-
-          if (isSystemPage) {
-            setCurrentTab({
-              url: "",
-              title: "System Page",
-              hostname: "system-page",
-            });
-          } else {
-            const hostname = getHostname(url);
-            setCurrentTab({
-              url,
-              title,
-              hostname,
-            });
-
-            // Load links for this hostname
-            await loadLinks(hostname);
-          }
-        }
+        setUser(authOk ? storedUser : null);
       } catch (err) {
-        console.error("[usePopup] Auth bootstrap error:", err);
+        console.error("[usePopup] Bootstrap error:", err);
       } finally {
         setIsLoadingAuth(false);
       }
     };
 
-    checkAuthAndLoad();
+    bootstrapPopup();
   }, []);
 
   const loadLinks = async (hostname: string) => {
@@ -84,8 +84,17 @@ export function usePopup() {
     }
   };
 
+  const loadAllLinks = async () => {
+    try {
+      const list = await linkService.getAllLinks();
+      setAllLinks(list);
+    } catch (err) {
+      console.error("[usePopup] Load local links failed:", err);
+    }
+  };
+
   const saveLink = async () => {
-    if (!currentTab || !isAuthenticated) return;
+    if (!currentTab || currentTab.hostname === "system-page") return;
     setStatus("saving");
     try {
       const result = await linkService.addLink({
@@ -111,6 +120,15 @@ export function usePopup() {
           }
           return [result, ...prevLinks];
         });
+        setAllLinks((prevLinks) => {
+          const index = prevLinks.findIndex((l) => l.url === result.url);
+          if (index >= 0) {
+            const newLinks = [...prevLinks];
+            newLinks[index] = result;
+            return newLinks;
+          }
+          return [result, ...prevLinks];
+        });
 
         setTag("");
         setNotes("");
@@ -128,6 +146,7 @@ export function usePopup() {
   return {
     currentTab,
     links,
+    allLinks,
     tag,
     setTag,
     notes,
