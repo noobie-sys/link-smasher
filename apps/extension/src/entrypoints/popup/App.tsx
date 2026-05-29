@@ -34,7 +34,11 @@ const colors = {
 };
 
 function openWeb(path: string) {
-  chrome.tabs.create({ url: `${WEB_APP_URL}${path}` });
+  if (chrome.tabs) {
+    chrome.tabs.create({ url: `${WEB_APP_URL}${path}` });
+  } else {
+    window.open(`${WEB_APP_URL}${path}`, "_blank");
+  }
 }
 
 function iconButtonStyle(active: boolean): React.CSSProperties {
@@ -60,7 +64,8 @@ function LinkRow({
   canEdit: boolean;
 }) {
   const openEditor = async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabs = chrome.tabs ? await chrome.tabs.query({ active: true, currentWindow: true }) : [];
+    const tab = tabs?.[0];
     if (tab?.id) {
       chrome.tabs.sendMessage(tab.id, { type: "EDIT_LINK", link });
       window.close();
@@ -525,6 +530,7 @@ export default function App() {
                   </div>
                 </div>
               )}
+
             </section>
 
             <section>

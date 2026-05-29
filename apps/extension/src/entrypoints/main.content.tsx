@@ -158,7 +158,8 @@ export default defineContentScript({
         try {
             const ui = await createShadowRootUi(ctx, {
                 name: "link-smasher",
-                position: "inline",
+                position: "modal",
+                zIndex: 2147483647,
                 anchor: "body",
                 isolateEvents: ["keydown", "keyup", "keypress", "wheel"],
                 onMount: container => {

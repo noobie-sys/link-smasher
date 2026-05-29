@@ -31,12 +31,10 @@ export default defineBackground(() => {
         await syncService.syncPendingDeletes();
       }
 
-      if (!links.length) {
-        console.log(
-          "[background] No local links found; syncing from Next.js backend",
-        );
-        await syncService.syncFromServer();
-      }
+      // Always reconcile with the server — pulls any links added on other devices
+      // and confirms any pending items that were just uploaded above.
+      console.log("[background] Syncing from Next.js backend on startup...");
+      await syncService.syncFromServer();
     }
   })();
 
@@ -52,67 +50,80 @@ export default defineBackground(() => {
 
   // 3. Real-Time Session Cookie Listener
   // Instantly triggers sync when user logs in or out on the web portal.
-  chrome.cookies.onChanged.addListener(async (changeInfo) => {
-    const isSessionCookie = changeInfo.cookie.name === "better-auth.session_token";
-    const isTargetDomain =
-      changeInfo.cookie.domain.includes("localhost") ||
-      changeInfo.cookie.domain.includes("linksmasher.com");
+  if (chrome.cookies) {
+    chrome.cookies.onChanged.addListener(async (changeInfo) => {
+      const isSessionCookie = changeInfo.cookie.name === "better-auth.session_token";
+      const isTargetDomain =
+        changeInfo.cookie.domain.includes("localhost") ||
+        changeInfo.cookie.domain.includes("linksmasher.com");
 
-    if (isSessionCookie && isTargetDomain) {
-      console.log(
-        "[background] Session cookie change detected (login/logout). Re-syncing queues...",
-      );
-      const token = await authService.fetchSessionToken();
-      if (token) {
-        // Upload all offline bookmarks saved while logged out
-        await syncService.syncPending();
-        await syncService.syncPendingDeletes();
-        await syncService.syncFromServer();
+      if (!isSessionCookie || !isTargetDomain) return;
+
+      if (!changeInfo.removed) {
+        // Cookie was SET — user just logged in.
+        // Upload all offline bookmarks saved while logged out, then pull server state.
+        console.log("[background] Login detected — uploading pending links and syncing...");
+        const token = await authService.fetchSessionToken();
+        if (token) {
+          await syncService.syncPending();
+          await syncService.syncPendingDeletes();
+          await syncService.syncFromServer();
+        }
       } else {
+        // Cookie was REMOVED — user just logged out.
+        console.log("[background] Logout detected — clearing local session.");
         await authService.clearSession();
       }
-    }
-  });
+    });
+  }
 
   // 3. Periodic Background Sync Alarm
-  chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name === "sync") {
-      console.log("[background] Periodic background sync alarm triggered");
-      const token = await authService.fetchSessionToken();
-      if (token) {
-        await syncService.syncPending();
-        await syncService.syncPendingDeletes();
-        await syncService.syncFromServer();
+  if (chrome.alarms) {
+    chrome.alarms.onAlarm.addListener(async (alarm) => {
+      if (alarm.name === "sync") {
+        console.log("[background] Periodic background sync alarm triggered");
+        const token = await authService.fetchSessionToken();
+        if (token) {
+          await syncService.syncPending();
+          await syncService.syncPendingDeletes();
+          await syncService.syncFromServer();
+        }
       }
-    }
-  });
+    });
+  }
 
   // 4. Extension Installed Listener
-  chrome.runtime.onInstalled.addListener(async () => {
-    const keys = Object.keys(STORAGE_DEFAULTS) as (keyof typeof STORAGE_DEFAULTS)[];
+  if (chrome.runtime?.onInstalled) {
+    chrome.runtime.onInstalled.addListener(async () => {
+      const keys = Object.keys(STORAGE_DEFAULTS) as (keyof typeof STORAGE_DEFAULTS)[];
 
-    for (const key of keys) {
-      const currentValue = await getStorage(key);
-      if (currentValue === undefined || currentValue === null) {
-        await setStorage(key, STORAGE_DEFAULTS[key]);
+      for (const key of keys) {
+        const currentValue = await getStorage(key);
+        if (currentValue === undefined || currentValue === null) {
+          await setStorage(key, STORAGE_DEFAULTS[key]);
+        }
       }
-    }
 
-    // Try reading cookies on install
-    await authService.fetchSessionToken();
+      // Try reading cookies on install
+      await authService.fetchSessionToken();
 
-    // Create 5-minute periodic sync alarm
-    chrome.alarms.create("sync", { periodInMinutes: 5 });
-  });
+      // Create 5-minute periodic sync alarm
+      if (chrome.alarms) {
+        chrome.alarms.create("sync", { periodInMinutes: 5 });
+      }
+    });
+  }
 
   // 5. Active Tab/Window Debug Listeners
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status === "complete") {
-      console.log("Tab updated:", { tabId, url: tab.url, title: tab.title });
-    }
-  });
+  if (chrome.tabs) {
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.status === "complete") {
+        console.log("Tab updated:", { tabId, url: tab.url, title: tab.title });
+      }
+    });
 
-  chrome.tabs.onActivated.addListener((activeInfo) => {
-    console.log("Tab activated:", activeInfo);
-  });
+    chrome.tabs.onActivated.addListener((activeInfo) => {
+      console.log("Tab activated:", activeInfo);
+    });
+  }
 });

@@ -28,7 +28,8 @@ export function usePopup() {
     const bootstrapPopup = async () => {
       setIsLoadingAuth(true);
       try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabs = chrome.tabs ? await chrome.tabs.query({ active: true, currentWindow: true }) : [];
+        const tab = tabs?.[0];
         const url = tab?.url || "";
         const title = tab?.title || "New Tab";
 
