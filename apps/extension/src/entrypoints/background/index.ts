@@ -128,11 +128,42 @@ export default defineBackground(() => {
     });
   }
 
-  // 6. Message Listener for content script CORS bypassing
+  // 6. Message Listener for content script CORS bypassing (Strict Security Validation)
   if (chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message && message.type === "API_FETCH") {
-        apiFetch(message.endpoint, message.options)
+        const { endpoint, options } = message;
+
+        // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links)
+        const isCreateEndpoint = endpoint === "/api/links";
+        const isSingleLinkRegex = /^\/api\/links\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/; // UUID validation
+        const isSingleLinkEndpoint = isSingleLinkRegex.test(endpoint);
+
+        if (!isCreateEndpoint && !isSingleLinkEndpoint) {
+          console.warn("[security] Blocked message fetch to unauthorized endpoint:", endpoint);
+          sendResponse({ success: false, error: "Unauthorized endpoint requested." });
+          return false;
+        }
+
+        // 2. Strict Method Validation (Only allow state-modifying POST/PATCH/DELETE; block GET/arbitrary)
+        const method = (options?.method || "GET").toUpperCase();
+        const allowedMethods = ["POST", "PATCH", "DELETE"];
+        if (!allowedMethods.includes(method)) {
+          console.warn("[security] Blocked message fetch using unauthorized HTTP method:", method);
+          sendResponse({ success: false, error: "Unauthorized HTTP method requested." });
+          return false;
+        }
+
+        // 3. Strict Options Sanitization (Rebuild options object to prevent raw header or credentials injection)
+        const sanitizedOptions: RequestInit = {
+          method,
+        };
+
+        if (options?.body) {
+          sanitizedOptions.body = options.body;
+        }
+
+        apiFetch(endpoint, sanitizedOptions)
           .then((res) => {
             sendResponse({ success: true, data: res });
           })

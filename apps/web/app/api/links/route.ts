@@ -29,7 +29,7 @@ export const DEFAULT_CATEGORIES = [
 const createLinkSchema = z.object({
   id: z.string().uuid("Invalid ID format").optional(),
   url: z.string().url("Invalid URL format"),
-  title: z.string().min(1, "Title is required").max(500),
+  title: z.string().min(1, "Title is required").max(200),
   hostname: z.string().min(1, "Hostname is required").optional(),
   tags: z.array(z.string()).default([]),
   notes: z.string().optional(),
