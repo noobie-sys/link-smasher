@@ -146,8 +146,6 @@ export function usePopup() {
         notes: notes.trim().slice(0, 200) || undefined,
       });
 
-      console.log("RESULTS: ", result);
-
       if (result) {
         setLinks((prevLinks) => {
           const index = prevLinks.findIndex((l) => l.url === result.url);

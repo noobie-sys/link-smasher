@@ -28,7 +28,6 @@ export async function apiFetch<T>(
   const isContentScript =
     typeof chrome !== "undefined" &&
     chrome.runtime &&
-    chrome.runtime.sendMessage &&
     !chrome.cookies;
 
   if (isContentScript) {

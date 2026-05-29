@@ -78,7 +78,7 @@ export default defineBackground(() => {
     });
   }
 
-  // 3. Periodic Background Sync Alarm
+  // 4. Periodic Background Sync Alarm
   if (chrome.alarms) {
     chrome.alarms.onAlarm.addListener(async (alarm) => {
       if (alarm.name === "sync") {
@@ -93,7 +93,7 @@ export default defineBackground(() => {
     });
   }
 
-  // 4. Extension Installed Listener
+  // 5. Extension Installed Listener
   if (chrome.runtime?.onInstalled) {
     chrome.runtime.onInstalled.addListener(async () => {
       const keys = Object.keys(STORAGE_DEFAULTS) as (keyof typeof STORAGE_DEFAULTS)[];
@@ -112,19 +112,6 @@ export default defineBackground(() => {
       if (chrome.alarms) {
         chrome.alarms.create("sync", { periodInMinutes: 5 });
       }
-    });
-  }
-
-  // 5. Active Tab/Window Debug Listeners
-  if (chrome.tabs) {
-    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (changeInfo.status === "complete") {
-        console.log("Tab updated:", { tabId, url: tab.url, title: tab.title });
-      }
-    });
-
-    chrome.tabs.onActivated.addListener((activeInfo) => {
-      console.log("Tab activated:", activeInfo);
     });
   }
 
