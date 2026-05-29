@@ -64,6 +64,7 @@ export const GET = withApiHandler(async (
     notes: link.notes,
     category: link.category?.name ?? "General",
     createdAt: link.createdAt,
+    updatedAt: link.updatedAt,
   };
 
   return {
@@ -165,6 +166,7 @@ export const PATCH = withApiHandler(async (
     notes: updatedLink.notes,
     category: updatedLink.category?.name ?? "General",
     createdAt: updatedLink.createdAt,
+    updatedAt: updatedLink.updatedAt,
   };
 
   return {

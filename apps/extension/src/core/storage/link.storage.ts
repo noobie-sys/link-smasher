@@ -20,7 +20,8 @@ export const linkStorage = {
 };
 
 /**
- * Save a new link to local storage, then immediately sync to the Next.js backend.
+ * Save a new link to local storage, then push to the Next.js backend if authenticated.
+ * Guest users' saves are queued in the `pending` list for later synchronization upon login.
  *
  * @param link - The fully-formed link to save.
  * @param existingLinks - Optional pre-loaded links array to avoid a redundant storage read.
@@ -35,29 +36,36 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
     release();
   }
 
-  // 2. Push to Next.js backend (outside mutex — network can take time)
-  try {
-    console.log("[link.storage] Saving link to backend:", link.id);
+  const token = await getStorage("sessionToken");
+  const isAuthenticated = !!token;
 
-    await apiFetch("/api/links", {
-      method: "POST",
-      body: JSON.stringify({
-        url: link.url,
-        title: link.title,
-        hostname: link.hostname,
-        tags: link.tags ?? [],
-        notes: link.notes,
-        category: link.category ?? "General",
-      }),
-    });
-  } catch (err) {
-    // Network failure — queue for background retry
-    console.error("[link.storage] Backend save failed, queueing pending:", err);
+  if (isAuthenticated) {
+    // 2. Push to Next.js backend for authenticated sessions (no offline-first queuing)
+    try {
+      console.log("[link.storage] Saving link to backend:", link.id);
+
+      await apiFetch("/api/links", {
+        method: "POST",
+        body: JSON.stringify({
+          id: link.id, // Explicitly pass client ID to prevent server duplication
+          url: link.url,
+          title: link.title,
+          hostname: link.hostname,
+          tags: link.tags ?? [],
+          notes: link.notes,
+          category: link.category ?? "General",
+        }),
+      });
+    } catch (err) {
+      console.error("[link.storage] Backend save failed:", err);
+    }
+  } else {
+    // Guest mode: queue link in local pending storage for future login synchronization
+    console.log("[link.storage] Guest user: queueing saved link in pending list");
     const pending = await getStorage("pending");
-    const user = await getStorage("user");
     const pendingItem: PendingLink = {
       ...link,
-      userId: user?.id || "",
+      userId: "",
       retryCount: 0,
       failedAt: Date.now(),
     };
@@ -66,10 +74,10 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
 };
 
 /**
- * Delete a link from local storage and propagate the delete to the backend.
- * If the backend call fails, the ID is saved to `pendingDeletes` for retry.
+ * Delete a link from local storage and propagate the delete to the backend if authenticated.
  */
 export const deleteLink = async (id: string): Promise<void> => {
+  // 1. Delete locally first (inside mutex)
   const release = await storageMutex.acquire();
   try {
     const links = await getStorage("links");
@@ -80,13 +88,23 @@ export const deleteLink = async (id: string): Promise<void> => {
 
   console.log("[link.storage] Deleted link locally:", id);
 
-  try {
-    await syncService.syncLinkDelete(id);
-  } catch {
-    console.error("[link.storage] Backend delete failed, queueing for retry:", id);
-    const pendingDeletes = await getStorage("pendingDeletes");
-    if (!pendingDeletes.includes(id)) {
-      await setStorage("pendingDeletes", [...pendingDeletes, id]);
+  const token = await getStorage("sessionToken");
+  const isAuthenticated = !!token;
+
+  if (isAuthenticated) {
+    try {
+      await syncService.syncLinkDelete(id);
+    } catch (err) {
+      console.error("[link.storage] Backend delete failed:", err);
+    }
+  } else {
+    // Guest mode: remove from the local pending list if it was queued
+    const releasePending = await storageMutex.acquire();
+    try {
+      const pending = await getStorage("pending");
+      await setStorage("pending", pending.filter((l) => l.id !== id));
+    } finally {
+      releasePending();
     }
   }
 };
@@ -96,9 +114,8 @@ export const getLinks = async (): Promise<Link[]> => {
 };
 
 /**
- * Update an existing link in local storage and sync the change to the backend.
+ * Update an existing link in local storage and sync the change to the backend if authenticated.
  * Sets updatedAt to now for conflict resolution.
- * On failure, queues to `pending` for background retry.
  */
 export const updateLinkInStorage = async (
   id: string,
@@ -128,30 +145,52 @@ export const updateLinkInStorage = async (
     release();
   }
 
-  // Sync to backend
-  try {
-    console.log("[link.storage] Updating link on backend:", id);
+  const token = await getStorage("sessionToken");
+  const isAuthenticated = !!token;
 
-    await apiFetch(`/api/links/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        title: updatedLink.title,
-        tags: updatedLink.tags ?? [],
-        notes: updatedLink.notes,
-        category: updatedLink.category ?? "General",
-      }),
-    });
-  } catch (err) {
-    console.error("[link.storage] Backend update failed, queueing pending:", err);
-    const pending = await getStorage("pending");
-    const user = await getStorage("user");
-    const pendingItem: PendingLink = {
-      ...updatedLink,
-      userId: user?.id || "",
-      retryCount: 0,
-      failedAt: Date.now(),
-    };
-    await setStorage("pending", [...pending, pendingItem]);
+  if (isAuthenticated) {
+    // Sync to backend for authenticated sessions (no offline-first queuing)
+    try {
+      console.log("[link.storage] Updating link on backend:", id);
+
+      await apiFetch(`/api/links/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          title: updatedLink.title,
+          tags: updatedLink.tags ?? [],
+          notes: updatedLink.notes,
+          category: updatedLink.category ?? "General",
+        }),
+      });
+    } catch (err) {
+      console.error("[link.storage] Backend update failed:", err);
+    }
+  } else {
+    // Guest mode: update or append to the local pending list
+    const releasePending = await storageMutex.acquire();
+    try {
+      const pending = await getStorage("pending");
+      const pIndex = pending.findIndex((l) => l.id === id);
+      if (pIndex !== -1) {
+        const newPending = [...pending];
+        newPending[pIndex] = {
+          ...pending[pIndex],
+          ...updates,
+          updatedAt: Date.now(),
+        };
+        await setStorage("pending", newPending);
+      } else {
+        const pendingItem: PendingLink = {
+          ...updatedLink,
+          userId: "",
+          retryCount: 0,
+          failedAt: Date.now(),
+        };
+        await setStorage("pending", [...pending, pendingItem]);
+      }
+    } finally {
+      releasePending();
+    }
   }
 
   return updatedLink;

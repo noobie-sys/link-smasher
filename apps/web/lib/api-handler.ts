@@ -65,7 +65,8 @@ export function withApiHandler(handler: ApiHandler) {
     const isAllowedOrigin = origin && (
       origin.startsWith("chrome-extension://") ||
       origin === process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.NODE_ENV === "development" && origin.startsWith("http://localhost:"))
+      (process.env.NODE_ENV === "development" && origin.startsWith("http://localhost:")) ||
+      /https?:\/\/(www\.)?(linkedin\.com|instagram\.com|x\.com|twitter\.com|facebook\.com|reddit\.com|threads\.net)/.test(origin)
     );
 
     const corsHeaders: Record<string, string> = {};

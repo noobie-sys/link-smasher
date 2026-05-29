@@ -123,6 +123,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     notes: link.notes,
     category: link.category?.name ?? "General",
     createdAt: link.createdAt,
+    updatedAt: link.updatedAt,
   }));
 
   // Simply return the plain JS object. The wrapper serializes it and converts BigInts automatically.
@@ -220,6 +221,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     notes: newLink.notes,
     category: newLink.category?.name ?? "General",
     createdAt: newLink.createdAt,
+    updatedAt: newLink.updatedAt,
   };
 
   // Return formatted status and body plain object to the wrapper

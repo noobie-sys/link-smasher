@@ -58,9 +58,9 @@ export function usePopup() {
 
         await loadAllLinks();
 
-        // Fetch/bootstrap cookie token after local data is available. Auth controls
-        // cloud sync and dashboard actions, but the popup remains useful offline.
-        const token = await authService.fetchSessionToken();
+        // Load session and user credentials directly from local storage cache.
+        // This is instantaneous and avoids blocking HTTP request latency on every popup render.
+        const token = await getStorage("sessionToken");
         const storedUser = await getStorage("user");
 
         const authOk = !!(token && storedUser);
@@ -75,6 +75,43 @@ export function usePopup() {
 
     bootstrapPopup();
   }, []);
+
+  // 2. Real-Time Storage Listener
+  // Instantly synchronizes authentication and links state if updated in background script (login/logout/sync).
+  useEffect(() => {
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === "local") {
+        if (changes.sessionToken !== undefined || changes.user !== undefined) {
+          getStorage("sessionToken").then((token) => {
+            getStorage("user").then((storedUser) => {
+              const authOk = !!(token && storedUser);
+              setIsAuthenticated(authOk);
+              setUser(authOk ? storedUser : null);
+            });
+          });
+        }
+        if (changes.links !== undefined) {
+          loadAllLinks();
+          if (currentTab && currentTab.hostname !== "system-page") {
+            loadLinks(currentTab.hostname);
+          }
+        }
+      }
+    };
+
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener(handleStorageChange);
+    }
+
+    return () => {
+      if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      }
+    };
+  }, [currentTab]);
 
   const loadLinks = async (hostname: string) => {
     try {
