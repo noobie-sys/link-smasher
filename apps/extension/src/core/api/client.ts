@@ -24,6 +24,34 @@ export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  // Check if running in a content script (content scripts do not have access to chrome.cookies)
+  const isContentScript =
+    typeof chrome !== "undefined" &&
+    chrome.runtime &&
+    chrome.runtime.sendMessage &&
+    !chrome.cookies;
+
+  if (isContentScript) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        {
+          type: "API_FETCH",
+          endpoint,
+          options,
+        },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+          } else if (response && response.success) {
+            resolve(response.data as T);
+          } else {
+            reject(new Error(response?.error || "Background fetch failed"));
+          }
+        }
+      );
+    });
+  }
+
   const token = await getStorage("sessionToken");
 
   const headers = new Headers(options.headers);

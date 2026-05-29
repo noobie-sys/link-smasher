@@ -2,6 +2,7 @@ import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { STORAGE_DEFAULTS } from "@/shared/types/storage.types";
 import { syncService } from "@/core/services/sync.service";
 import { authService } from "@/core/auth/auth.service";
+import { apiFetch } from "@/core/api/client";
 
 export default defineBackground(() => {
   console.log("Link Smasher background script initialized (React MVP)");
@@ -124,6 +125,22 @@ export default defineBackground(() => {
 
     chrome.tabs.onActivated.addListener((activeInfo) => {
       console.log("Tab activated:", activeInfo);
+    });
+  }
+
+  // 6. Message Listener for content script CORS bypassing
+  if (chrome.runtime?.onMessage) {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message && message.type === "API_FETCH") {
+        apiFetch(message.endpoint, message.options)
+          .then((res) => {
+            sendResponse({ success: true, data: res });
+          })
+          .catch((err) => {
+            sendResponse({ success: false, error: err.message || "Fetch failed" });
+          });
+        return true; // Keep message channel open for async response
+      }
     });
   }
 });
