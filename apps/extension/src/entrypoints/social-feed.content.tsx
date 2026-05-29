@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { SocialFeedSaver } from '@/features/social-feed-saver';
 import { Toaster } from "@/components/ui/sonners";
+import { PortalContext } from '@/context/portal.context';
 import '@/index.css';
+
+const SocialFeedRoot = () => {
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+    return (
+        <PortalContext.Provider value={portalContainer}>
+            <div ref={setPortalContainer} id="social-feed-saver-container">
+                <SocialFeedSaver />
+                <Toaster />
+            </div>
+        </PortalContext.Provider>
+    );
+};
 
 export default defineContentScript({
     matches: [
@@ -31,8 +45,7 @@ export default defineContentScript({
                     const root = createRoot(app);
                     root.render(
                         <React.StrictMode>
-                            <SocialFeedSaver />
-                            <Toaster />
+                            <SocialFeedRoot />
                         </React.StrictMode>
                     );
                     return root;
@@ -48,3 +61,4 @@ export default defineContentScript({
         }
     }
 });
+

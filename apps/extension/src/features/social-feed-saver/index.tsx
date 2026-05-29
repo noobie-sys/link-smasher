@@ -236,17 +236,9 @@ const PostBookmarkButton = ({ post, config }: { post: Element; config: typeof PL
                 ? config.platform + " Post by " + extracted.author
                 : config.platform + " Post";
 
-            const notes = [
-                "Platform: " + config.platform,
-                extracted.author && "Author: " + extracted.author,
-                extracted.timestamp && extracted.timestamp !== "N/A" && "Date: " + extracted.timestamp,
-                "\n" + extracted.text
-            ].filter(Boolean).join("\n");
-
             const result = await linkService.addLink({
                 url: urlToSave,
                 title: title,
-                notes: notes,
                 category: config.category,
                 tags: [config.category.toLowerCase().replace(" ", "-"), config.platform.toLowerCase()],
             });

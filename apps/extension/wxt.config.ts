@@ -12,7 +12,7 @@ export default defineConfig({
   manifest: {
     name: "Link Crust",
     description: "Save and revisit links instantly without breaking your flow.",
-    permissions: ["storage", "tabs", "activeTab", "cookies", "scripting"],
+    permissions: ["storage", "tabs", "activeTab", "cookies", "scripting", "alarms"],
     host_permissions: [
       "http://localhost:3000/*",
       "https://*.linksmasher.com/*",
@@ -23,14 +23,14 @@ export default defineConfig({
       "*://*.twitter.com/*",
       "*://*.facebook.com/*",
       "*://*.reddit.com/*",
-      "*://*.threads.net/*"
+      "*://*.threads.net/*",
     ],
     action: {},
     content_scripts: [
       {
         matches: ["<all_urls>"],
         js: ["content-scripts/main.js"],
-        css: ["content-scripts/main.css"]
+        css: ["content-scripts/main.css"],
       },
       {
         matches: [
@@ -40,11 +40,11 @@ export default defineConfig({
           "*://*.twitter.com/*",
           "*://*.facebook.com/*",
           "*://*.reddit.com/*",
-          "*://*.threads.net/*"
+          "*://*.threads.net/*",
         ],
         js: ["content-scripts/social-feed.js"],
-        css: ["content-scripts/social-feed.css"]
-      }
-    ]
+        css: ["content-scripts/social-feed.css"],
+      },
+    ],
   },
 });

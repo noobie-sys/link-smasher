@@ -464,13 +464,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                   value={ActiveTab.Current}
                   className="data-[state=active]:bg-[#2C2C2C] data-[state=active]:text-[#FFFFFF] text-[#808080]"
                 >
-                  Current Site
+                  Current Site Links
                 </TabsTrigger>
                 <TabsTrigger
                   value={ActiveTab.All}
                   className="data-[state=active]:bg-[#2C2C2C] data-[state=active]:text-[#FFFFFF] text-[#808080]"
                 >
-                  All Links
+                  All Saved Links
                 </TabsTrigger>
               </TabsList>
 
