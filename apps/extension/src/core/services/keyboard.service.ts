@@ -156,7 +156,7 @@ class KeyboardService {
       }
     };
 
-    document.addEventListener("keydown", this.boundHandler, true);
+    window.addEventListener("keydown", this.boundHandler, true);
     this.isListening = true;
   }
 
@@ -166,7 +166,7 @@ class KeyboardService {
   private stopListening(): void {
     if (!this.isListening || !this.boundHandler) return;
 
-    document.removeEventListener("keydown", this.boundHandler, true);
+    window.removeEventListener("keydown", this.boundHandler, true);
     this.boundHandler = null;
     this.isListening = false;
   }

@@ -108,6 +108,7 @@ export const syncService = {
               category: item.category ?? "General",
             }),
           });
+          console.log("[syncService] Successfully uploaded pending item:", item.id, item.url);
         } catch (error) {
           console.error("[syncService] Failed to sync pending item:", item.id, error);
           

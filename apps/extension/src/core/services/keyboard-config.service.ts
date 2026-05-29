@@ -38,8 +38,8 @@ const DEFAULT_SHORTCUTS: Record<ShortcutAction, KeyboardShortcutConfig> = {
     name: "Open Link Dialog",
     description: "Open the link management dialog",
     defaultCombo: {
-      key: "s",
-      altKey: true, // ALT+S (non-conflicting in Chrome)
+      key: "j",
+      ctrlKey: true,
     },
   },
   [ShortcutAction.SAVE_LINK]: {
@@ -139,4 +139,3 @@ export const keyboardConfigService = {
     window.dispatchEvent(new CustomEvent("ls-shortcuts-reset"));
   },
 };
-

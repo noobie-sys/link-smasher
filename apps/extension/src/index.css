@@ -2,7 +2,9 @@
 
 @custom-variant dark (&: is(.dark *));
 
-:root {
+:host,
+#link-smasher-root,
+#social-feed-saver-root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -38,7 +40,9 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
+:host(.dark),
+#link-smasher-root.dark,
+#social-feed-saver-root.dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -113,30 +117,53 @@
 }
 
 @layer base {
-  * {
+  #link-smasher-root,
+  #link-smasher-root *,
+  #social-feed-saver-root,
+  #social-feed-saver-root * {
     @apply border-border outline-ring/50;
   }
-  body {
+  #link-smasher-root,
+  #social-feed-saver-root {
     @apply bg-background text-foreground;
   }
 }
 
-div[role="dialog"] {
+:host(link-smasher) {
+  pointer-events: none !important;
+}
+
+#link-smasher-root {
+  pointer-events: none;
+}
+
+#link-smasher-root [data-slot="dialog-overlay"],
+#link-smasher-root [data-slot="dialog-content"],
+#link-smasher-root [data-sonner-toaster],
+#link-smasher-root [data-sonner-toast] {
+  pointer-events: auto;
+}
+
+#link-smasher-root div[role="dialog"],
+#social-feed-saver-root div[role="dialog"] {
   z-index: 999999;
 }
 
-.select-dropdown {
+#link-smasher-root .select-dropdown,
+#social-feed-saver-root .select-dropdown {
   z-index: 1000000 !important;
   pointer-events: auto !important;
 }
 
-.select-dropdown button {
+#link-smasher-root .select-dropdown button,
+#social-feed-saver-root .select-dropdown button {
   pointer-events: auto !important;
 }
 
 /* Toast container positioning - styles are injected into shadow DOM */
 /* Additional global toast styles for consistency */
-.toast-styled {
+#link-smasher-root .toast-styled,
+#social-feed-saver-root .toast-styled {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
