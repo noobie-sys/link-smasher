@@ -5,16 +5,9 @@ import { z } from "zod";
  */
 export function sanitizeString(val: string): string {
   if (!val) return "";
-  // Strip standard HTML tags (both simple tags and matching/unclosed tags)
-  const stripped = val.replace(/<[^>]*>/g, "");
-  // Escape special HTML characters to secure standard rendering contexts
-  return stripped
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
+  // Strip standard HTML tags to prevent custom markup execution,
+  // but preserve standard text characters (e.g. &, ', ") to prevent double-escaping inside React nodes.
+  return val.replace(/<[^>]*>/g, "");
 }
 
 /**

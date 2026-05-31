@@ -60,8 +60,6 @@ export const linkService = {
       updatedAt: now,
     };
 
-    console.log(newLink, "NewLinks");
-
     // Pass the already-loaded links array to saveLink so it doesn't read storage again.
     // Before: addLink reads storage (read #1) → saveLink reads storage again (read #2)
     // After:  addLink reads storage (read #1) → passes it to saveLink → no read #2 ✅

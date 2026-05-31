@@ -57,10 +57,19 @@ export const syncService = {
         }
       }
 
-      // Preserve unsynced local-only links
+      const user = await getStorage("user");
+      const activeUserId = user?.id || "";
+
+      // Preserve unsynced local-only guest links
+      // Discard links that were previously synced under the active user but are now missing from the server (meaning they were deleted).
       for (const localLink of localLinks) {
         if (!remoteMap.has(localLink.id)) {
-          merged.push(localLink);
+          const wasSynced = localLink.userId && localLink.userId === activeUserId;
+          if (!wasSynced) {
+            merged.push(localLink);
+          } else {
+            console.log("[syncService] Discarding locally deleted link:", localLink.id, localLink.title);
+          }
         }
       }
 
@@ -79,53 +88,74 @@ export const syncService = {
   },
 
   /**
-   * Pushes all queued offline saves/updates to the Next.js backend.
-   * Failed items are re-queued with an incremented retryCount (max 5).
+   * Pushes all queued guest offline saves to the Next.js backend.
+   * Ensures auth credentials and user profile are loaded in local storage first,
+   * stamps all pending links with the active user.id, and updates the local cache.
    */
   async syncPending(): Promise<void> {
     try {
+      const token = await getStorage("sessionToken");
+      const user = await getStorage("user");
+      if (!token || !user) {
+        console.warn("[syncService] Cannot sync pending links: user credentials not yet stored.");
+        return;
+      }
+
       const pending = await getStorage("pending");
       if (!pending.length) return;
 
-      console.log("[syncService] Syncing pending saves:", pending.length);
+      console.log("[syncService] Syncing pending saves for user:", user.email, pending.length);
       const remaining: PendingLink[] = [];
+
+      // Update user ID on all local links as well
+      const localLinks = await getStorage("links");
+      const updatedLocalLinks = [...localLinks];
 
       for (const item of pending) {
         try {
-          const { userId, retryCount, failedAt, createdAt, updatedAt, ...rest } = item;
+          const stampedItem = {
+            ...item,
+            userId: user.id,
+          };
 
-          // Try upsert via POST (backend deduplicates by URL)
+          // Try upsert via POST (backend deduplicates by URL and uses client ID if provided)
           await apiFetch("/api/links", {
             method: "POST",
             body: JSON.stringify({
-              ...rest,
-              id: item.id,
-              url: item.url,
-              title: item.title,
-              hostname: item.hostname,
-              tags: item.tags ?? [],
-              notes: item.notes,
-              category: item.category ?? "General",
+              id: stampedItem.id, // Pass client ID to prevent server duplication
+              url: stampedItem.url,
+              title: stampedItem.title,
+              hostname: stampedItem.hostname,
+              tags: stampedItem.tags ?? [],
+              notes: stampedItem.notes,
+              category: stampedItem.category ?? "General",
             }),
           });
-          console.log("[syncService] Successfully uploaded pending item:", item.id, item.url);
+          console.log("[syncService] Successfully uploaded pending item:", stampedItem.id, stampedItem.url);
+
+          // Update user ID on the local link matching this ID
+          const localIndex = updatedLocalLinks.findIndex((l) => l.id === stampedItem.id);
+          if (localIndex !== -1) {
+            updatedLocalLinks[localIndex].userId = user.id;
+          }
         } catch (error) {
           console.error("[syncService] Failed to sync pending item:", item.id, error);
           
           if (error instanceof ApiError && error.status === 409) {
             console.log("[syncService] Item already exists on server (409 Conflict). Removing from queue:", item.id);
+            // Even if duplicate on server, update local links with user ID for reconciliation
+            const localIndex = updatedLocalLinks.findIndex((l) => l.id === item.id);
+            if (localIndex !== -1) {
+              updatedLocalLinks[localIndex].userId = user.id;
+            }
             continue;
           }
 
-          const nextRetryCount = item.retryCount + 1;
-          if (nextRetryCount <= MAX_PENDING_RETRIES) {
-            remaining.push({ ...item, retryCount: nextRetryCount, failedAt: Date.now() });
-          } else {
-            console.warn("[syncService] Dropping pending item after max retries:", item.id);
-          }
+          remaining.push(item);
         }
       }
 
+      await setStorage("links", updatedLocalLinks);
       await setStorage("pending", remaining);
       console.log("[syncService] Pending sync done. Remaining:", remaining.length);
     } catch (err) {
