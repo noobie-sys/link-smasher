@@ -1,3 +1,2 @@
-# WXT + React
-
-This template should help get you started developing with React in WXT.
+# Link Smasher
+This is a pnpm TypeScript monorepo for **Link Smasher / Link Crust**, a link-saving product with a Chrome extension and a Next.js web dashboard.
