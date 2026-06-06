@@ -3,6 +3,7 @@
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { EMOJI_REGEX } from "@/lib/link-utils";
 import { 
   Link2, 
   Search, 
@@ -52,8 +53,21 @@ interface ApiResponse<T> {
   };
 }
 
-// Regex to identify standard/colored emojis and pictographs
-const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
+// Interval (ms) for background polling to keep the vault in sync across devices.
+const POLL_INTERVAL_MS = 10_000;
+
+// Duration (ms) a status toast is shown before automatically dismissing.
+const STATUS_TIMEOUT_MS = 5_000;
+
+/**
+ * Splits a comma-separated tags string into a clean array of non-empty strings.
+ */
+function parseTagsInput(input: string): string[] {
+  return input
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+}
 
 const getHostnameFromUrl = (urlValue: string) => {
   try {
@@ -116,13 +130,13 @@ export default function LinkSaverPage() {
     }
   }, [session]);
 
-  // Poll for links every 10 seconds to keep in sync across devices/browsers
+  // Poll for links every POLL_INTERVAL_MS to keep in sync across devices/browsers
   useEffect(() => {
     if (!session) return;
     const interval = setInterval(() => {
       void fetchLinks();
       void fetchCategories();
-    }, 10000); // 10 seconds
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [session]);
 
@@ -168,7 +182,7 @@ export default function LinkSaverPage() {
     const name = newCategoryName.trim();
     if (!name) return;
 
-    if (emojiRegex.test(name)) {
+    if (EMOJI_REGEX.test(name)) {
       showStatus("error", "Category name must not contain emojis! 🧠");
       return;
     }
@@ -274,7 +288,7 @@ export default function LinkSaverPage() {
 
   const showStatus = (type: "success" | "error", text: string) => {
     setStatusMessage({ type, text });
-    setTimeout(() => setStatusMessage(null), 5000);
+    setTimeout(() => setStatusMessage(null), STATUS_TIMEOUT_MS);
   };
 
   // 2. CREATE (Save Link)
@@ -287,7 +301,7 @@ export default function LinkSaverPage() {
 
     // Emoji rule check
     const trimmedCategory = category.trim();
-    if (emojiRegex.test(trimmedCategory)) {
+    if (EMOJI_REGEX.test(trimmedCategory)) {
       showStatus("error", "Category name must not contain emojis! 🧠");
       return;
     }
@@ -296,10 +310,7 @@ export default function LinkSaverPage() {
 
     try {
       setIsActionPending(true);
-      const tagsArray = tagsInput
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
+      const tagsArray = parseTagsInput(tagsInput);
       optimisticLink = {
         id: `optimistic-${Date.now()}`,
         url,
@@ -428,7 +439,7 @@ export default function LinkSaverPage() {
     }
 
     const trimmedCategory = editCategory.trim();
-    if (emojiRegex.test(trimmedCategory)) {
+    if (EMOJI_REGEX.test(trimmedCategory)) {
       showStatus("error", "Category name must not contain emojis! 🧠");
       return;
     }
@@ -437,10 +448,7 @@ export default function LinkSaverPage() {
 
     try {
       setIsActionPending(true);
-      const tagsArray = editTagsInput
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag.length > 0);
+      const tagsArray = parseTagsInput(editTagsInput);
       const optimisticUpdatedLink: SavedLink | null = previousLink
         ? {
             ...previousLink,
