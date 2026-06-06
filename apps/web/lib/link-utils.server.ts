@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import type { Category } from "@prisma/client";
 
 /**
  * Default color applied to auto-created categories when no color is provided.
@@ -12,7 +13,7 @@ const DEFAULT_CATEGORY_COLOR = "#6366F1";
  * @param categoryName - The trimmed category name; must be validated (no emojis) before calling
  * @returns The found or newly created category record
  */
-export async function findOrCreateCategory(userId: string, categoryName: string) {
+export async function findOrCreateCategory(userId: string, categoryName: string): Promise<Category> {
   const existingCategory = await prisma.category.findUnique({
     where: {
       userId_name: {
