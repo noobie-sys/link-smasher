@@ -1,9 +1,15 @@
+/** Structured detail attached to validation errors (matches Zod issue shape). */
+export interface ErrorDetail {
+  field: string;
+  message: string;
+}
+
 export class AppError extends Error {
   constructor(
     public code: string,
     public statusCode: number,
     message: string,
-    public details: any[] = []
+    public details: ErrorDetail[] = []
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -12,7 +18,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, details: any[] = []) {
+  constructor(message: string, details: ErrorDetail[] = []) {
     super("VALIDATION_FAILED", 400, message, details);
   }
 }

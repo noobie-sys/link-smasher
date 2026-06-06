@@ -3,19 +3,11 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 
 /**
- * A senior architectural helper that retrieves the authenticated session.
- * 
- * 🛠️ DEVELOPMENT MOCKING CAPABILITY:
- * In development mode (`process.env.NODE_ENV === "development"`), developers
- * can pass a special `X-Test-User-Id` header to mock an authenticated session
- * for local endpoint testing without needing to manually copy cookie headers.
- * 
- * 🔒 SECURITY ENFORCEMENT:
- * This bypass is strictly compiled and executed ONLY when NODE_ENV is "development".
- * In production, it is completely ignored, enforcing strict, secure Better Auth
- * session extraction.
+ * Fetches the authenticated Better Auth session for the current request.
+ *
+ * @returns The authenticated session returned by Better Auth (if any).
  */
-export async function getAuthSession(request: NextRequest) {
+export async function getAuthSession(_request: NextRequest) {
   return await auth.api.getSession({
     headers: await headers(),
   });

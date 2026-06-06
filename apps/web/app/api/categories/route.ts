@@ -8,13 +8,12 @@ import {
   ConflictError,
   ValidationError,
 } from "@/lib/errors";
+import { EMOJI_REGEX } from "@/lib/link-utils";
 
 const createCategorySchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name must be at most 50 characters"),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format").optional(),
 });
-
-const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
 
 const SYSTEM_CATEGORIES = [
   { name: "Development", color: "#8B5CF6" },
@@ -91,7 +90,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   const name = parsedData.name.trim();
 
   // 1. Check for emojis
-  if (emojiRegex.test(name)) {
+  if (EMOJI_REGEX.test(name)) {
     throw new ValidationError("Category name must not contain emojis.");
   }
 
