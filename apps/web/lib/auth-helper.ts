@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import { auth } from "./auth";
 
 /**
- * Retrieves the authenticated session for the current request using Better Auth.
- * The `request` parameter is accepted for future use (e.g., bearer token extraction)
- * and to keep handler signatures uniform across all route files.
+ * Fetches the authenticated Better Auth session for the current request.
+ *
+ * @returns The authenticated session returned by Better Auth (if any).
  */
 export async function getAuthSession(_request: NextRequest) {
   return await auth.api.getSession({

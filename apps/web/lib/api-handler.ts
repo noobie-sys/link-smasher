@@ -17,7 +17,11 @@ type ApiResponse =
 
 // Removed non-generic ApiHandler to allow flexible context parameters for route handlers
 
-/** Narrows an unknown caught value to an object with a Prisma-style `code` property. */
+/**
+ * Detects whether an unknown value is an object containing a string `code` property (Prisma-style error).
+ *
+ * @returns `true` if `error` is a non-null object with a string `code` property, `false` otherwise.
+ */
 function isPrismaError(error: unknown): error is { code: string; message: string } {
   return (
     typeof error === "object" &&
@@ -28,9 +32,16 @@ function isPrismaError(error: unknown): error is { code: string; message: string
 }
 
 /**
- * Helper to recursively search through an object and convert all BigInt values
- * into safe standard Javascript Numbers (or strings if they exceed Number.MAX_SAFE_INTEGER).
- * This prevents the JSON serializer from crashing when returning Prisma objects.
+ * Recursively converts `bigint` values into JSON-safe primitives.
+ *
+ * Accepts any value and returns an equivalent value where:
+ * - `bigint` is converted to a `number` when its magnitude is <= `Number.MAX_SAFE_INTEGER`, otherwise to a `string`.
+ * - Arrays and plain objects have their elements/properties processed recursively.
+ * - `Date` instances are returned unchanged.
+ * - `null` and `undefined` are returned as-is.
+ *
+ * @param obj - The value to serialize for JSON compatibility
+ * @returns The input value with all `bigint` occurrences replaced by `number` or `string`, preserving other values
  */
 export function serializeBigInt(obj: unknown): unknown {
   if (obj === null || obj === undefined) return obj;
@@ -58,8 +69,11 @@ export function serializeBigInt(obj: unknown): unknown {
 }
 
 /**
- * Higher-Order Function (Wrapper) that intercepts incoming Next.js Route requests
- * to inject CORS, perform database-to-HTTP error mapping, rate-limiting, and serialize BigInt timestamps.
+ * Wraps a Next.js route handler to apply dynamic CORS, centralized rate limiting,
+ * BigInt-safe serialization, and centralized error mapping from database/validation errors to HTTP responses.
+ *
+ * @param handler - The route handler to invoke. It receives the incoming `NextRequest` and a typed `context` and may return a `NextResponse`, an object with `{ status, body }`, or a payload object.
+ * @returns A function accepting `(request, context)` that executes the handler and returns a normalized `NextResponse` with applied CORS and rate-limit headers, automatic `OPTIONS` preflight handling, and mapped error responses (including `429` for rate limits and mapped status codes for validation/Prisma errors).
  */
 export function withApiHandler<T>(
   handler: (request: NextRequest, context: T) => Promise<ApiResponse> | ApiResponse
