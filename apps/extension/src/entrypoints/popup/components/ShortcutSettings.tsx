@@ -2,22 +2,27 @@ import React, { useState, useEffect } from "react";
 import { keyboardConfigService, KeyboardShortcutConfig, ShortcutAction } from "@/core/services/keyboard-config.service";
 
 const KeyDisplay = ({ combo }: { combo?: KeyboardShortcutConfig["defaultCombo"] }) => {
-    if (!combo) return <span>None</span>;
+    if (!combo) return <span className="text-slate-500 text-xs">None</span>;
     const parts = [];
     if (combo.metaKey) parts.push("⌘");
     if (combo.ctrlKey) parts.push("^");
     if (combo.altKey) parts.push("⌥");
     if (combo.shiftKey) parts.push("⇧");
     parts.push(combo.key.toUpperCase());
-    return <kbd style={{
-        background: "#eee",
-        padding: "2px 6px",
-        borderRadius: "4px",
-        fontFamily: "monospace",
-        fontSize: "12px"
-    }}>{parts.join("+")}</kbd>;
+    return (
+        <kbd className="bg-[#263047] text-slate-200 border border-[#374151] px-1.5 py-0.5 rounded font-mono text-xs shadow-inner">
+            {parts.join("+")}
+        </kbd>
+    );
 };
 
+/**
+ * Renders the keyboard shortcuts settings UI, allowing recording of new combos and resetting to defaults.
+ *
+ * Loads shortcuts on mount, persists updates and resets via the keyboard configuration service, and refreshes the displayed list after changes.
+ *
+ * @returns A React element that displays each shortcut's name, description, current combo (or "None"), a recording target when active, and a conditional "Reset" action when the combo differs from the default.
+ */
 export function ShortcutSettings() {
     const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
     const [recordingId, setRecordingId] = useState<string | null>(null);
@@ -65,67 +70,43 @@ export function ShortcutSettings() {
     };
 
     return (
-        <div>
-            <h3 style={{ fontSize: '14px', marginBottom: '12px' }}>Keyboard Shortcuts</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div className="space-y-4">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Keyboard Shortcuts</h3>
+            <div className="flex flex-col gap-3">
                 {shortcuts.map((s) => (
-                    <div key={s.id} style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "8px",
-                        background: "#fafafa",
-                        borderRadius: "6px",
-                        border: "1px solid #eee"
-                    }}>
-                        <div>
-                            <div style={{ fontWeight: 500, fontSize: "13px" }}>{s.name}</div>
-                            <div style={{ fontSize: "11px", color: "#666" }}>{s.description}</div>
+                    <div
+                        key={s.id}
+                        className="flex justify-between items-center p-3 rounded-lg border border-[#273044] bg-[#111827] hover:bg-[#151b2e] transition-colors duration-200 shadow-sm"
+                    >
+                        <div className="min-w-0 flex-1 pr-2">
+                            <div className="font-semibold text-xs text-slate-200">{s.name}</div>
+                            <div className="text-[10px] text-slate-400 mt-0.5 truncate">{s.description}</div>
                         </div>
 
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div className="flex items-center gap-2 shrink-0">
                             {recordingId === s.id ? (
                                 <div
-                                    style={{
-                                        padding: "4px 8px",
-                                        background: "#e3f2fd",
-                                        border: "1px solid #2196f3",
-                                        borderRadius: "4px",
-                                        color: "#0d47a1",
-                                        fontSize: "12px",
-                                        cursor: "pointer",
-                                        outline: "none",
-                                        minWidth: "60px",
-                                        textAlign: "center"
-                                    }}
+                                    className="px-2 py-1 rounded bg-indigo-950 text-indigo-400 border border-indigo-700 text-[11px] font-medium cursor-pointer select-none outline-none animate-pulse min-w-[75px] text-center focus:ring-1 focus:ring-indigo-500"
                                     tabIndex={0}
                                     onKeyDown={(e) => handleKeyDown(e, s)}
                                     onBlur={() => setRecordingId(null)}
                                     autoFocus
                                 >
-                                    Recording...
+                                    Press keys...
                                 </div>
                             ) : (
                                 <>
                                     <div
                                         onClick={() => setRecordingId(s.id)}
-                                        style={{ cursor: "pointer" }}
-                                        title="Click to edit"
+                                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                                        title="Click to change shortcut"
                                     >
                                         <KeyDisplay combo={s.currentCombo} />
                                     </div>
                                     {s.currentCombo && JSON.stringify(s.currentCombo) !== JSON.stringify(s.defaultCombo) && (
                                         <button
                                             onClick={() => handleReset(s)}
-                                            style={{
-                                                padding: "2px 6px",
-                                                background: "transparent",
-                                                border: "1px solid #ccc",
-                                                borderRadius: "4px",
-                                                cursor: "pointer",
-                                                fontSize: "10px",
-                                                color: "#666"
-                                            }}
+                                            className="px-2 py-0.5 rounded border border-[#273044] hover:bg-[#263047] text-[10px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-slate-500"
                                             title="Reset to default"
                                         >
                                             Reset
@@ -140,3 +121,4 @@ export function ShortcutSettings() {
         </div>
     );
 }
+
