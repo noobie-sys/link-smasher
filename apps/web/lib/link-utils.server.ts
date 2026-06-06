@@ -6,12 +6,11 @@ import { prisma } from "./prisma";
 const DEFAULT_CATEGORY_COLOR = "#6366F1";
 
 /**
- * Finds an existing category for the user by name, or creates it if it doesn't exist.
- * Eliminates the repeated findUnique → create pattern across link creation and update routes.
+ * Retrieves a user's category by name or creates one with a default color if none exists.
  *
  * @param userId - The authenticated user's ID
- * @param categoryName - The trimmed category name (must not contain emojis — validate before calling)
- * @returns The found or newly created Prisma Category record
+ * @param categoryName - The trimmed category name; must be validated (no emojis) before calling
+ * @returns The found or newly created category record
  */
 export async function findOrCreateCategory(userId: string, categoryName: string) {
   const existingCategory = await prisma.category.findUnique({

@@ -38,11 +38,10 @@ export interface LinkWithCategory {
 }
 
 /**
- * Formats a Prisma link record (with joined category) into the flat API response shape.
- * Eliminates the repeated inline mapping spread across route handlers.
+ * Formats a Prisma link record that includes the joined category into the flat API response shape.
  *
  * @param link - Prisma link record including the `category` relation
- * @returns Flat link object safe to serialize in an API response
+ * @returns A `LinkResponse` with `category` flattened to the category `name` (defaults to `"General"` when `category` is null)
  */
 export function formatLinkResponse(link: LinkWithCategory): LinkResponse {
   return {
@@ -62,13 +61,14 @@ export function formatLinkResponse(link: LinkWithCategory): LinkResponse {
 
 
 /**
- * Extracts a clean hostname from a URL string, stripping common prefixes (www., m., beta.).
- * Falls back to the provided hostname if URL parsing fails.
+ * Produce a normalized hostname from a URL by lowercasing it and removing common prefixes (`www.`, `m.`, `beta.`).
+ *
+ * If the input cannot be parsed as a URL, the provided `fallbackHostname` is normalized and returned; if no fallback is given an error is thrown.
  *
  * @param urlStr - The full URL to extract a hostname from
- * @param fallbackHostname - Optional hostname to use if URL parsing fails
+ * @param fallbackHostname - Optional hostname to use if `urlStr` cannot be parsed
  * @returns The cleaned hostname string
- * @throws {Error} If parsing fails and no fallback is provided
+ * @throws Error If `urlStr` cannot be parsed and `fallbackHostname` is not provided
  */
 export function extractCleanHostname(urlStr: string, fallbackHostname?: string): string {
   const PREFIX_PATTERN = /^(www\.|m\.|beta\.)/;

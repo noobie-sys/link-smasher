@@ -60,7 +60,10 @@ const POLL_INTERVAL_MS = 10_000;
 const STATUS_TIMEOUT_MS = 5_000;
 
 /**
- * Splits a comma-separated tags string into a clean array of non-empty strings.
+ * Parse a comma-separated tags string into an array of trimmed, non-empty tags.
+ *
+ * @param input - The raw comma-separated tags string
+ * @returns An array of tag strings with surrounding whitespace removed and empty entries omitted
  */
 function parseTagsInput(input: string): string[] {
   return input
@@ -77,6 +80,11 @@ const getHostnameFromUrl = (urlValue: string) => {
   }
 };
 
+/**
+ * Page component that provides a UI for saving, viewing, filtering, and managing saved links and categories, including background synchronization and optimistic CRUD updates.
+ *
+ * @returns The rendered React element for the LinkSaverPage.
+ */
 export default function LinkSaverPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
