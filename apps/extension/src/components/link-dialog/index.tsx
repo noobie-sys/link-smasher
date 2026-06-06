@@ -59,8 +59,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   // Category Integration States
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
-  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false)
-  const [newCategoryName, setNewCategoryName] = useState("")
+  const [isCreatingCategoryInline, setIsCreatingCategoryInline] = useState(false)
   const [isCreatingCategory, setIsCreatingCategory] = useState(false)
 
   const MAX_NOTES_LENGTH = 200
@@ -123,7 +122,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }
 
   const handleCreateCategory = async () => {
-    const name = newCategoryName.trim()
+    const name = customCategoryInput.trim()
     if (!name) return
 
     const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
@@ -138,11 +137,11 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       toast.success(`Category "${newCat.name}" created!`)
       setLinkCategory(newCat.name)
       await loadCategories()
-      setIsCreateCategoryModalOpen(false)
-      setNewCategoryName("")
-    } catch (err: any) {
+      setIsCreatingCategoryInline(false)
+      setCustomCategoryInput("")
+    } catch (err: unknown) {
       console.error("Failed to create category:", err)
-      toast.error(err.message || "Failed to create category")
+      toast.error(err instanceof Error ? err.message : "Failed to create category")
     } finally {
       setIsCreatingCategory(false)
     }
@@ -168,6 +167,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
     setEditingLinkId(null)
     setSearchCurrent("")
     setSearchAll("")
+    setIsCreatingCategoryInline(false)
   }
 
   const resetForm = () => {
@@ -449,7 +449,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-[420px] h-[min(600px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl">
+        <DialogContent className="relative w-[calc(100vw-2rem)] max-w-[420px] h-[min(600px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl">
 
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col px-4 pt-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0 mt-8">
@@ -538,24 +538,28 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                               Predefined
                             </DropdownMenuLabel>
 
-                            {systemCategories.map((cat) => (
-                              <DropdownMenuItem
-                                key={cat.id}
-                                onClick={() => {
-                                  setLinkCategory(cat.name)
-                                  setCustomCategoryInput("")
-                                }}
-                                className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat.name
-                                  ? "bg-[#2C2C2C] text-white"
-                                  : "text-gray-300 hover:bg-[#2C2C2C] hover:text-white"
-                                  }`}
-                              >
-                                {linkCategory === cat.name && (
-                                  <span className="mr-1.5 text-[10px]">✓</span>
-                                )}
-                                {cat.name}
-                              </DropdownMenuItem>
-                            ))}
+                            {isLoadingCategories ? (
+                              <div className="px-2 py-1.5 text-sm text-gray-500">Loading…</div>
+                            ) : (
+                              systemCategories.map((cat) => (
+                                <DropdownMenuItem
+                                  key={cat.id}
+                                  onClick={() => {
+                                    setLinkCategory(cat.name)
+                                    setCustomCategoryInput("")
+                                  }}
+                                  className={`cursor-pointer rounded-md px-2 py-1.5 text-sm transition-colors ${linkCategory === cat.name
+                                    ? "bg-[#2C2C2C] text-white"
+                                    : "text-gray-300 hover:bg-[#2C2C2C] hover:text-white"
+                                    }`}
+                                >
+                                  {linkCategory === cat.name && (
+                                    <span className="mr-1.5 text-[10px]">✓</span>
+                                  )}
+                                  {cat.name}
+                                </DropdownMenuItem>
+                              ))
+                            )}
 
                             {customCategories.length > 0 && (
                               <>
@@ -586,15 +590,67 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
                             )}
 
                             <DropdownMenuSeparator className="bg-gray-700 my-1" />
-                            
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setIsCreateCategoryModalOpen(true)
-                              }}
-                              className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-indigo-400 hover:bg-[#2C2C2C] hover:text-indigo-300 transition-colors font-medium flex items-center gap-1"
-                            >
-                              <span>＋</span> Create new category…
-                            </DropdownMenuItem>
+
+                            {isCreatingCategoryInline ? (
+                              <div
+                                className="space-y-2 rounded-md bg-[#242424] p-2"
+                                onKeyDown={(event) => event.stopPropagation()}
+                              >
+                                <Input
+                                  type="text"
+                                  autoFocus
+                                  value={customCategoryInput}
+                                  onChange={(event) => {
+                                    setCustomCategoryInput(event.target.value.slice(0, 50))
+                                  }}
+                                  onKeyDown={(event) => {
+                                    event.stopPropagation()
+                                    if (event.key === "Enter" && customCategoryInput.trim() && !isCreatingCategory) {
+                                      event.preventDefault()
+                                      handleCreateCategory()
+                                    }
+                                    if (event.key === "Escape") {
+                                      event.preventDefault()
+                                      setIsCreatingCategoryInline(false)
+                                      setCustomCategoryInput("")
+                                    }
+                                  }}
+                                  placeholder="Category name"
+                                  className="h-8 w-full rounded-md border-transparent bg-[#2C2C2C] px-2 text-xs text-white placeholder:text-gray-600 focus-visible:ring-indigo-500"
+                                />
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setIsCreatingCategoryInline(false)
+                                      setCustomCategoryInput("")
+                                    }}
+                                    className="h-7 rounded-md border-0 bg-transparent px-2 text-xs text-gray-400 hover:bg-[#303030] hover:text-white"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    disabled={isCreatingCategory || !customCategoryInput.trim()}
+                                    onClick={handleCreateCategory}
+                                    className="h-7 rounded-md border-0 bg-indigo-600 px-2.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                  >
+                                    {isCreatingCategory ? "Creating..." : "Create"}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <DropdownMenuItem
+                                onSelect={(event) => {
+                                  event.preventDefault()
+                                  setIsCreatingCategoryInline(true)
+                                }}
+                                className="cursor-pointer rounded-md px-2 py-1.5 text-sm text-indigo-400 hover:bg-[#2C2C2C] hover:text-indigo-300 transition-colors font-medium flex items-center gap-1"
+                              >
+                                <span>＋</span> Create new category…
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -759,62 +815,6 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
           />
         </DialogContent>
       </Dialog>
-
-      {/* Premium Create Custom Category Overlay Modal */}
-      {isCreateCategoryModalOpen && (
-        <div className="fixed inset-0 z-[99999999999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 transition-all duration-200">
-          <div className="w-full max-w-[320px] bg-[#1e1e1e] border border-gray-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="space-y-1">
-              <h3 className="text-base font-semibold text-white">Create Custom Category</h3>
-              <p className="text-xs text-gray-400">
-                Give your category a unique name. Emojis are not permitted.
-              </p>
-            </div>
-
-            <div className="space-y-1.5 text-left">
-              <Label htmlFor="category-name-input" className="text-xs font-medium text-gray-300">
-                Category Name
-              </Label>
-              <Input
-                id="category-name-input"
-                type="text"
-                autoFocus
-                value={newCategoryName}
-                onChange={(e) => {
-                  setNewCategoryName(e.target.value.slice(0, 50))
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newCategoryName.trim() && !isCreatingCategory) {
-                    handleCreateCategory()
-                  }
-                }}
-                placeholder="e.g. AI Research"
-                className="w-full px-3 py-2 rounded-lg border-transparent bg-[#2C2C2C] text-sm text-white placeholder:text-gray-600 focus-visible:ring-indigo-500"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 mt-2">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setIsCreateCategoryModalOpen(false)
-                  setNewCategoryName("")
-                }}
-                className="text-gray-400 hover:text-white hover:bg-gray-800 text-xs px-3 py-1.5 h-8 rounded-lg cursor-pointer bg-transparent border-0"
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={isCreatingCategory || !newCategoryName.trim()}
-                onClick={handleCreateCategory}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-1.5 h-8 rounded-lg transition-colors cursor-pointer border-0"
-              >
-                {isCreatingCategory ? "Creating..." : "Create"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }

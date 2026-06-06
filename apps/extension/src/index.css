@@ -130,15 +130,29 @@
 }
 
 :host(link-smasher) {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  background: transparent !important;
+  color-scheme: normal !important;
   pointer-events: none !important;
 }
 
-#link-smasher-root {
+#link-smasher-root,
+#link-smasher-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: transparent !important;
+  color-scheme: normal !important;
   pointer-events: none;
 }
 
 #link-smasher-root [data-slot="dialog-overlay"],
 #link-smasher-root [data-slot="dialog-content"],
+#link-smasher-root [data-slot="dropdown-menu-content"],
 #link-smasher-root [data-sonner-toaster],
 #link-smasher-root [data-sonner-toast] {
   pointer-events: auto;
