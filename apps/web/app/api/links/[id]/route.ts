@@ -4,9 +4,15 @@ import { getAuthSession } from "@/lib/auth-helper";
 import { prisma } from "@/lib/prisma";
 import { withApiHandler } from "@/lib/api-handler";
 import { UnauthorizedError, NotFoundError, ValidationError } from "@/lib/errors";
+import {
+  EMOJI_REGEX,
+  formatLinkResponse,
+} from "@/lib/link-utils";
+import { findOrCreateCategory } from "@/lib/link-utils.server";
 
 /**
  * Payload validation schema for updating a Link.
+ * All fields are optional — only supplied fields are modified.
  */
 const updateLinkSchema = z.object({
   title: z.string().min(1).max(500).optional(),
@@ -16,37 +22,45 @@ const updateLinkSchema = z.object({
 });
 
 /**
- * Unicode property escape to identify emojis.
+ * Typed update payload to avoid `any` on the Prisma data argument.
  */
-const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
+interface LinkUpdateData {
+  updatedAt: bigint;
+  title?: string;
+  tags?: string[];
+  notes?: string;
+  categoryId?: string;
+}
 
 /**
  * GET /api/links/[id]
- * Retrieves details of a single saved link if owned by the user.
+ * Retrieves details of a single saved link owned by the authenticated user.
  */
 export const GET = withApiHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const { id } = await params;
-
-  // 1. Authenticate user session
   const session = await getAuthSession(request);
-
   if (!session) {
     throw new UnauthorizedError();
   }
 
-  // 2. Query Link and verify ownership.
-  // We filter by ID and userId together. If a user tries to scan IDs they don't own,
-  // we return a standard 404 Not Found to prevent data enumeration attacks.
+  // Filter by both id and userId: returns 404 for IDs the user doesn't own,
+  // preventing data enumeration attacks.
   const link = await prisma.link.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-    include: {
-      category: true,
+    where: { id, userId: session.user.id },
+    select: {
+      id: true,
+      userId: true,
+      url: true,
+      title: true,
+      hostname: true,
+      tags: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      category: { select: { name: true } },
     },
   });
 
@@ -54,125 +68,76 @@ export const GET = withApiHandler(async (
     throw new NotFoundError("Link not found.");
   }
 
-  const data = {
-    id: link.id,
-    userId: link.userId,
-    url: link.url,
-    title: link.title,
-    hostname: link.hostname,
-    tags: link.tags,
-    notes: link.notes,
-    category: link.category?.name ?? "General",
-    createdAt: link.createdAt,
-    updatedAt: link.updatedAt,
-  };
-
   return {
     success: true,
-    data,
+    data: formatLinkResponse(link),
   };
 });
 
 /**
  * PATCH /api/links/[id]
- * Modifies details of an existing saved link.
+ * Modifies editable fields of an existing saved link.
  */
 export const PATCH = withApiHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const { id } = await params;
-
-  // 1. Authenticate user session
   const session = await getAuthSession(request);
-
   if (!session) {
     throw new UnauthorizedError();
   }
 
-  // 2. Parse and validate input payload
-  const body = await request.json();
+  const body = await request.json() as unknown;
   const parsedData = updateLinkSchema.parse(body);
 
-  // 3. Verify link exists and is owned by the session user
+  // Verify ownership before mutating.
   const existingLink = await prisma.link.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
+    where: { id, userId: session.user.id },
+    select: { id: true },
   });
-
   if (!existingLink) {
     throw new NotFoundError("Link not found.");
   }
 
-  // Build prisma updates payload
-  const updatePayload: any = {
+  // Build the typed update payload using spread — only include supplied fields.
+  const updateData: LinkUpdateData = {
     updatedAt: BigInt(Date.now()),
+    ...(parsedData.title !== undefined && { title: parsedData.title }),
+    ...(parsedData.tags !== undefined && { tags: parsedData.tags }),
+    ...(parsedData.notes !== undefined && { notes: parsedData.notes }),
   };
 
-  if (parsedData.title !== undefined) updatePayload.title = parsedData.title;
-  if (parsedData.tags !== undefined) updatePayload.tags = parsedData.tags;
-  if (parsedData.notes !== undefined) updatePayload.notes = parsedData.notes;
-
-  // 4. Handle dynamic category update if passed
   if (parsedData.category !== undefined) {
     const categoryName = parsedData.category.trim();
-    if (emojiRegex.test(categoryName)) {
+    if (EMOJI_REGEX.test(categoryName)) {
       throw new ValidationError("Category name must not contain emojis.");
     }
-
-    // Dynamic lookup-or-create on Relational Category model
-    let category = await prisma.category.findUnique({
-      where: {
-        userId_name: {
-          userId: session.user.id,
-          name: categoryName,
-        },
-      },
-    });
-
-    if (!category) {
-      category = await prisma.category.create({
-        data: {
-          userId: session.user.id,
-          name: categoryName,
-          color: "#6366F1",
-        },
-      });
-    }
-
-    updatePayload.categoryId = category.id;
+    const category = await findOrCreateCategory(session.user.id, categoryName);
+    updateData.categoryId = category.id;
   }
 
-  // 5. DB Update
   const updatedLink = await prisma.link.update({
-    where: {
-      id,
-    },
-    data: updatePayload,
-    include: {
-      category: true,
+    where: { id },
+    data: updateData,
+    select: {
+      id: true,
+      userId: true,
+      url: true,
+      title: true,
+      hostname: true,
+      tags: true,
+      notes: true,
+      createdAt: true,
+      updatedAt: true,
+      category: { select: { name: true } },
     },
   });
-
-  const data = {
-    id: updatedLink.id,
-    userId: updatedLink.userId,
-    url: updatedLink.url,
-    title: updatedLink.title,
-    hostname: updatedLink.hostname,
-    tags: updatedLink.tags,
-    notes: updatedLink.notes,
-    category: updatedLink.category?.name ?? "General",
-    createdAt: updatedLink.createdAt,
-    updatedAt: updatedLink.updatedAt,
-  };
 
   return {
     success: true,
     message: "Link updated successfully",
-    data,
+    data: formatLinkResponse(updatedLink),
   };
 });
 
@@ -185,32 +150,21 @@ export const DELETE = withApiHandler(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const { id } = await params;
-
-  // 1. Authenticate user session
   const session = await getAuthSession(request);
-
   if (!session) {
     throw new UnauthorizedError();
   }
 
-  // 2. Verify link exists and is owned by the user
+  // Verify ownership before deleting.
   const existingLink = await prisma.link.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
+    where: { id, userId: session.user.id },
+    select: { id: true },
   });
-
   if (!existingLink) {
     throw new NotFoundError("Link not found.");
   }
 
-  // 3. DB Delete
-  await prisma.link.delete({
-    where: {
-      id,
-    },
-  });
+  await prisma.link.delete({ where: { id } });
 
   return {
     success: true,
@@ -220,7 +174,7 @@ export const DELETE = withApiHandler(async (
 
 /**
  * OPTIONS /api/links/[id]
- * Auto-delegates preflight OPTIONS requests to dynamic CORS handler.
+ * Handles CORS preflight — managed by the withApiHandler wrapper.
  */
 export const OPTIONS = withApiHandler(async () => {
   return { success: true };

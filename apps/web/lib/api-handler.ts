@@ -1,35 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { AppError, InternalServerError, ValidationError, ConflictError, NotFoundError } from "./errors";
+import { AppError, InternalServerError, ValidationError, ConflictError, NotFoundError, type ErrorDetail } from "./errors";
 import { rateLimiter } from "./rate-limiter";
 
 type ApiResponsePayload = {
   success: boolean;
-  data?: any;
+  data?: unknown;
   message?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
-type ApiResponse = 
-  | ApiResponsePayload 
+type ApiResponse =
+  | ApiResponsePayload
   | { status: number; body: ApiResponsePayload }
   | NextResponse;
 
-type ApiHandler = (
-  request: NextRequest,
-  context: any
-) => Promise<ApiResponse> | ApiResponse;
+// Removed non-generic ApiHandler to allow flexible context parameters for route handlers
+
+/** Narrows an unknown caught value to an object with a Prisma-style `code` property. */
+function isPrismaError(error: unknown): error is { code: string; message: string } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as Record<string, unknown>).code === "string"
+  );
+}
 
 /**
  * Helper to recursively search through an object and convert all BigInt values
  * into safe standard Javascript Numbers (or strings if they exceed Number.MAX_SAFE_INTEGER).
  * This prevents the JSON serializer from crashing when returning Prisma objects.
  */
-export function serializeBigInt(obj: any): any {
+export function serializeBigInt(obj: unknown): unknown {
   if (obj === null || obj === undefined) return obj;
 
   if (typeof obj === "bigint") {
-    // If it's safe to cast to standard Number, do it. Otherwise fallback to string.
+    // Cast to Number when safe; fall back to string for values exceeding MAX_SAFE_INTEGER.
     return obj <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(obj) : obj.toString();
   }
 
@@ -38,14 +45,11 @@ export function serializeBigInt(obj: any): any {
   }
 
   if (typeof obj === "object") {
-    // Handle Date object specifically
     if (obj instanceof Date) return obj;
 
-    const serialized: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        serialized[key] = serializeBigInt(obj[key]);
-      }
+    const serialized: Record<string, unknown> = {};
+    for (const key of Object.keys(obj)) {
+      serialized[key] = serializeBigInt((obj as Record<string, unknown>)[key]);
     }
     return serialized;
   }
@@ -57,8 +61,10 @@ export function serializeBigInt(obj: any): any {
  * Higher-Order Function (Wrapper) that intercepts incoming Next.js Route requests
  * to inject CORS, perform database-to-HTTP error mapping, rate-limiting, and serialize BigInt timestamps.
  */
-export function withApiHandler(handler: ApiHandler) {
-  return async (request: NextRequest, context: any) => {
+export function withApiHandler<T>(
+  handler: (request: NextRequest, context: T) => Promise<ApiResponse> | ApiResponse
+) {
+  return async (request: NextRequest, context: T) => {
     // 1. DYNAMIC CORS HANDLING
     // We dynamically verify the incoming request origin to prevent cross-origin bottlenecks.
     const origin = request.headers.get("origin");
@@ -132,8 +138,9 @@ export function withApiHandler(handler: ApiHandler) {
       }
       // B. If the handler returned an custom status/body object, process and serialize it
       else if (result && typeof result === "object" && "status" in result && "body" in result) {
-        const serializedBody = serializeBigInt(result.body);
-        response = NextResponse.json(serializedBody, { status: result.status });
+        const statusObj = result as { status: number; body: unknown };
+        const serializedBody = serializeBigInt(statusObj.body);
+        response = NextResponse.json(serializedBody, { status: statusObj.status });
       }
       // C. Otherwise, assume it returned a success payload and serialize with default 200 status
       else {
@@ -147,14 +154,14 @@ export function withApiHandler(handler: ApiHandler) {
       }
 
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 4. EXCEPTION HANDLING & DATABASE-TO-HTTP ERROR MAPPING
       let appError: AppError;
 
       // A. Known AppError subclasses (ValidationError, UnauthorizedError, etc.)
       if (error instanceof AppError) {
         appError = error;
-      } 
+      }
       // B. Zod schema validation errors
       else if (error instanceof ZodError) {
         const details = error.issues.map((issue) => ({
@@ -162,30 +169,30 @@ export function withApiHandler(handler: ApiHandler) {
           message: issue.message,
         }));
         appError = new ValidationError("Input validation failed. Please check details.", details);
-      } 
-      // C. Prisma unique constraint violation (code P2002)
-      else if (error.code === "P2002") {
-        appError = new ConflictError("This record has already been saved and must be unique.");
-      } 
-      // D. Prisma record to update/delete not found (code P2025)
-      else if (error.code === "P2025") {
-        appError = new NotFoundError("Target record not found or you lack permission to manage it.");
       }
-      // E. Database connection failures (codes P1001, P1002, P1008, etc.)
-      else if (error.code && error.code.startsWith("P1")) {
-        console.error("[DATABASE_CONNECTION_ERROR]:", {
-          code: error.code,
-          message: error.message,
-        });
-        appError = new InternalServerError("The database is currently unreachable. Please try again later.");
+      // C–E. Prisma error codes — narrow with type guard before accessing `.code`
+      else if (isPrismaError(error)) {
+        if (error.code === "P2002") {
+          // Unique constraint violation
+          appError = new ConflictError("This record has already been saved and must be unique.");
+        } else if (error.code === "P2025") {
+          // Record not found during update/delete
+          appError = new NotFoundError("Target record not found or you lack permission to manage it.");
+        } else if (error.code.startsWith("P1")) {
+          // Database connection failures (P1001, P1002, P1008, etc.)
+          console.error("[DATABASE_CONNECTION_ERROR]:", {
+            code: error.code,
+            message: error.message,
+          });
+          appError = new InternalServerError("The database is currently unreachable. Please try again later.");
+        } else {
+          console.error("[SERVER_UNHANDLED_ERROR]:", { path: request.nextUrl.pathname, error });
+          appError = new InternalServerError("An unexpected internal server error occurred.");
+        }
       }
-      // F. Unhandled exceptions (Log internally to keep details secure)
+      // F. Unhandled exceptions — log internally to avoid leaking details
       else {
-        console.error("[SERVER_UNHANDLED_ERROR]:", {
-          path: request.nextUrl.pathname,
-          message: error.message,
-          stack: error.stack,
-        });
+        console.error("[SERVER_UNHANDLED_ERROR]:", { path: request.nextUrl.pathname, error });
         appError = new InternalServerError("An unexpected internal server error occurred.");
       }
 
