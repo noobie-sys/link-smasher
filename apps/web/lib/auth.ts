@@ -25,7 +25,7 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [nextCookies(), bearer()],
+  plugins: [bearer(), nextCookies()],
 });
 
 export type Auth = typeof auth;
