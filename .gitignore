@@ -30,3 +30,7 @@ web-ext.config.ts
 
 # Prisma
 **/prisma/generated
+
+
+
+next-env.d.ts
