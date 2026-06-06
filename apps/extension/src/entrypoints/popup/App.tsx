@@ -33,15 +33,13 @@ function openWeb(path: string) {
 }
 
 /**
- * Render a single saved link row for display in the links list.
+ * Renders a list row for a saved link showing its title (or URL), hostname, optional notes, and up to four tags, with an optional edit action.
  *
- * Shows the link title (or URL), hostname, optional notes and up to four tag pills.
- * Provides an edit/external action button which, when enabled, sends an `EDIT_LINK` message
- * with the `link` to the currently active tab and closes the popup.
+ * When the edit action is enabled, clicking the edit button sends an `EDIT_LINK` message containing the `link` to the active tab and closes the popup.
  *
- * @param link - The saved link object to display (expects `url`, `title`, `hostname`, `notes`, and `tags`).
- * @param canEdit - If `true`, enables the edit button; if `false`, the edit button is disabled and indicates editing is unavailable.
- * @returns A JSX element representing the list row for the provided `link`.
+ * @param link - Saved link object (expects `url`, `title`, `hostname`, `notes`, and `tags`)
+ * @param canEdit - Enables the edit button and its behavior when `true`; disables the button and changes its tooltip when `false`
+ * @returns A JSX element representing the list item for the given `link`
  */
 function LinkRow({
   link,

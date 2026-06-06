@@ -17,12 +17,11 @@ const KeyDisplay = ({ combo }: { combo?: KeyboardShortcutConfig["defaultCombo"] 
 };
 
 /**
- * Render a list of keyboard shortcuts and provide UI to record new combos or reset to defaults.
+ * Renders the keyboard shortcuts settings UI, allowing recording of new combos and resetting to defaults.
  *
- * Loads shortcuts on mount from the configuration service, allows entering a recording mode for a single shortcut,
- * persists updates via the configuration service, and refreshes the list after changes.
+ * Loads shortcuts on mount, persists updates and resets via the keyboard configuration service, and refreshes the displayed list after changes.
  *
- * @returns A React element showing each shortcut's name, description, current combo (or "None"), a recording UI when active, and a conditional "Reset" action when the combo differs from the default.
+ * @returns A React element that displays each shortcut's name, description, current combo (or "None"), a recording target when active, and a conditional "Reset" action when the combo differs from the default.
  */
 export function ShortcutSettings() {
     const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
