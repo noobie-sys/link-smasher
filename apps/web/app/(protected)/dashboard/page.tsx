@@ -18,7 +18,8 @@ import {
   AlertCircle, 
   Gauge, 
   CornerDownRight, 
-  History 
+  History,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -580,6 +581,14 @@ export default function LinkSaverPage() {
                 <span className="text-slate-400">{rateLimit.limit} reqs</span>
               </div>
             </div>
+
+            <a
+              href="/settings"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors border border-border rounded-lg px-3 py-1.5 hover:bg-white/[0.03]"
+            >
+              <Settings className="h-3.5 w-3.5" />
+              Settings
+            </a>
 
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-white">
               <LogOut className="h-4 w-4" />
