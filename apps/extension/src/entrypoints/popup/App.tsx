@@ -14,24 +14,10 @@ import {
 import { usePopup } from "./popup.store";
 import { ShortcutSettings } from "./components/ShortcutSettings";
 import { Link } from "@/shared/types/common.types";
+import { cn } from "@/lib/utils";
 
 const WEB_APP_URL = "http://localhost:3000";
 const MAX_NOTES_LENGTH = 200;
-
-const colors = {
-  bg: "#0B1020",
-  panel: "#111827",
-  panelSoft: "#151B2E",
-  border: "#273044",
-  text: "#F8FAFC",
-  muted: "#94A3B8",
-  subtle: "#64748B",
-  brand: "#818CF8",
-  brandStrong: "#6366F1",
-  success: "#34D399",
-  warning: "#FBBF24",
-  error: "#F87171",
-};
 
 function openWeb(path: string) {
   if (chrome.tabs) {
@@ -39,21 +25,6 @@ function openWeb(path: string) {
   } else {
     window.open(`${WEB_APP_URL}${path}`, "_blank");
   }
-}
-
-function iconButtonStyle(active: boolean): React.CSSProperties {
-  return {
-    width: "32px",
-    height: "28px",
-    borderRadius: "7px",
-    border: "1px solid transparent",
-    background: active ? "#263047" : "transparent",
-    color: active ? colors.text : colors.muted,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-  };
 }
 
 function LinkRow({
@@ -73,61 +44,22 @@ function LinkRow({
   };
 
   return (
-    <li
-      style={{
-        padding: "10px 0",
-        borderBottom: `1px solid ${colors.border}`,
-        display: "flex",
-        flexDirection: "column",
-        gap: "6px",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-        <div
-          style={{
-            width: "28px",
-            height: "28px",
-            borderRadius: "7px",
-            background: "#1E293B",
-            color: colors.brand,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flex: "0 0 auto",
-          }}
-        >
+    <li className="py-2.5 border-b border-[#273044] flex flex-col gap-1.5 list-none last:border-b-0">
+      <div className="flex items-start gap-2">
+        <div className="w-7 h-7 rounded bg-[#1e293b] text-indigo-400 flex items-center justify-center shrink-0">
           <Link2 size={14} />
         </div>
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="min-w-0 flex-1">
           <a
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
             title={link.title || link.url}
-            style={{
-              color: colors.text,
-              textDecoration: "none",
-              fontSize: "12px",
-              fontWeight: 650,
-              lineHeight: 1.35,
-              display: "block",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
+            className="text-slate-100 text-xs font-semibold hover:text-indigo-400 no-underline leading-snug block truncate outline-none focus:text-indigo-400"
           >
             {link.title || link.url}
           </a>
-          <div
-            style={{
-              color: colors.subtle,
-              fontSize: "10px",
-              marginTop: "2px",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+          <div className="text-[10px] text-slate-500 mt-0.5 truncate">
             {link.hostname}
           </div>
         </div>
@@ -135,51 +67,27 @@ function LinkRow({
           onClick={openEditor}
           disabled={!canEdit}
           title={canEdit ? "Edit link" : "Open a normal webpage to edit"}
-          style={{
-            border: "none",
-            background: "transparent",
-            color: canEdit ? colors.brand : colors.subtle,
-            cursor: canEdit ? "pointer" : "not-allowed",
-            padding: "3px",
-            lineHeight: 0,
-          }}
+          className={cn(
+            "border-none bg-transparent p-0.5 leading-none transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-indigo-500 rounded",
+            canEdit ? "text-indigo-400 hover:text-indigo-300" : "text-slate-600 cursor-not-allowed"
+          )}
         >
           <ExternalLink size={13} />
         </button>
       </div>
 
       {link.notes && (
-        <div
-          style={{
-            color: colors.muted,
-            fontSize: "10px",
-            lineHeight: 1.35,
-            paddingLeft: "36px",
-          }}
-        >
+        <div className="text-[10px] text-slate-300 leading-relaxed pl-9 break-words">
           {link.notes}
         </div>
       )}
 
       {link.tags.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "4px",
-            paddingLeft: "36px",
-          }}
-        >
+        <div className="flex flex-wrap gap-1 pl-9">
           {link.tags.slice(0, 4).map((tag) => (
             <span
               key={tag}
-              style={{
-                background: "#202A40",
-                color: "#CBD5E1",
-                borderRadius: "999px",
-                padding: "2px 6px",
-                fontSize: "9px",
-              }}
+              className="bg-[#202a40] text-slate-300 rounded-full px-2 py-0.5 text-[9px] border border-[#273044]/30"
             >
               {tag}
             </span>
@@ -209,58 +117,16 @@ export default function App() {
 
   if (isLoadingAuth) {
     return (
-      <div
-        style={{
-          width: "340px",
-          minHeight: "360px",
-          padding: "24px",
-          background: colors.bg,
-          color: colors.text,
-          fontFamily:
-            'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          boxSizing: "border-box",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "12px",
-        }}
-      >
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            border: `3px solid ${colors.border}`,
-            borderTopColor: colors.brand,
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        />
-        <div style={{ color: colors.muted, fontSize: "12px" }}>
-          Loading local vault...
-        </div>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+      <div className="w-[340px] min-h-[360px] p-6 bg-[#0b1020] text-slate-100 flex flex-col items-center justify-center gap-3 font-sans box-border">
+        <div className="w-8 h-8 border-[3px] border-[#273044] border-t-indigo-400 rounded-full animate-spin" />
+        <div className="text-slate-400 text-xs">Loading local vault...</div>
       </div>
     );
   }
 
   if (!currentTab) {
     return (
-      <div
-        style={{
-          width: "340px",
-          padding: "24px",
-          background: colors.bg,
-          color: colors.text,
-          fontFamily: "system-ui, sans-serif",
-          textAlign: "center",
-          boxSizing: "border-box",
-        }}
-      >
+      <div className="w-[340px] p-6 bg-[#0b1020] text-slate-100 text-center font-sans box-border">
         Retrieving active page information...
       </div>
     );
@@ -271,80 +137,42 @@ export default function App() {
   const recentLinks = allLinks.slice(0, 12);
 
   return (
-    <div
-      style={{
-        width: "340px",
-        maxHeight: "580px",
-        overflow: "hidden",
-        background: colors.bg,
-        color: colors.text,
-        fontFamily:
-          'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        boxSizing: "border-box",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <header
-        style={{
-          padding: "14px 14px 10px",
-          borderBottom: `1px solid ${colors.border}`,
-          background: "linear-gradient(180deg, #111827 0%, #0B1020 100%)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div
-            style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "9px",
-              background: "linear-gradient(135deg, #6366F1, #14B8A6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 10px 24px rgba(99, 102, 241, 0.24)",
-            }}
-          >
-            <Link2 size={18} color="#FFFFFF" />
+    <div className="w-[340px] max-h-[580px] overflow-hidden bg-[#0b1020] text-slate-100 font-sans flex flex-col box-border border border-[#273044] rounded-xl">
+      <header className="px-3.5 pt-3.5 pb-2.5 border-b border-[#273044] bg-gradient-to-b from-[#111827] to-[#0b1020]">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-[34px] h-[34px] rounded-lg bg-gradient-to-br from-indigo-500 to-teal-400 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+              <Link2 size={18} className="text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="m-0 text-sm font-bold tracking-tight text-white leading-tight">Link Crust</h1>
+              <p className="m-0 mt-0.5 text-[10px] text-slate-400 truncate leading-none">
+                {isAuthenticated ? user?.email || "Cloud sync active" : "Local vault mode"}
+              </p>
+            </div>
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <h1 style={{ margin: 0, fontSize: "15px", lineHeight: 1.2 }}>
-              Link Crust
-            </h1>
-            <p
-              style={{
-                margin: "2px 0 0",
-                color: colors.muted,
-                fontSize: "10px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {isAuthenticated ? user?.email || "Cloud sync active" : "Local vault mode"}
-            </p>
-          </div>
-          <nav
-            style={{
-              display: "flex",
-              gap: "4px",
-              padding: "3px",
-              background: "#0F172A",
-              border: `1px solid ${colors.border}`,
-              borderRadius: "9px",
-            }}
-          >
+          <nav className="flex gap-1 p-1 bg-[#0f172a] border border-[#273044] rounded-lg shrink-0">
             <button
               onClick={() => setView("home")}
               title="Home"
-              style={iconButtonStyle(view === "home")}
+              className={cn(
+                "w-8 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer outline-none",
+                view === "home"
+                  ? "bg-[#263047] text-slate-100 border border-[#374151]"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-[#151b2e] border border-transparent"
+              )}
             >
               <Home size={14} />
             </button>
             <button
               onClick={() => setView("settings")}
               title="Settings"
-              style={iconButtonStyle(view === "settings")}
+              className={cn(
+                "w-8 h-7 rounded-md flex items-center justify-center transition-all cursor-pointer outline-none",
+                view === "settings"
+                  ? "bg-[#263047] text-slate-100 border border-[#374151]"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-[#151b2e] border border-transparent"
+              )}
             >
               <Settings size={14} />
             </button>
@@ -352,170 +180,71 @@ export default function App() {
         </div>
       </header>
 
-      <main
-        style={{
-          padding: "12px 14px 0",
-          overflowY: "auto",
-          flex: 1,
-        }}
-      >
+      <main className="px-3.5 pt-3 overflow-y-auto flex-1 scrollbar-thin">
         {view === "settings" ? (
-          <ShortcutSettings />
+          <div className="py-1 pb-4">
+            <ShortcutSettings />
+          </div>
         ) : (
-          <>
-            <section
-              style={{
-                padding: "12px",
-                borderRadius: "10px",
-                border: `1px solid ${colors.border}`,
-                background: colors.panel,
-                marginBottom: "12px",
-              }}
-            >
-              <div
-                style={{
-                  color: colors.subtle,
-                  fontSize: "9px",
-                  fontWeight: 800,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  marginBottom: "5px",
-                }}
-              >
+          <div className="space-y-3 pb-4">
+            <section className="p-3 rounded-lg border border-[#273044] bg-[#111827] shadow-md bg-opacity-70">
+              <div className="text-slate-500 text-[9px] font-extrabold tracking-wider uppercase mb-1">
                 Active page
               </div>
-              <div
-                style={{
-                  color: colors.text,
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
+              <div className="text-slate-100 text-xs font-bold truncate">
                 {isSystemPage ? "Browser system page" : currentTab.hostname}
               </div>
 
               {isSystemPage ? (
-                <p
-                  style={{
-                    margin: "8px 0 0",
-                    color: colors.muted,
-                    fontSize: "11px",
-                    lineHeight: 1.45,
-                  }}
-                >
+                <p className="m-0 mt-2 text-slate-400 text-[10px] leading-relaxed">
                   Saving is unavailable on internal browser pages, but your local links
                   are still shown below.
                 </p>
               ) : isAlreadySaved ? (
-                <div
-                  style={{
-                    marginTop: "10px",
-                    color: colors.success,
-                    fontSize: "11px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontWeight: 650,
-                  }}
-                >
-                  <CheckCircle2 size={14} />
+                <div className="mt-2.5 text-emerald-400 text-[10px] font-semibold flex items-center gap-1.5 bg-emerald-950/30 border border-emerald-900/40 py-1.5 px-2.5 rounded">
+                  <CheckCircle2 size={13} className="shrink-0" />
                   This page is saved locally
                 </div>
               ) : (
-                <div style={{ marginTop: "12px" }}>
-                  <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                    <label style={{ position: "relative", flex: 1 }}>
-                      <Tag
-                        size={13}
-                        style={{
-                          position: "absolute",
-                          left: "9px",
-                          top: "9px",
-                          color: colors.subtle,
-                        }}
-                      />
+                <div className="mt-3 space-y-2">
+                  <div className="flex gap-2">
+                    <label className="relative flex-1 block">
+                      <Tag size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
                       <input
                         type="text"
-                        placeholder="Tags"
+                        placeholder="Tags (comma separated)"
                         value={tag}
                         onChange={(e) => setTag(e.target.value)}
-                        style={{
-                          width: "100%",
-                          boxSizing: "border-box",
-                          padding: "8px 8px 8px 28px",
-                          borderRadius: "8px",
-                          border: `1px solid ${colors.border}`,
-                          background: colors.bg,
-                          color: colors.text,
-                          fontSize: "11px",
-                          outline: "none",
-                        }}
+                        className="w-full bg-[#0a0f1d] text-slate-100 text-xs border border-[#273044] rounded-lg pl-8 pr-2.5 py-1.5 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all placeholder-slate-600"
                       />
                     </label>
                     <button
                       onClick={saveLink}
                       disabled={status === "saving"}
-                      style={{
-                        border: "none",
-                        borderRadius: "8px",
-                        padding: "0 12px",
-                        background:
-                          status === "saving" ? "#475569" : colors.brandStrong,
-                        color: "#FFFFFF",
-                        fontWeight: 750,
-                        fontSize: "11px",
-                        cursor: status === "saving" ? "default" : "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                      }}
+                      className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white font-semibold text-xs rounded-lg px-3 flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed transition-colors duration-200 outline-none focus:ring-2 focus:ring-indigo-500/50"
                     >
                       <Save size={13} />
                       {status === "saving" ? "Saving" : "Save"}
                     </button>
                   </div>
-                  <label style={{ position: "relative", display: "block" }}>
-                    <FileText
-                      size={13}
-                      style={{
-                        position: "absolute",
-                        left: "9px",
-                        top: "9px",
-                        color: colors.subtle,
-                      }}
-                    />
+                  <label className="relative block">
+                    <FileText size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
                     <input
                       type="text"
-                      placeholder="Notes"
+                      placeholder="Add short note..."
                       value={notes}
                       onChange={(e) =>
                         setNotes(e.target.value.slice(0, MAX_NOTES_LENGTH))
                       }
                       maxLength={MAX_NOTES_LENGTH}
-                      style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "8px 8px 8px 28px",
-                        borderRadius: "8px",
-                        border: `1px solid ${colors.border}`,
-                        background: colors.bg,
-                        color: colors.text,
-                        fontSize: "11px",
-                        outline: "none",
-                      }}
+                      className="w-full bg-[#0a0f1d] text-slate-100 text-xs border border-[#273044] rounded-lg pl-8 pr-2.5 py-1.5 outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all placeholder-slate-600"
                     />
                   </label>
                   <div
-                    style={{
-                      marginTop: "5px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: status === "error" ? colors.error : colors.subtle,
-                      fontSize: "9px",
-                    }}
+                    className={cn(
+                      "flex justify-between text-[9px] font-medium px-0.5",
+                      status === "error" ? "text-red-400" : "text-slate-500"
+                    )}
                   >
                     <span>
                       {status === "success"
@@ -530,59 +259,27 @@ export default function App() {
                   </div>
                 </div>
               )}
-
             </section>
 
-            <section>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "6px",
-                }}
-              >
-                <h2
-                  style={{
-                    margin: 0,
-                    color: colors.text,
-                    fontSize: "12px",
-                    fontWeight: 750,
-                  }}
-                >
+            <section className="space-y-1.5">
+              <div className="flex justify-between items-center px-0.5">
+                <h2 className="m-0 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
                   Local saved links ({allLinks.length})
                 </h2>
                 {!isSystemPage && (
-                  <span style={{ color: colors.subtle, fontSize: "10px" }}>
+                  <span className="text-slate-500 text-[10px] font-medium">
                     {links.length} from this site
                   </span>
                 )}
               </div>
 
-              <div
-                style={{
-                  borderRadius: "10px",
-                  border: `1px solid ${colors.border}`,
-                  background: colors.panelSoft,
-                  maxHeight: "236px",
-                  overflowY: "auto",
-                  padding: "0 10px",
-                }}
-              >
+              <div className="border border-[#273044] bg-[#111827] rounded-lg max-h-[236px] overflow-y-auto px-3 shadow-inner bg-opacity-50">
                 {recentLinks.length === 0 ? (
-                  <div
-                    style={{
-                      padding: "18px 6px",
-                      color: colors.muted,
-                      fontSize: "11px",
-                      lineHeight: 1.45,
-                      textAlign: "center",
-                    }}
-                  >
-                    No local links yet. Save the current page to start your vault.
+                  <div className="py-6 px-1.5 text-slate-500 text-xs text-center leading-relaxed font-medium">
+                    No local links yet. Save this page to start your vault!
                   </div>
                 ) : (
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  <ul className="list-none p-0 m-0">
                     {recentLinks.map((link) => (
                       <LinkRow
                         key={link.id}
@@ -594,35 +291,15 @@ export default function App() {
                 )}
               </div>
             </section>
-          </>
+          </div>
         )}
       </main>
 
-      <footer
-        style={{
-          padding: "12px 14px 14px",
-          borderTop: `1px solid ${colors.border}`,
-          background: "#0A0F1D",
-        }}
-      >
+      <footer className="p-3.5 border-t border-[#273044] bg-[#0a0f1d] mt-auto">
         {isAuthenticated ? (
           <button
             onClick={() => openWeb("/dashboard")}
-            style={{
-              width: "100%",
-              border: `1px solid ${colors.border}`,
-              borderRadius: "9px",
-              background: colors.panel,
-              color: colors.text,
-              padding: "9px 10px",
-              fontSize: "11px",
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "7px",
-            }}
+            className="w-full flex items-center justify-center gap-2 border border-[#273044] hover:border-slate-600 bg-[#111827] hover:bg-[#151b2e] text-slate-200 hover:text-white rounded-lg py-2 px-2.5 text-xs font-semibold cursor-pointer transition-colors duration-200 outline-none focus:ring-1 focus:ring-slate-500"
           >
             Open web dashboard
             <ExternalLink size={13} />
@@ -630,54 +307,20 @@ export default function App() {
         ) : (
           <div
             role="alert"
-            style={{
-              border: "1px solid rgba(251, 191, 36, 0.32)",
-              background: "rgba(251, 191, 36, 0.08)",
-              borderRadius: "10px",
-              padding: "10px",
-              display: "flex",
-              gap: "9px",
-              alignItems: "flex-start",
-            }}
+            className="border border-amber-900/40 bg-amber-950/10 rounded-lg p-2.5 flex items-start gap-2.5"
           >
-            <AlertCircle size={16} color={colors.warning} style={{ flex: "0 0 auto" }} />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div
-                style={{
-                  color: colors.text,
-                  fontSize: "11px",
-                  fontWeight: 750,
-                  lineHeight: 1.35,
-                }}
-              >
-                You are viewing local links only.
+            <AlertCircle size={15} className="text-amber-400 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <div className="text-slate-200 text-[11px] font-bold leading-normal">
+                Local links only
               </div>
-              <div
-                style={{
-                  color: colors.muted,
-                  fontSize: "10px",
-                  lineHeight: 1.4,
-                  marginTop: "2px",
-                }}
-              >
-                Login to sync saved links across devices.
+              <div className="text-slate-400 text-[10px] leading-relaxed mt-0.5">
+                Login to sync your links.
               </div>
             </div>
             <button
               onClick={() => openWeb("/login")}
-              style={{
-                border: "none",
-                borderRadius: "7px",
-                background: colors.brandStrong,
-                color: "#FFFFFF",
-                padding: "7px 9px",
-                fontSize: "10px",
-                fontWeight: 800,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded px-2.5 py-1.5 text-[10px] flex items-center gap-1 cursor-pointer transition-colors duration-200 outline-none focus:ring-2 focus:ring-indigo-500/50 shrink-0"
             >
               <LogIn size={12} />
               Login
@@ -688,3 +331,4 @@ export default function App() {
     </div>
   );
 }
+
