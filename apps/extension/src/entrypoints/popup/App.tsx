@@ -19,6 +19,11 @@ import { cn } from "@/lib/utils";
 const WEB_APP_URL = "http://localhost:3000";
 const MAX_NOTES_LENGTH = 200;
 
+/**
+ * Open a route of the web dashboard in a new browser tab or window.
+ *
+ * @param path - The path to append to `WEB_APP_URL` (e.g. `/dashboard` or `/login`) to form the destination URL.
+ */
 function openWeb(path: string) {
   if (chrome.tabs) {
     chrome.tabs.create({ url: `${WEB_APP_URL}${path}` });
@@ -27,6 +32,17 @@ function openWeb(path: string) {
   }
 }
 
+/**
+ * Render a single saved link row for display in the links list.
+ *
+ * Shows the link title (or URL), hostname, optional notes and up to four tag pills.
+ * Provides an edit/external action button which, when enabled, sends an `EDIT_LINK` message
+ * with the `link` to the currently active tab and closes the popup.
+ *
+ * @param link - The saved link object to display (expects `url`, `title`, `hostname`, `notes`, and `tags`).
+ * @param canEdit - If `true`, enables the edit button; if `false`, the edit button is disabled and indicates editing is unavailable.
+ * @returns A JSX element representing the list row for the provided `link`.
+ */
 function LinkRow({
   link,
   canEdit,
@@ -98,6 +114,15 @@ function LinkRow({
   );
 }
 
+/**
+ * Popup UI for the extension that displays the active page, local saved links, and settings.
+ *
+ * Renders the header (branding and view switch), a main area that shows either settings or the
+ * active page card with save controls and a list of recent local links, and a footer with
+ * authentication-dependent actions (open dashboard or login).
+ *
+ * @returns The React element for the extension popup UI.
+ */
 export default function App() {
   const {
     currentTab,
