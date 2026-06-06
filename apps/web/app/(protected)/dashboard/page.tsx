@@ -36,8 +36,31 @@ interface SavedLink {
   createdAt: number;
 }
 
+interface CategoryOption {
+  id: string;
+  name: string;
+  color: string;
+  isSystem: boolean;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    message?: string;
+  };
+}
+
 // Regex to identify standard/colored emojis and pictographs
 const emojiRegex = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u;
+
+const getHostnameFromUrl = (urlValue: string) => {
+  try {
+    return new URL(urlValue).hostname.toLowerCase().replace(/^(www\.|m\.|beta\.)/, "");
+  } catch {
+    return "unknown";
+  }
+};
 
 export default function LinkSaverPage() {
   const { data: session, isPending } = useSession();
@@ -64,7 +87,7 @@ export default function LinkSaverPage() {
   const [notes, setNotes] = useState("");
 
   // Categories Integration State
-  const [categories, setCategories] = useState<{ id: string; name: string; color: string; isSystem: boolean }[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -87,8 +110,8 @@ export default function LinkSaverPage() {
   // 1. Initial Load of Saved Links and Categories
   useEffect(() => {
     if (session) {
-      fetchLinks();
-      fetchCategories();
+      void fetchLinks({ showLoading: true });
+      void fetchCategories({ showLoading: true });
     }
   }, [session]);
 
@@ -96,24 +119,28 @@ export default function LinkSaverPage() {
   useEffect(() => {
     if (!session) return;
     const interval = setInterval(() => {
-      fetchLinks();
-      fetchCategories();
+      void fetchLinks();
+      void fetchCategories();
     }, 10000); // 10 seconds
     return () => clearInterval(interval);
   }, [session]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (options: { showLoading?: boolean } = {}) => {
     try {
-      setIsLoadingCategories(true);
+      if (options.showLoading) {
+        setIsLoadingCategories(true);
+      }
       const res = await fetch("/api/categories");
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<CategoryOption[]>;
       if (payload.success && Array.isArray(payload.data)) {
         setCategories(payload.data);
       }
     } catch (err) {
       console.error("Failed to fetch categories:", err);
     } finally {
-      setIsLoadingCategories(false);
+      if (options.showLoading) {
+        setIsLoadingCategories(false);
+      }
     }
   };
 
@@ -145,6 +172,26 @@ export default function LinkSaverPage() {
       return;
     }
 
+    const optimisticCategory: CategoryOption = {
+      id: `optimistic-${Date.now()}`,
+      name,
+      color: "#6366F1",
+      isSystem: false,
+    };
+    const previousCategories = categories;
+
+    setCategories((current) => {
+      const exists = current.some((cat) => cat.name.toLowerCase() === name.toLowerCase());
+      return exists ? current : [...current, optimisticCategory];
+    });
+    if (createCategoryContext.mode === "create") {
+      setCategory(name);
+    } else {
+      setEditCategory(name);
+    }
+    setIsCreateCategoryModalOpen(false);
+    setNewCategoryName("");
+
     try {
       setIsCreatingCategory(true);
       const res = await fetch("/api/categories", {
@@ -154,23 +201,32 @@ export default function LinkSaverPage() {
         },
         body: JSON.stringify({ name }),
       });
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<CategoryOption>;
       if (payload.success) {
-        showStatus("success", `Category "${payload.data.name}" created!`);
-        await fetchCategories();
-
-        if (createCategoryContext.mode === "create") {
-          setCategory(payload.data.name);
-        } else {
-          setEditCategory(payload.data.name);
+        if (!payload.data) {
+          setCategories(previousCategories);
+          showStatus("error", "Failed to create category.");
+          return;
         }
 
-        setIsCreateCategoryModalOpen(false);
-        setNewCategoryName("");
+        const createdCategory = payload.data;
+        showStatus("success", `Category "${createdCategory.name}" created!`);
+        setCategories((current) => current.map((cat) => (
+          cat.id === optimisticCategory.id ? createdCategory : cat
+        )));
+
+        if (createCategoryContext.mode === "create") {
+          setCategory(createdCategory.name);
+        } else {
+          setEditCategory(createdCategory.name);
+        }
+
       } else {
+        setCategories(previousCategories);
         showStatus("error", payload.error?.message || "Failed to create category.");
       }
     } catch (err) {
+      setCategories(previousCategories);
       showStatus("error", "Failed to communicate with API server.");
     } finally {
       setIsCreatingCategory(false);
@@ -191,13 +247,15 @@ export default function LinkSaverPage() {
     }
   };
 
-  const fetchLinks = async () => {
+  const fetchLinks = async (options: { showLoading?: boolean } = {}) => {
     try {
-      setIsLoading(true);
+      if (options.showLoading) {
+        setIsLoading(true);
+      }
       const res = await fetch("/api/links");
 
       updateRateHeaders(res.headers);
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<SavedLink[]>;
 
       if (payload.success) {
         setLinks(payload.data || []);
@@ -207,7 +265,9 @@ export default function LinkSaverPage() {
     } catch (err) {
       showStatus("error", "Network connection issues.");
     } finally {
-      setIsLoading(false);
+      if (options.showLoading) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -231,12 +291,32 @@ export default function LinkSaverPage() {
       return;
     }
 
+    let optimisticLink: SavedLink | null = null;
+
     try {
       setIsActionPending(true);
       const tagsArray = tagsInput
         .split(",")
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
+      optimisticLink = {
+        id: `optimistic-${Date.now()}`,
+        url,
+        title,
+        hostname: getHostnameFromUrl(url),
+        tags: tagsArray,
+        notes: notes.trim() || null,
+        category: trimmedCategory,
+        createdAt: Date.now(),
+      };
+
+      const optimisticDraft = optimisticLink;
+      setLinks((current) => [optimisticDraft, ...current]);
+      setUrl("");
+      setTitle("");
+      setCategory("General");
+      setTagsInput("");
+      setNotes("");
 
       const res = await fetch("/api/links", {
         method: "POST",
@@ -253,22 +333,44 @@ export default function LinkSaverPage() {
       });
 
       updateRateHeaders(res.headers);
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<SavedLink>;
 
       if (payload.success) {
+        if (!payload.data) {
+          if (optimisticLink) {
+            const failedLink = optimisticLink;
+            setLinks((current) => current.filter((link) => link.id !== failedLink.id));
+          }
+          showStatus("error", "Failed to save link.");
+          return;
+        }
+
+        const savedLink = payload.data;
+        const optimisticDraftId = optimisticDraft.id;
         showStatus("success", "Link saved successfully!");
-        // Clear fields
-        setUrl("");
-        setTitle("");
-        setCategory("General");
-        setTagsInput("");
-        setNotes("");
-        // Reload list
-        fetchLinks();
+        setLinks((current) => current.map((link) => (
+          link.id === optimisticDraftId ? savedLink : link
+        )));
+        void fetchCategories();
       } else {
+        setLinks((current) => current.filter((link) => link.id !== optimisticDraft.id));
+        setUrl(optimisticDraft.url);
+        setTitle(optimisticDraft.title);
+        setCategory(optimisticDraft.category);
+        setTagsInput(optimisticDraft.tags.join(", "));
+        setNotes(optimisticDraft.notes || "");
         showStatus("error", payload.error?.message || "Failed to save link.");
       }
     } catch (err) {
+      if (optimisticLink) {
+        const failedLink = optimisticLink;
+        setLinks((current) => current.filter((link) => link.id !== failedLink.id));
+        setUrl(failedLink.url);
+        setTitle(failedLink.title);
+        setCategory(failedLink.category);
+        setTagsInput(failedLink.tags.join(", "));
+        setNotes(failedLink.notes || "");
+      }
       showStatus("error", "Failed to communicate with API server.");
     } finally {
       setIsActionPending(false);
@@ -279,6 +381,9 @@ export default function LinkSaverPage() {
   const handleDeleteLink = async (id: string) => {
     if (!confirm("Are you sure you want to delete this link?")) return;
 
+    const deletedLink = links.find((link) => link.id === id);
+    setLinks((current) => current.filter((link) => link.id !== id));
+
     try {
       setIsActionPending(true);
       const res = await fetch(`/api/links/${id}`, {
@@ -286,15 +391,20 @@ export default function LinkSaverPage() {
       });
 
       updateRateHeaders(res.headers);
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<never>;
 
       if (payload.success) {
         showStatus("success", "Link deleted successfully!");
-        fetchLinks();
       } else {
+        if (deletedLink) {
+          setLinks((current) => [deletedLink, ...current]);
+        }
         showStatus("error", payload.error?.message || "Failed to delete link.");
       }
     } catch (err) {
+      if (deletedLink) {
+        setLinks((current) => [deletedLink, ...current]);
+      }
       showStatus("error", "Error connecting to the API.");
     } finally {
       setIsActionPending(false);
@@ -322,12 +432,28 @@ export default function LinkSaverPage() {
       return;
     }
 
+    const previousLink = links.find((link) => link.id === id);
+
     try {
       setIsActionPending(true);
       const tagsArray = editTagsInput
         .split(",")
         .map((tag) => tag.trim())
         .filter((tag) => tag.length > 0);
+      const optimisticUpdatedLink: SavedLink | null = previousLink
+        ? {
+            ...previousLink,
+            title: editTitle.trim(),
+            notes: editNotes.trim() || null,
+            category: trimmedCategory,
+            tags: tagsArray,
+          }
+        : null;
+
+      if (optimisticUpdatedLink) {
+        setLinks((current) => current.map((link) => (link.id === id ? optimisticUpdatedLink : link)));
+      }
+      setEditingId(null);
 
       const res = await fetch(`/api/links/${id}`, {
         method: "PATCH",
@@ -343,16 +469,34 @@ export default function LinkSaverPage() {
       });
 
       updateRateHeaders(res.headers);
-      const payload = await res.json();
+      const payload = await res.json() as ApiResponse<SavedLink>;
 
       if (payload.success) {
+        if (!payload.data) {
+          if (previousLink) {
+            setLinks((current) => current.map((link) => (link.id === id ? previousLink : link)));
+            startEditing(previousLink);
+          }
+          showStatus("error", "Failed to update link.");
+          return;
+        }
+
+        const updatedLink = payload.data;
         showStatus("success", "Link updated successfully!");
-        setEditingId(null);
-        fetchLinks();
+        setLinks((current) => current.map((link) => (link.id === id ? updatedLink : link)));
+        void fetchCategories();
       } else {
+        if (previousLink) {
+          setLinks((current) => current.map((link) => (link.id === id ? previousLink : link)));
+          startEditing(previousLink);
+        }
         showStatus("error", payload.error?.message || "Failed to update link.");
       }
     } catch (err) {
+      if (previousLink) {
+        setLinks((current) => current.map((link) => (link.id === id ? previousLink : link)));
+        startEditing(previousLink);
+      }
       showStatus("error", "Error connecting to the API.");
     } finally {
       setIsActionPending(false);
