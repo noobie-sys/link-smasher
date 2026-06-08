@@ -6,6 +6,8 @@
 import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 import { KeyboardShortcutComboSchema } from "@/shared/validation/schemas";
 import { ZodError } from "zod";
+import { authService } from "@/core/auth/auth.service";
+import { apiFetch } from "@/core/api/client";
 
 export interface KeyboardShortcutConfig {
   id: string;
@@ -115,6 +117,20 @@ export const keyboardConfigService = {
     console.log("[keyboardConfigService] updateShortcut() - saving updated preferences to storage:", userPrefs);
     await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
 
+    // Sync to DB if logged in
+    try {
+      const authenticated = await authService.isAuthenticated();
+      if (authenticated) {
+        console.log("[keyboardConfigService] Syncing updated shortcuts to database...");
+        await apiFetch("/api/shortcuts", {
+          method: "PUT",
+          body: JSON.stringify(userPrefs),
+        });
+      }
+    } catch (dbErr) {
+      console.error("[keyboardConfigService] Failed to sync shortcuts to database:", dbErr);
+    }
+
     // Dispatch event to notify listeners of shortcut change
     console.log("[keyboardConfigService] updateShortcut() - dispatching ls-shortcut-updated custom event");
     window.dispatchEvent(
@@ -138,6 +154,20 @@ export const keyboardConfigService = {
     console.log("[keyboardConfigService] resetShortcut() - saving updated preferences to storage:", userPrefs);
     await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
 
+    // Sync to DB if logged in
+    try {
+      const authenticated = await authService.isAuthenticated();
+      if (authenticated) {
+        console.log("[keyboardConfigService] Syncing reset shortcuts to database...");
+        await apiFetch("/api/shortcuts", {
+          method: "PUT",
+          body: JSON.stringify(userPrefs),
+        });
+      }
+    } catch (dbErr) {
+      console.error("[keyboardConfigService] Failed to sync reset shortcuts to database:", dbErr);
+    }
+
     // Dispatch event to notify listeners
     const defaultCombo = DEFAULT_SHORTCUTS[action].defaultCombo;
     console.log("[keyboardConfigService] resetShortcut() - dispatching ls-shortcut-updated event with default combo:", defaultCombo);
@@ -153,6 +183,21 @@ export const keyboardConfigService = {
     console.log("[keyboardConfigService] resetAllShortcuts() requested");
     await chrome.storage.local.remove(STORAGE_KEYS.SHORTCUTS);
     console.log("[keyboardConfigService] resetAllShortcuts() - shortcuts storage key removed");
+
+    // Sync to DB if logged in (clear custom configuration)
+    try {
+      const authenticated = await authService.isAuthenticated();
+      if (authenticated) {
+        console.log("[keyboardConfigService] Resetting database shortcuts...");
+        await apiFetch("/api/shortcuts", {
+          method: "PUT",
+          body: JSON.stringify({}),
+        });
+      }
+    } catch (dbErr) {
+      console.error("[keyboardConfigService] Failed to reset database shortcuts:", dbErr);
+    }
+
     window.dispatchEvent(new CustomEvent("ls-shortcuts-reset"));
   },
 };

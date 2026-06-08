@@ -36,6 +36,7 @@ export default defineBackground(() => {
       // and confirms any pending items that were just uploaded above.
       console.log("[background] Syncing from Next.js backend on startup...");
       await syncService.syncFromServer();
+      await syncService.syncShortcuts();
     }
   })();
 
@@ -69,6 +70,7 @@ export default defineBackground(() => {
           await syncService.syncPending();
           await syncService.syncPendingDeletes();
           await syncService.syncFromServer();
+          await syncService.syncShortcuts();
         }
       } else {
         // Cookie was REMOVED — user just logged out.
@@ -88,6 +90,7 @@ export default defineBackground(() => {
           await syncService.syncPending();
           await syncService.syncPendingDeletes();
           await syncService.syncFromServer();
+          await syncService.syncShortcuts();
         }
       }
     });
@@ -121,20 +124,21 @@ export default defineBackground(() => {
       if (message && message.type === "API_FETCH") {
         const { endpoint, options } = message;
 
-        // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links)
+        // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links or user shortcuts)
         const isCreateEndpoint = endpoint === "/api/links";
+        const isShortcutsEndpoint = endpoint === "/api/shortcuts";
         const isSingleLinkRegex = /^\/api\/links\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/; // UUID validation
         const isSingleLinkEndpoint = isSingleLinkRegex.test(endpoint);
 
-        if (!isCreateEndpoint && !isSingleLinkEndpoint) {
+        if (!isCreateEndpoint && !isSingleLinkEndpoint && !isShortcutsEndpoint) {
           console.warn("[security] Blocked message fetch to unauthorized endpoint:", endpoint);
           sendResponse({ success: false, error: "Unauthorized endpoint requested." });
           return false;
         }
 
-        // 2. Strict Method Validation (Only allow state-modifying POST/PATCH/DELETE; block GET/arbitrary)
+        // 2. Strict Method Validation (Allow GET, POST, PUT, PATCH, DELETE for whitelisted endpoints)
         const method = (options?.method || "GET").toUpperCase();
-        const allowedMethods = ["POST", "PATCH", "DELETE"];
+        const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
         if (!allowedMethods.includes(method)) {
           console.warn("[security] Blocked message fetch using unauthorized HTTP method:", method);
           sendResponse({ success: false, error: "Unauthorized HTTP method requested." });
