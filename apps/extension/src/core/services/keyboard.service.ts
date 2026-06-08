@@ -26,6 +26,7 @@ class KeyboardService {
    */
   register(shortcut: KeyboardShortcut): () => void {
     const id = this.getShortcutId(shortcut);
+    console.log("[KeyboardService] register() requested. Unique shortcut key path ID:", id, "shortcut:", shortcut);
     this.shortcuts.set(id, shortcut);
 
     // Track by ID if provided
@@ -33,6 +34,7 @@ class KeyboardService {
       // Unregister existing shortcut with same ID if any
       const existingId = this.shortcutsById.get(shortcut.id);
       if (existingId && existingId !== id) {
+        console.log("[KeyboardService] register() - overwriting and deleting previous shortcut binding:", existingId, "for ID:", shortcut.id);
         this.shortcuts.delete(existingId);
       }
       this.shortcutsById.set(shortcut.id, id);
@@ -45,6 +47,7 @@ class KeyboardService {
 
     // Return unregister function
     return () => {
+      console.log("[KeyboardService] unregistering shortcut with ID:", id);
       this.shortcuts.delete(id);
       if (shortcut.id) {
         this.shortcutsById.delete(shortcut.id);
@@ -111,6 +114,26 @@ class KeyboardService {
    * Check if a keyboard event matches a shortcut
    */
   private matches(event: KeyboardEvent, shortcut: KeyboardShortcut): boolean {
+    const target = event.target as HTMLElement;
+
+    // Check if the user is typing in a form input, textarea, or contenteditable element
+    const isInputField =
+      target &&
+      (target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable);
+
+    // Ignore global shortcuts if target is inside an input field (without modifiers)
+    // or if the target is our own dialog container (custom element LINK-SMASHER)
+    if (
+      target &&
+      (target.tagName === "LINK-SMASHER" ||
+        (isInputField && !shortcut.metaKey && !shortcut.ctrlKey && !shortcut.altKey))
+    ) {
+      console.log("[KeyboardService] matches() skipped matching because target is in input field or link-smasher dialog:", target.tagName);
+      return false;
+    }
+
     const eventKey = event.key.toLowerCase();
     const shortcutKey = shortcut.key.toLowerCase();
 
@@ -122,6 +145,7 @@ class KeyboardService {
     if (!!shortcut.shiftKey !== event.shiftKey) return false;
     if (!!shortcut.altKey !== event.altKey) return false;
 
+    console.log("[KeyboardService] matches() matched successfully! eventKey:", eventKey, "shortcutKey:", shortcutKey);
     return true;
   }
 
@@ -144,10 +168,19 @@ class KeyboardService {
    */
   private startListening(): void {
     if (this.isListening) return;
+    console.log("[KeyboardService] startListening() - Adding global keydown capture listener on window");
 
     this.boundHandler = (e: KeyboardEvent) => {
+      console.log("[KeyboardService] Global keydown captured:", e.key, {
+        metaKey: e.metaKey,
+        ctrlKey: e.ctrlKey,
+        altKey: e.altKey,
+        shiftKey: e.shiftKey,
+      });
+
       for (const shortcut of this.shortcuts.values()) {
         if (this.matches(e, shortcut)) {
+          console.log("[KeyboardService] Shortcut matched! Preventing default action and executing handler for shortcut:", shortcut);
           e.preventDefault();
           e.stopPropagation();
           shortcut.handler(e);
