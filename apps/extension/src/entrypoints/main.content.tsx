@@ -12,6 +12,7 @@ import { linkService } from "@/core/services/link.service";
 import { Link } from "@/shared/types/common.types";
 import { ExtensionMessage } from "@/shared/types/message.types";
 import { useSavedLinksStore } from "@/core/store/saved-links.store";
+import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 
 const ContentRoot = () => {
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
@@ -22,16 +23,19 @@ const ContentRoot = () => {
 
     // Load and register shortcuts from configuration
     const loadAndRegisterShortcuts = async () => {
+        console.log("[Content Script] loadAndRegisterShortcuts() starting...");
         // Unregister all existing shortcuts
         unregisterRefs.current.forEach((unregister) => unregister());
         unregisterRefs.current.clear();
 
         // Load shortcuts from config
         const shortcuts = await keyboardConfigService.getShortcuts();
+        console.log("[Content Script] Loaded shortcuts configuration from storage:", shortcuts);
 
         // Register each shortcut
         for (const shortcut of shortcuts) {
             const combo = shortcut.currentCombo || shortcut.defaultCombo;
+            console.log("[Content Script] Registering hotkey with keyboardService:", shortcut.id, "combo:", combo);
 
             const unregister = keyboardService.register({
                 id: shortcut.id,
@@ -41,16 +45,20 @@ const ContentRoot = () => {
                 altKey: combo.altKey,
                 shiftKey: combo.shiftKey,
                 handler: async (e) => {
+                    console.log("[Content Script] Hotkey triggered! Action ID:", shortcut.id);
                     if (shortcut.id === ShortcutAction.OPEN_DIALOG) {
+                        console.log("[Content Script] Opening link dialog...");
                         setLinkToEdit(null); // Ensure clean state
                         setLinkDialogOpen(true);
                     } else if (shortcut.id === ShortcutAction.SAVE_LINK) {
                         // Save current link directly
+                        console.log("[Content Script] Saving current page link...");
                         try {
                             const url = window.location.href;
 
                             // Skip save entirely if already bookmarked — no database request
                             if (isUrlSaved(url)) {
+                                console.log("[Content Script] URL is already saved:", url);
                                 toast.info("Already bookmarked!");
                                 return;
                             }
@@ -63,13 +71,15 @@ const ContentRoot = () => {
                             });
 
                             if (result) {
+                                console.log("[Content Script] Link saved successfully:", result);
                                 addUrl(url);
                                 toast.success("Link saved!");
                             } else {
+                                console.log("[Content Script] Link updated or already exists.");
                                 toast.info("Link updated or already exists.");
                             }
                         } catch (error) {
-                            console.error("Failed to save link", error);
+                            console.error("[Content Script] Failed to save link:", error);
                             toast.error("Failed to save link.");
                         }
                     }
@@ -78,6 +88,7 @@ const ContentRoot = () => {
 
             unregisterRefs.current.set(shortcut.id, unregister);
         }
+        console.log("[Content Script] All shortcuts registered successfully.");
     };
 
     useEffect(() => {
@@ -86,11 +97,6 @@ const ContentRoot = () => {
 
         // Initial load
         loadAndRegisterShortcuts();
-
-        // Listen for shortcut updates
-        const handleShortcutUpdate = () => {
-            loadAndRegisterShortcuts();
-        };
 
         // Listen for messages from popup
         const handleMessage = (
@@ -113,19 +119,33 @@ const ContentRoot = () => {
             }
         };
 
-        window.addEventListener("ls-shortcut-updated", handleShortcutUpdate);
-        window.addEventListener("ls-shortcuts-reset", handleShortcutUpdate);
+        // Listen for shortcut changes in storage (cross-context)
+        const handleStorageChange = (
+            changes: { [key: string]: chrome.storage.StorageChange },
+            areaName: string
+        ) => {
+            console.log("[Content Script] Storage change detected in area:", areaName, "changes:", changes);
+            if (areaName === "local" && changes[STORAGE_KEYS.SHORTCUTS]) {
+                console.log("[Content Script] Shortcuts storage key updated, reloading hotkeys...");
+                loadAndRegisterShortcuts();
+            }
+        };
+
         chrome.runtime.onMessage.addListener(handleMessage);
         document.addEventListener("visibilitychange", handleVisibilityChange);
+        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+            chrome.storage.onChanged.addListener(handleStorageChange);
+        }
 
         return () => {
             // Cleanup
             unregisterRefs.current.forEach((unregister) => unregister());
             unregisterRefs.current.clear();
-            window.removeEventListener("ls-shortcut-updated", handleShortcutUpdate);
-            window.removeEventListener("ls-shortcuts-reset", handleShortcutUpdate);
             chrome.runtime.onMessage.removeListener(handleMessage);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
+            if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
+                chrome.storage.onChanged.removeListener(handleStorageChange);
+            }
         };
     }, []);
 

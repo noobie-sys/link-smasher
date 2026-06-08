@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { keyboardConfigService, KeyboardShortcutConfig, ShortcutAction } from "@/core/services/keyboard-config.service";
 
 const KeyDisplay = ({ combo }: { combo?: KeyboardShortcutConfig["defaultCombo"] }) => {
@@ -17,31 +17,56 @@ const KeyDisplay = ({ combo }: { combo?: KeyboardShortcutConfig["defaultCombo"] 
 };
 
 /**
- * Renders the keyboard shortcuts settings UI, allowing recording of new combos and resetting to defaults.
+ * Render the keyboard shortcuts settings UI and manage recording and resetting of shortcut combinations.
  *
- * Loads shortcuts on mount, persists updates and resets via the keyboard configuration service, and refreshes the displayed list after changes.
+ * Loads shortcuts on mount, focuses the active recording target when entering recording mode, persists updates and resets via the keyboard configuration service, and refreshes the displayed list after changes.
  *
- * @returns A React element that displays each shortcut's name, description, current combo (or "None"), a recording target when active, and a conditional "Reset" action when the combo differs from the default.
+ * @returns A React element displaying each shortcut's name, description, current combo (or "None"), an interactive recording target when active, and a conditional "Reset" action when the current combo differs from the default.
  */
 export function ShortcutSettings() {
     const [shortcuts, setShortcuts] = useState<KeyboardShortcutConfig[]>([]);
     const [recordingId, setRecordingId] = useState<string | null>(null);
+    const recordingRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
+        console.log("[ShortcutSettings] Mounted. Loading initial shortcuts...");
         loadShortcuts();
     }, []);
 
+    // Ensure the recording element gets focus immediately when rendering
+    useEffect(() => {
+        if (recordingId && recordingRef.current) {
+            console.log("[ShortcutSettings] Focus shifted to recording element for:", recordingId);
+            recordingRef.current.focus();
+        }
+    }, [recordingId]);
+
     const loadShortcuts = async () => {
-        const list = await keyboardConfigService.getShortcuts();
-        setShortcuts(list);
+        try {
+            const list = await keyboardConfigService.getShortcuts();
+            console.log("[ShortcutSettings] Loaded shortcuts from config service:", list);
+            setShortcuts(list);
+        } catch (err) {
+            console.error("[ShortcutSettings] Failed to load shortcuts:", err);
+        }
     };
 
     const handleKeyDown = async (e: React.KeyboardEvent, shortcut: KeyboardShortcutConfig) => {
         e.preventDefault();
         e.stopPropagation();
 
+        console.log("[ShortcutSettings] handleKeyDown intercepted key:", e.key, {
+            metaKey: e.metaKey,
+            ctrlKey: e.ctrlKey,
+            altKey: e.altKey,
+            shiftKey: e.shiftKey,
+        });
+
         // Ignore modifier-only keydowns
-        if (["Meta", "Control", "Alt", "Shift"].includes(e.key)) return;
+        if (["Meta", "Control", "Alt", "Shift"].includes(e.key)) {
+            console.log("[ShortcutSettings] Ignored modifier-only keydown:", e.key);
+            return;
+        }
 
         const newCombo = {
             key: e.key,
@@ -51,21 +76,26 @@ export function ShortcutSettings() {
             shiftKey: e.shiftKey,
         };
 
+        console.log("[ShortcutSettings] Attempting to save new shortcut combo:", newCombo);
+
         try {
             await keyboardConfigService.updateShortcut(shortcut.id as ShortcutAction, newCombo);
+            console.log("[ShortcutSettings] Shortcut successfully updated in storage!");
             await loadShortcuts();
             setRecordingId(null);
         } catch (err) {
-            console.error("Failed to update shortcut", err);
+            console.error("[ShortcutSettings] Failed to update shortcut:", err);
         }
     };
 
     const handleReset = async (shortcut: KeyboardShortcutConfig) => {
+        console.log("[ShortcutSettings] Reset requested for shortcut:", shortcut.id);
         try {
             await keyboardConfigService.resetShortcut(shortcut.id as ShortcutAction);
+            console.log("[ShortcutSettings] Shortcut successfully reset in storage!");
             await loadShortcuts();
         } catch (err) {
-            console.error("Failed to reset shortcut", err);
+            console.error("[ShortcutSettings] Failed to reset shortcut:", err);
         }
     };
 
@@ -86,10 +116,14 @@ export function ShortcutSettings() {
                         <div className="flex items-center gap-2 shrink-0">
                             {recordingId === s.id ? (
                                 <div
+                                    ref={recordingRef}
                                     className="px-2 py-1 rounded bg-indigo-950 text-indigo-400 border border-indigo-700 text-[11px] font-medium cursor-pointer select-none outline-none animate-pulse min-w-[75px] text-center focus:ring-1 focus:ring-indigo-500"
                                     tabIndex={0}
                                     onKeyDown={(e) => handleKeyDown(e, s)}
-                                    onBlur={() => setRecordingId(null)}
+                                    onBlur={() => {
+                                        console.log("[ShortcutSettings] Input blurred, cancelling recording");
+                                        setRecordingId(null);
+                                    }}
                                     autoFocus
                                 >
                                     Press keys...
@@ -97,7 +131,10 @@ export function ShortcutSettings() {
                             ) : (
                                 <>
                                     <div
-                                        onClick={() => setRecordingId(s.id)}
+                                        onClick={() => {
+                                            console.log("[ShortcutSettings] Clicked key combo. Entering recording mode for:", s.id);
+                                            setRecordingId(s.id);
+                                        }}
                                         className="cursor-pointer hover:opacity-80 transition-opacity"
                                         title="Click to change shortcut"
                                     >
