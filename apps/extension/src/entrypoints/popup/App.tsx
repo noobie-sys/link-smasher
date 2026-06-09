@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { usePopup } from "./popup.store";
 import { ShortcutSettings } from "./components/ShortcutSettings";
+import { BlacklistSettings } from "./components/BlacklistSettings";
 import { Link } from "@/shared/types/common.types";
 import { cn } from "@/lib/utils";
 
@@ -207,6 +208,7 @@ export default function App() {
         {view === "settings" ? (
           <div className="py-1 pb-4">
             <ShortcutSettings />
+            <BlacklistSettings />
           </div>
         ) : (
           <div className="space-y-3 pb-4">
