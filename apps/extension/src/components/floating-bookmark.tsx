@@ -11,6 +11,14 @@ interface FloatingBookmarkProps {
   onOpenEdit: (link: Link) => void;
 }
 
+/**
+ * Renders a floating bookmark button in the top-right of the page that can save the current page or open an edit flow for an already-saved page.
+ *
+ * The component automatically hides itself for hostnames present in a persisted blacklist, adapts its visual theme based on sampled background brightness near the top-right of the page, and exposes a callback for opening the edit flow when the current URL is already saved.
+ *
+ * @param onOpenEdit - Callback invoked with the saved `Link` when the user requests editing for an already-saved page
+ * @returns A JSX element containing the floating bookmark UI, or `null` when the current hostname is blacklisted
+ */
 export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
   const { isUrlSaved, addUrl } = useSavedLinksStore();
   const [isBlacklisted, setIsBlacklisted] = useState<boolean>(true); // start true till loaded

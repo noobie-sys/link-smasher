@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 
+/**
+ * Renders a settings UI for managing the hidden sites blacklist.
+ *
+ * Loads the blacklist from `chrome.storage.local` on mount, displays either an empty-state message or a scrollable list of blacklisted domains, and lets the user restore a domain which updates both storage and local component state.
+ *
+ * @returns The settings UI for viewing and restoring blacklisted domains.
+ */
 export function BlacklistSettings() {
   const [blacklist, setBlacklist] = useState<string[]>([]);
 
