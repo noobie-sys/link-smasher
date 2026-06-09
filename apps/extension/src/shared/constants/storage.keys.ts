@@ -8,4 +8,5 @@ export const STORAGE_KEYS = {
   MIGRATED: "migrated",
   SESSION_TOKEN: "sessionToken",
   LAST_SYNCED_AT: "lastSyncedAt",
+  BLACKLIST: "ls_blacklist",
 };

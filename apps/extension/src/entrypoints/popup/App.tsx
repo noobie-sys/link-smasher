@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { usePopup } from "./popup.store";
 import { ShortcutSettings } from "./components/ShortcutSettings";
+import { BlacklistSettings } from "./components/BlacklistSettings";
 import { Link } from "@/shared/types/common.types";
 import { cn } from "@/lib/utils";
 
@@ -113,13 +114,14 @@ function LinkRow({
 }
 
 /**
- * Popup UI for the extension that displays the active page, local saved links, and settings.
+ * Render the extension popup UI, showing the active page, saved local links, and settings.
  *
- * Renders the header (branding and view switch), a main area that shows either settings or the
- * active page card with save controls and a list of recent local links, and a footer with
- * authentication-dependent actions (open dashboard or login).
+ * The popup provides two views ("home" and "settings"), shows save controls and link metadata
+ * for the active page on the home view, and displays shortcut and blacklist settings on the
+ * settings view. Footer actions differ based on authentication state (open dashboard when
+ * authenticated, or prompt to log in when not).
  *
- * @returns The React element for the extension popup UI.
+ * @returns The React element representing the extension popup UI.
  */
 export default function App() {
   const {
@@ -207,6 +209,7 @@ export default function App() {
         {view === "settings" ? (
           <div className="py-1 pb-4">
             <ShortcutSettings />
+            <BlacklistSettings />
           </div>
         ) : (
           <div className="space-y-3 pb-4">

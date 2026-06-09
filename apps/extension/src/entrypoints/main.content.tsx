@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { PortalContext } from '@/context/portal.context';
 import { Toaster } from "@/components/ui/sonners";
 import { toast } from "sonner";
+import { FloatingBookmark } from '@/components/floating-bookmark';
 import { keyboardService } from "@/core/services/keyboard.service";
 import { keyboardConfigService, ShortcutAction } from "@/core/services/keyboard-config.service";
 import { linkService } from "@/core/services/link.service";
@@ -153,6 +154,12 @@ const ContentRoot = () => {
         <React.StrictMode>
             <PortalContext.Provider value={portalContainer} >
                 <div ref={setPortalContainer} id="link-smasher-container">
+                    <FloatingBookmark
+                        onOpenEdit={(link) => {
+                            setLinkToEdit(link);
+                            setLinkDialogOpen(true);
+                        }}
+                    />
                     <LinkDialog
                         open={linkDialogOpen}
                         onOpenChange={(open) => {
