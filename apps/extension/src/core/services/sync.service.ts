@@ -2,6 +2,7 @@ import { apiFetch, ApiError } from "@/core/api/client";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { Link } from "@/shared/types/common.types";
 import { PendingLink } from "@/shared/types/storage.types";
+import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 
 const MAX_PENDING_RETRIES = 5;
 
@@ -204,5 +205,33 @@ export const syncService = {
   async syncLinkDelete(id: string): Promise<void> {
     console.log("[syncService] Deleting link on server:", id);
     await apiFetch(`/api/links/${id}`, { method: "DELETE" });
+  },
+
+  /**
+   * Pulls custom keyboard shortcuts from the database and merges/updates local storage.
+   */
+  async syncShortcuts(): Promise<void> {
+    try {
+      console.log("[syncService] Pulling shortcuts from database...");
+      const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+      const localShortcuts = saved[STORAGE_KEYS.SHORTCUTS] || {};
+
+      const response = await apiFetch<{ success: boolean; data: Record<string, any> }>("/api/shortcuts");
+      if (response.success && response.data) {
+        const remoteShortcuts = response.data;
+        if (Object.keys(remoteShortcuts).length === 0 && Object.keys(localShortcuts).length > 0) {
+          console.log("[syncService] Database shortcuts are empty. Syncing local shortcuts to database...");
+          await apiFetch("/api/shortcuts", {
+            method: "PUT",
+            body: JSON.stringify(localShortcuts),
+          });
+        } else {
+          console.log("[syncService] Overwriting local shortcuts with database config:", remoteShortcuts);
+          await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: remoteShortcuts });
+        }
+      }
+    } catch (error) {
+      console.error("[syncService] Failed to sync shortcuts:", error);
+    }
   },
 };
