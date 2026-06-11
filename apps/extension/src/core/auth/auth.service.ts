@@ -16,10 +16,19 @@ export const authService = {
    */
   async fetchSessionToken(): Promise<string | null> {
     try {
-      const cookie = await chrome.cookies.get({
+      let cookie = await chrome.cookies.get({
         url: BACKEND_URL,
         name: SESSION_COOKIE_NAME,
       });
+
+      // Fallback: If not found and BACKEND_URL is localhost, check 127.0.0.1
+      if (!cookie?.value && BACKEND_URL.includes("localhost")) {
+        const fallbackUrl = BACKEND_URL.replace("localhost", "127.0.0.1");
+        cookie = await chrome.cookies.get({
+          url: fallbackUrl,
+          name: SESSION_COOKIE_NAME,
+        });
+      }
 
       if (!cookie?.value) {
         console.log("[authService] No session cookie found at", BACKEND_URL);
@@ -45,45 +54,50 @@ export const authService = {
    * Writes the user profile to storage.
    */
   async verifySession(token: string): Promise<boolean> {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/auth/get-session`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Cookie: `${SESSION_COOKIE_NAME}=${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.warn(
-          "[authService] Session verification failed:",
-          response.status,
-        );
-        await setStorage("sessionToken", null);
-        await setStorage("user", null);
-        return false;
-      }
-
-      const payload = await response.json();
-
-      if (payload?.user) {
-        await setStorage("user", {
-          id: payload.user.id,
-          email: payload.user.email,
-          createdAt: new Date(payload.user.createdAt).getTime(),
-        });
-        console.log("[authService] Authenticated as:", payload.user.email);
-        return true;
-      }
-
-      await setStorage("sessionToken", null);
-      await setStorage("user", null);
-      return false;
-    } catch (error) {
-      console.error("[authService] Network error during verification:", error);
-      await setStorage("sessionToken", null);
-      await setStorage("user", null);
-      return false;
+    const urlsToTry = [BACKEND_URL];
+    if (BACKEND_URL.includes("localhost")) {
+      urlsToTry.push(BACKEND_URL.replace("localhost", "127.0.0.1"));
     }
+
+    let lastError: any = null;
+    for (const url of urlsToTry) {
+      try {
+        const response = await fetch(`${url}/api/auth/get-session`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Cookie: `${SESSION_COOKIE_NAME}=${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          console.warn(
+            "[authService] Session verification failed on:",
+            url,
+            response.status,
+          );
+          continue;
+        }
+
+        const payload = await response.json();
+
+        if (payload?.user) {
+          await setStorage("user", {
+            id: payload.user.id,
+            email: payload.user.email,
+            createdAt: new Date(payload.user.createdAt).getTime(),
+          });
+          console.log("[authService] Authenticated as:", payload.user.email);
+          return true;
+        }
+      } catch (error) {
+        lastError = error;
+        console.warn("[authService] Failed to fetch session from:", url, error);
+      }
+    }
+
+    await setStorage("sessionToken", null);
+    await setStorage("user", null);
+    return false;
   },
 
   /**
