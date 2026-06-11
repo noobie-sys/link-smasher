@@ -3,7 +3,7 @@ import { PendingLink } from "@/shared/types/storage.types";
 import { getStorage, setStorage } from "@/core/storage/storage.util";
 import { syncService } from "@/core/services/sync.service";
 import { storageMutex } from "@/core/storage/storage.mutex";
-import { apiFetch } from "@/core/api/client";
+import { apiFetch, ApiError } from "@/core/api/client";
 
 export const linkStorage = {
   async get(): Promise<Link[]> {
@@ -20,14 +20,33 @@ export const linkStorage = {
 };
 
 /**
+ * Queues a link in the `pending` list for retry on next login/sync cycle.
+ * Used for both guest mode saves and authenticated saves that fail.
+ */
+const queueAsPending = async (link: Link): Promise<void> => {
+  const pending = await getStorage("pending");
+  const pendingItem: PendingLink = {
+    ...link,
+    userId: link.userId ?? "",
+    retryCount: 0,
+    failedAt: Date.now(),
+  };
+  await setStorage("pending", [...pending, pendingItem]);
+};
+
+/**
  * Save a new link to local storage, then push to the Next.js backend if authenticated.
- * Guest users' saves are queued in the `pending` list for later synchronization upon login.
+ *
+ * - Authenticated users: saves locally first, then pushes to server.
+ *   If the server push fails (500, network down), the link is queued in `pending`
+ *   for automatic retry on the next sync cycle.
+ * - Guest users: saves locally and queues in `pending` for sync after login.
  *
  * @param link - The fully-formed link to save.
  * @param existingLinks - Optional pre-loaded links array to avoid a redundant storage read.
  */
 export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void> => {
-  // 1. Write locally first (inside mutex for safety)
+  // 1. Write locally first (inside mutex for thread safety)
   const release = await storageMutex.acquire();
   try {
     const links = existingLinks ?? (await getStorage("links"));
@@ -40,14 +59,15 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
   const isAuthenticated = !!token;
 
   if (isAuthenticated) {
-    // 2. Push to Next.js backend for authenticated sessions (no offline-first queuing)
+    // 2. Push to Next.js backend for authenticated users.
+    // On failure: queue to pending for automatic retry (do NOT silently drop).
     try {
       console.log("[link.storage] Saving link to backend:", link.id);
 
       await apiFetch("/api/links", {
         method: "POST",
         body: JSON.stringify({
-          id: link.id, // Explicitly pass client ID to prevent server duplication
+          id: link.id,
           url: link.url,
           title: link.title,
           hostname: link.hostname,
@@ -56,20 +76,23 @@ export const saveLink = async (link: Link, existingLinks?: Link[]): Promise<void
           category: link.category ?? "General",
         }),
       });
+
+      console.log("[link.storage] Backend save successful:", link.id);
     } catch (err) {
-      console.error("[link.storage] Backend save failed:", err);
+      // 409 Conflict = link already exists on server — not a real failure.
+      if (err instanceof ApiError && err.status === 409) {
+        console.log("[link.storage] Link already exists on server (409). Skipping retry queue:", link.id);
+        return;
+      }
+
+      // Any other error (500, network down) — queue for retry.
+      console.error("[link.storage] Backend save failed, queueing for retry:", err);
+      await queueAsPending(link);
     }
   } else {
-    // Guest mode: queue link in local pending storage for future login synchronization
+    // Guest mode: queue link in pending for synchronization after login.
     console.log("[link.storage] Guest user: queueing saved link in pending list");
-    const pending = await getStorage("pending");
-    const pendingItem: PendingLink = {
-      ...link,
-      userId: "",
-      retryCount: 0,
-      failedAt: Date.now(),
-    };
-    await setStorage("pending", [...pending, pendingItem]);
+    await queueAsPending(link);
   }
 };
 

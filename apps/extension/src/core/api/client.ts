@@ -63,10 +63,30 @@ export async function apiFetch<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const urlsToTry = [BACKEND_URL];
+  if (BACKEND_URL.includes("localhost")) {
+    urlsToTry.push(BACKEND_URL.replace("localhost", "127.0.0.1"));
+  }
+
+  let response: Response | null = null;
+  let lastError: any = null;
+
+  for (const url of urlsToTry) {
+    try {
+      response = await fetch(`${url}${endpoint}`, {
+        ...options,
+        headers,
+      });
+      break;
+    } catch (err) {
+      lastError = err;
+      console.warn(`[apiFetch] Failed to fetch from ${url}${endpoint}, trying next...`);
+    }
+  }
+
+  if (!response) {
+    throw new ApiError(lastError?.message || "Network connection failed", 500);
+  }
 
   // On 401, clear stale auth so the UI prompts re-login
   if (response.status === 401) {

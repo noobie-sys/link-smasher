@@ -3,6 +3,7 @@ import { STORAGE_DEFAULTS } from "@/shared/types/storage.types";
 import { syncService } from "@/core/services/sync.service";
 import { authService } from "@/core/auth/auth.service";
 import { apiFetch } from "@/core/api/client";
+import { realtimeSyncService } from "@/core/services/realtime-sync.service";
 
 export default defineBackground(() => {
   console.log("Link Smasher background script initialized (React MVP)");
@@ -37,6 +38,7 @@ export default defineBackground(() => {
       console.log("[background] Syncing from Next.js backend on startup...");
       await syncService.syncFromServer();
       await syncService.syncShortcuts();
+      await realtimeSyncService.startSubscription();
     }
   })();
 
@@ -47,6 +49,7 @@ export default defineBackground(() => {
     if (token) {
       void syncService.syncPending();
       void syncService.syncPendingDeletes();
+      void realtimeSyncService.startSubscription();
     }
   });
 
@@ -57,6 +60,7 @@ export default defineBackground(() => {
       const isSessionCookie = changeInfo.cookie.name === "better-auth.session_token";
       const isTargetDomain =
         changeInfo.cookie.domain.includes("localhost") ||
+        changeInfo.cookie.domain.includes("127.0.0.1") ||
         changeInfo.cookie.domain.includes("linksmasher.com");
 
       if (!isSessionCookie || !isTargetDomain) return;
@@ -71,11 +75,16 @@ export default defineBackground(() => {
           await syncService.syncPendingDeletes();
           await syncService.syncFromServer();
           await syncService.syncShortcuts();
+          await realtimeSyncService.startSubscription();
         }
       } else {
-        // Cookie was REMOVED — user just logged out.
-        console.log("[background] Logout detected — clearing local session.");
-        await authService.clearSession();
+        // Cookie was REMOVED — user just logged out (explicit delete or expiration).
+        // Skip overwrite events to prevent race conditions during cookie updates.
+        if (changeInfo.cause === "explicit" || changeInfo.cause === "expired") {
+          console.log("[background] Logout detected — clearing local session.");
+          await authService.clearSession();
+          await realtimeSyncService.stopSubscription();
+        }
       }
     });
   }
@@ -109,7 +118,10 @@ export default defineBackground(() => {
       }
 
       // Try reading cookies on install
-      await authService.fetchSessionToken();
+      const token = await authService.fetchSessionToken();
+      if (token) {
+        await realtimeSyncService.startSubscription();
+      }
 
       // Create 5-minute periodic sync alarm
       if (chrome.alarms) {
