@@ -5,6 +5,8 @@ import { getStorage } from "@/core/storage/storage.util";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
 let activeChannel: RealtimeChannel | null = null;
+let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const SYNC_DEBOUNCE_MS = 300;
 
 export const realtimeSyncService = {
   /**
@@ -14,14 +16,18 @@ export const realtimeSyncService = {
    */
   async startSubscription(): Promise<void> {
     if (!supabaseClient) {
-      console.warn("[realtimeSyncService] Supabase client not configured — skipping realtime subscription.");
+      console.warn(
+        "[realtimeSyncService] Supabase client not configured — skipping realtime subscription.",
+      );
       return;
     }
 
     try {
       const authenticated = await authService.isAuthenticated();
       if (!authenticated) {
-        console.log("[realtimeSyncService] User not authenticated, skipping realtime subscription.");
+        console.log(
+          "[realtimeSyncService] User not authenticated, skipping realtime subscription.",
+        );
         await this.stopSubscription();
         return;
       }
@@ -32,11 +38,15 @@ export const realtimeSyncService = {
 
       const user = await getStorage("user");
       if (!user?.id) {
-        console.warn("[realtimeSyncService] No user ID in storage, skipping realtime subscription.");
+        console.warn(
+          "[realtimeSyncService] No user ID in storage, skipping realtime subscription.",
+        );
         return;
       }
 
-      console.log("[realtimeSyncService] Initializing Supabase Realtime subscription...");
+      console.log(
+        "[realtimeSyncService] Initializing Supabase Realtime subscription...",
+      );
 
       const channel = supabaseClient
         .channel("extension-links-realtime")
@@ -49,18 +59,32 @@ export const realtimeSyncService = {
             // Filter server-side so only this user's rows are delivered.
             filter: `user_id=eq.${user.id}`,
           },
-          async (payload) => {
-            console.log("[realtimeSyncService] Change detected in public.links:", payload.eventType);
-            // Pull full data from the Next.js API so we get properly joined fields
-            // (category name, etc.) rather than raw DB column values.
-            await syncService.syncFromServer();
-          }
+          (payload) => {
+            console.log(
+              "[realtimeSyncService] Change detected in public.links:",
+              payload.eventType,
+            );
+            // Debounce so a burst of changes (bulk delete, import, etc.) collapses
+            // into a single syncFromServer() call after the burst settles.
+            if (syncDebounceTimer !== null) {
+              clearTimeout(syncDebounceTimer);
+            }
+            syncDebounceTimer = setTimeout(() => {
+              syncDebounceTimer = null;
+              void syncService.syncFromServer();
+            }, SYNC_DEBOUNCE_MS);
+          },
         )
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
-            console.log("[realtimeSyncService] Subscribed to PostgreSQL changes successfully");
+            console.log(
+              "[realtimeSyncService] Subscribed to PostgreSQL changes successfully",
+            );
           } else {
-            console.log("[realtimeSyncService] Subscription status change:", status);
+            console.log(
+              "[realtimeSyncService] Subscription status change:",
+              status,
+            );
           }
         });
 
@@ -74,10 +98,16 @@ export const realtimeSyncService = {
    * Stops the active realtime subscription and releases the channel.
    */
   async stopSubscription(): Promise<void> {
+    if (syncDebounceTimer !== null) {
+      clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = null;
+    }
     if (activeChannel && supabaseClient) {
       try {
         await supabaseClient.removeChannel(activeChannel);
-        console.log("[realtimeSyncService] Unsubscribed from links channel successfully");
+        console.log(
+          "[realtimeSyncService] Unsubscribed from links channel successfully",
+        );
       } catch (err) {
         console.error("[realtimeSyncService] Failed to unsubscribe:", err);
       } finally {
