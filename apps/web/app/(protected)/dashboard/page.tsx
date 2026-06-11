@@ -3,6 +3,7 @@
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useLinksRealtime } from "@/hooks/useLinksRealtime";
 import { EMOJI_REGEX } from "@/lib/link-utils";
 import { 
   Link2, 
@@ -138,15 +139,8 @@ export default function LinkSaverPage() {
     }
   }, [session]);
 
-  // Poll for links every POLL_INTERVAL_MS to keep in sync across devices/browsers
-  useEffect(() => {
-    if (!session) return;
-    const interval = setInterval(() => {
-      void fetchLinks();
-      void fetchCategories();
-    }, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [session]);
+  // Subscribe to real-time updates scoped to the current user's links.
+  useLinksRealtime(setLinks, session?.user?.id);
 
   const fetchCategories = async (options: { showLoading?: boolean } = {}) => {
     try {
