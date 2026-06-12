@@ -99,6 +99,11 @@ const ContentRoot = () => {
         // Initial load
         loadAndRegisterShortcuts();
 
+        // Send initial focus event if page is already visible
+        if (document.visibilityState === "visible") {
+            chrome.runtime.sendMessage({ type: "PAGE_FOCUS", hostname: location.hostname, ts: Date.now() });
+        }
+
         // Listen for messages from popup
         const handleMessage = (
             message: unknown,
@@ -112,11 +117,14 @@ const ContentRoot = () => {
             }
         };
 
-        // Close dialog when tab becomes hidden
+        // Track active time and close dialog on tab visibility changes
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 setLinkDialogOpen(false);
                 setLinkToEdit(null);
+                chrome.runtime.sendMessage({ type: "PAGE_BLUR", hostname: location.hostname, ts: Date.now() });
+            } else {
+                chrome.runtime.sendMessage({ type: "PAGE_FOCUS", hostname: location.hostname, ts: Date.now() });
             }
         };
 
@@ -147,6 +155,8 @@ const ContentRoot = () => {
             if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.onChanged) {
                 chrome.storage.onChanged.removeListener(handleStorageChange);
             }
+            // End any active focus session when content script unmounts
+            chrome.runtime.sendMessage({ type: "PAGE_BLUR", hostname: location.hostname, ts: Date.now() });
         };
     }, []);
 

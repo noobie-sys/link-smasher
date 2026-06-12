@@ -4,6 +4,7 @@ import { syncService } from "@/core/services/sync.service";
 import { authService } from "@/core/auth/auth.service";
 import { apiFetch } from "@/core/api/client";
 import { realtimeSyncService } from "@/core/services/realtime-sync.service";
+import { analyticsService } from "@/core/services/analytics.service";
 
 export default defineBackground(() => {
   console.log("Link Smasher background script initialized (React MVP)");
@@ -76,6 +77,7 @@ export default defineBackground(() => {
           await syncService.syncFromServer();
           await syncService.syncShortcuts();
           await realtimeSyncService.startSubscription();
+          await analyticsService.flushToServer();
         }
       } else {
         // Cookie was REMOVED — user just logged out (explicit delete or expiration).
@@ -101,6 +103,8 @@ export default defineBackground(() => {
           await syncService.syncFromServer();
           await syncService.syncShortcuts();
         }
+        await analyticsService.checkpointFocusSession();
+        await analyticsService.flushToServer();
       }
     });
   }
@@ -133,6 +137,24 @@ export default defineBackground(() => {
   // 6. Message Listener for content script CORS bypassing (Strict Security Validation)
   if (chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message && message.type === "PAGE_FOCUS") {
+        void analyticsService.recordFocusStart(message.hostname);
+        sendResponse({ success: true });
+        return false;
+      }
+
+      if (message && message.type === "PAGE_BLUR") {
+        void analyticsService.recordFocusEnd(message.hostname);
+        sendResponse({ success: true });
+        return false;
+      }
+
+      if (message && message.type === "TRACK_SAVE") {
+        void analyticsService.recordSaveEvent(message.hostname);
+        sendResponse({ success: true });
+        return false;
+      }
+
       if (message && message.type === "API_FETCH") {
         const { endpoint, options } = message;
 
