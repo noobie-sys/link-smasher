@@ -4,7 +4,8 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useLinksRealtime } from "@/hooks/useLinksRealtime";
-import { EMOJI_REGEX } from "@/lib/link-utils";
+import { EMOJI_REGEX, parseTagsInput, extractCleanHostname } from "@/lib/link-utils";
+import { formatDurationMs } from "@/lib/analytics-utils";
 import { 
   Link2, 
   Search, 
@@ -66,20 +67,6 @@ const STATUS_TIMEOUT_MS = 5_000;
  * @param input - The raw comma-separated tags string
  * @returns An array of tag strings with surrounding whitespace removed and empty entries omitted
  */
-function parseTagsInput(input: string): string[] {
-  return input
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
-}
-
-const getHostnameFromUrl = (urlValue: string) => {
-  try {
-    return new URL(urlValue).hostname.toLowerCase().replace(/^(www\.|m\.|beta\.)/, "");
-  } catch {
-    return "unknown";
-  }
-};
 
 /**
  * Page component that provides a UI for saving, viewing, filtering, and managing saved links and categories, including background synchronization and optimistic CRUD updates.
@@ -131,11 +118,21 @@ export default function LinkSaverPage() {
   const [editCategory, setEditCategory] = useState("");
   const [editTagsInput, setEditTagsInput] = useState("");
 
+  // Analytics Summary State
+  const [analyticsSummary, setAnalyticsSummary] = useState<{
+    totalLinks: number;
+    savedThisWeek: number;
+    weekOverWeekDelta: number | null;
+    topSitesByTime: { hostname: string; totalMs: number }[];
+  } | null>(null);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+
   // 1. Initial Load of Saved Links and Categories
   useEffect(() => {
     if (session) {
       void fetchLinks({ showLoading: true });
       void fetchCategories({ showLoading: true });
+      void fetchAnalyticsSummary();
     }
   }, [session]);
 
@@ -158,6 +155,21 @@ export default function LinkSaverPage() {
       if (options.showLoading) {
         setIsLoadingCategories(false);
       }
+    }
+  };
+
+  const fetchAnalyticsSummary = async () => {
+    try {
+      setIsLoadingAnalytics(true);
+      const res = await fetch("/api/analytics/summary");
+      const payload = await res.json() as ApiResponse<typeof analyticsSummary>;
+      if (payload.success && payload.data) {
+        setAnalyticsSummary(payload.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch analytics summary:", err);
+    } finally {
+      setIsLoadingAnalytics(false);
     }
   };
 
@@ -317,7 +329,7 @@ export default function LinkSaverPage() {
         id: `optimistic-${Date.now()}`,
         url,
         title,
-        hostname: getHostnameFromUrl(url),
+        hostname: extractCleanHostname(url, "unknown"),
         tags: tagsArray,
         notes: notes.trim() || null,
         category: trimmedCategory,
@@ -621,6 +633,53 @@ export default function LinkSaverPage() {
             <span className="font-medium">{statusMessage.text}</span>
           </div>
         )}
+
+        {/* Analytics Stats Row */}
+        <div className="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Total Links */}
+          <div className="rounded-xl border border-white/[0.08] bg-[rgba(13,9,32,0.65)] backdrop-blur-xl p-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Links</p>
+            {isLoadingAnalytics ? (
+              <div className="h-7 w-16 rounded bg-white/5 animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-white">{analyticsSummary?.totalLinks ?? "—"}</p>
+            )}
+          </div>
+
+          {/* Saved This Week */}
+          <div className="rounded-xl border border-white/[0.08] bg-[rgba(13,9,32,0.65)] backdrop-blur-xl p-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Saved This Week</p>
+            {isLoadingAnalytics ? (
+              <div className="h-7 w-24 rounded bg-white/5 animate-pulse" />
+            ) : (
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold text-white">{analyticsSummary?.savedThisWeek ?? "—"}</p>
+                {analyticsSummary?.weekOverWeekDelta != null && (
+                  <span className={`text-xs font-medium ${analyticsSummary.weekOverWeekDelta >= 0 ? "text-green-400" : "text-red-400"}`}>
+                    {analyticsSummary.weekOverWeekDelta >= 0 ? "+" : ""}{analyticsSummary.weekOverWeekDelta}% vs last week
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Top Site This Week */}
+          <div className="rounded-xl border border-white/[0.08] bg-[rgba(13,9,32,0.65)] backdrop-blur-xl p-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Top Site (Time Spent)</p>
+            {isLoadingAnalytics ? (
+              <div className="h-7 w-32 rounded bg-white/5 animate-pulse" />
+            ) : analyticsSummary?.topSitesByTime[0] ? (
+              <div>
+                <p className="text-base font-bold text-white truncate">{analyticsSummary.topSitesByTime[0].hostname}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {formatDurationMs(analyticsSummary.topSitesByTime[0].totalMs)}
+                </p>
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-white">—</p>
+            )}
+          </div>
+        </div>
 
         {/* ========================================== */}
         {/* LEFT COLUMN: Extension Simulator Panel (370px design) */}

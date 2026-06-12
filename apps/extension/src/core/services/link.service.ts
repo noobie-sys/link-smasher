@@ -64,6 +64,7 @@ export const linkService = {
     // Before: addLink reads storage (read #1) → saveLink reads storage again (read #2)
     // After:  addLink reads storage (read #1) → passes it to saveLink → no read #2 ✅
     await saveLinkToStorage(newLink, links);
+    chrome.runtime.sendMessage({ type: "TRACK_SAVE", hostname: newLink.hostname });
     return newLink;
   },
 

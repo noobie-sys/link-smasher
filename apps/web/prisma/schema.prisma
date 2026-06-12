@@ -104,3 +104,27 @@ model Category {
   @@index([userId])
   @@map("categories")
 }
+
+model SiteTimeLog {
+  id         String @id @default(uuid())
+  userId     String @map("user_id")
+  hostname   String
+  durationMs BigInt @map("duration_ms")
+  recordedAt BigInt @map("recorded_at")
+  source     String @default("extension")
+
+  @@index([userId])
+  @@map("site_time_logs")
+}
+
+model LinkEvent {
+  id         String @id @default(uuid())
+  userId     String @map("user_id")
+  hostname   String
+  eventType  String @map("event_type")
+  source     String
+  occurredAt BigInt @map("occurred_at")
+
+  @@index([userId])
+  @@map("link_events")
+}

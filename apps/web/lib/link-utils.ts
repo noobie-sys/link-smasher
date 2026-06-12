@@ -70,6 +70,13 @@ export function formatLinkResponse(link: LinkWithCategory): LinkResponse {
  * @returns The cleaned hostname string
  * @throws Error If `urlStr` cannot be parsed and `fallbackHostname` is not provided
  */
+export function parseTagsInput(input: string): string[] {
+  return input
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+}
+
 export function extractCleanHostname(urlStr: string, fallbackHostname?: string): string {
   const PREFIX_PATTERN = /^(www\.|m\.|beta\.)/;
   try {

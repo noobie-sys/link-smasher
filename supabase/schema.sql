@@ -48,3 +48,21 @@ DROP POLICY IF EXISTS "Users can manage their own links." ON links;
 CREATE POLICY IF NOT EXISTS "Allow realtime reads"
     ON links FOR SELECT
     USING (true);
+
+-- ============================================================
+-- Analytics Tables RLS — Run these in Supabase SQL Editor
+-- ============================================================
+-- Same pattern as links: permissive SELECT for Realtime,
+-- actual authorization enforced at the Next.js API layer.
+-- ============================================================
+
+ALTER TABLE site_time_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE link_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY IF NOT EXISTS "Allow realtime reads"
+    ON site_time_logs FOR SELECT
+    USING (true);
+
+CREATE POLICY IF NOT EXISTS "Allow realtime reads"
+    ON link_events FOR SELECT
+    USING (true);

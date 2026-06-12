@@ -12,6 +12,13 @@ export interface PendingLink extends Link {
   failedAt: number;
 }
 
+export interface PendingAnalyticsEvent {
+  hostname: string;
+  eventType: "save";
+  source: "extension";
+  occurredAt: number;
+}
+
 export interface StorageSchema {
   links: Link[];
   pending: PendingLink[];
@@ -24,6 +31,12 @@ export interface StorageSchema {
   sessionToken: string | null;
   /** Epoch timestamp of the last successful full sync from the backend */
   lastSyncedAt: number | null;
+  /** Accumulated active time per hostname (ms) since last flush */
+  siteTimeLog: Record<string, number>;
+  /** Analytics save events queued while logged out */
+  pendingAnalyticsEvents: PendingAnalyticsEvent[];
+  /** Currently active focus session — hostname being viewed right now */
+  activeFocusSession: { hostname: string; startTs: number } | null;
 }
 
 export const STORAGE_DEFAULTS: StorageSchema = {
@@ -36,4 +49,7 @@ export const STORAGE_DEFAULTS: StorageSchema = {
   migrated: false,
   sessionToken: null,
   lastSyncedAt: null,
+  siteTimeLog: {},
+  pendingAnalyticsEvents: [],
+  activeFocusSession: null,
 };
