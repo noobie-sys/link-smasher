@@ -9,7 +9,7 @@ interface SavedLinksState {
   initialized: boolean;
 
   /** Load all saved URLs from chrome.storage.local into the set */
-  initialize: () => Promise<void>;
+  initialize: (force?: boolean) => Promise<void>;
 
   /** Add a URL to the set (call after a successful save) */
   addUrl: (url: string) => void;
@@ -25,15 +25,19 @@ export const useSavedLinksStore = create<SavedLinksState>((set, get) => ({
   savedUrls: new Set(),
   initialized: false,
 
-  initialize: async () => {
-    // Skip if already initialized to avoid redundant storage reads
-    if (get().initialized) return;
+  initialize: async (force = false) => {
+    // Skip if already initialized to avoid redundant storage reads, unless forced
+    if (get().initialized && !force) return;
 
     try {
       const links = await linkService.getAllLinks();
       const urls = new Set(links.map((link) => link.url));
       set({ savedUrls: urls, initialized: true });
-      console.log("[SavedLinksStore] Initialized with", urls.size, "saved URLs");
+      console.log(
+        "[SavedLinksStore] Initialized with",
+        urls.size,
+        "saved URLs",
+      );
     } catch (error) {
       console.error("[SavedLinksStore] Failed to initialize:", error);
       // Mark as initialized anyway to prevent infinite retry loops

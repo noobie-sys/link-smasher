@@ -29,7 +29,9 @@ export const syncService = {
     try {
       console.log("[syncService] Pulling links from Next.js backend...");
 
-      const response = await apiFetch<{ success: boolean; data: Link[] }>("/api/links");
+      const response = await apiFetch<{ success: boolean; data: Link[] }>(
+        "/api/links",
+      );
       if (!response.success || !Array.isArray(response.data)) {
         console.warn("[syncService] Unexpected response shape from /api/links");
         return;
@@ -38,43 +40,70 @@ export const syncService = {
       const remoteLinks = response.data;
       const localLinks = await getStorage("links");
 
-      const localMap = new Map<string, Link>();
-      for (const link of localLinks) localMap.set(link.id, link);
+      // Build maps for efficient lookup
+      const localIdMap = new Map<string, Link>();
+      const localUrlMap = new Map<string, Link>();
+      for (const link of localLinks) {
+        localIdMap.set(link.id, link);
+        localUrlMap.set(link.url, link);
+      }
 
-      const remoteMap = new Map<string, Link>();
-      for (const link of remoteLinks) remoteMap.set(link.id, link);
+      const remoteIdMap = new Map<string, Link>();
+      for (const link of remoteLinks) remoteIdMap.set(link.id, link);
 
       const merged: Link[] = [];
+      const handledLocalIds = new Set<string>();
 
-      // Process remote links first
+      // 1. Process Remote Links (The authoritative source)
       for (const remoteLink of remoteLinks) {
-        const localLink = localMap.get(remoteLink.id);
+        // Match by ID first, then fallback to URL to catch duplicates created with different client IDs
+        const localLink =
+          localIdMap.get(remoteLink.id) || localUrlMap.get(remoteLink.url);
+
         if (!localLink) {
+          // New link from server
           merged.push(remoteLink);
         } else {
+          // Conflict Resolution: Keep the one with the newer timestamp
           const localTime = localLink.updatedAt || localLink.createdAt;
           const remoteTime = remoteLink.updatedAt || remoteLink.createdAt;
-          merged.push(remoteTime >= localTime ? remoteLink : localLink);
+
+          // CRITICAL: If we matched by URL but IDs differed, we MUST adopt the server's ID
+          // to stop the "duplicate entry" loop.
+          const resolved =
+            remoteTime >= localTime
+              ? remoteLink
+              : { ...localLink, id: remoteLink.id };
+
+          merged.push(resolved);
+          handledLocalIds.add(localLink.id);
         }
       }
 
       const user = await getStorage("user");
       const activeUserId = user?.id || "";
 
-      // Preserve unsynced local-only guest links
-      // Discard links that were previously synced under the active user but are now missing from the server (meaning they were deleted).
+      // 2. Process remaining Local Links (Links not yet on the server or deleted)
       for (const localLink of localLinks) {
-        if (!remoteMap.has(localLink.id)) {
-          const wasSynced = localLink.userId && localLink.userId === activeUserId;
-          if (!wasSynced) {
-            merged.push(localLink);
-          } else {
-            console.log("[syncService] Discarding locally deleted link:", localLink.id, localLink.title);
-          }
+        if (handledLocalIds.has(localLink.id)) continue;
+
+        // If it's not in the remote ID map, it's either:
+        // A) A new guest/unsynced link (Keep it)
+        // B) A link deleted on the server (Discard it if it was previously synced)
+        const wasSynced = localLink.userId && localLink.userId === activeUserId;
+
+        if (!wasSynced) {
+          merged.push(localLink);
+        } else {
+          console.log(
+            "[syncService] Discarding locally deleted link:",
+            localLink.id,
+            localLink.title,
+          );
         }
       }
 
-      merged.sort((a, b) => b.createdAt - a.createdAt);
+      merged.sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
       await setStorage("links", merged);
       await setStorage("lastSyncedAt", Date.now());
 
@@ -98,14 +127,20 @@ export const syncService = {
       const token = await getStorage("sessionToken");
       const user = await getStorage("user");
       if (!token || !user) {
-        console.warn("[syncService] Cannot sync pending links: user credentials not yet stored.");
+        console.warn(
+          "[syncService] Cannot sync pending links: user credentials not yet stored.",
+        );
         return;
       }
 
       const pending = await getStorage("pending");
       if (!pending.length) return;
 
-      console.log("[syncService] Syncing pending saves for user:", user.email, pending.length);
+      console.log(
+        "[syncService] Syncing pending saves for user:",
+        user.email,
+        pending.length,
+      );
       const remaining: PendingLink[] = [];
 
       // Update user ID on all local links as well
@@ -132,20 +167,35 @@ export const syncService = {
               category: stampedItem.category ?? "General",
             }),
           });
-          console.log("[syncService] Successfully uploaded pending item:", stampedItem.id, stampedItem.url);
+          console.log(
+            "[syncService] Successfully uploaded pending item:",
+            stampedItem.id,
+            stampedItem.url,
+          );
 
           // Update user ID on the local link matching this ID
-          const localIndex = updatedLocalLinks.findIndex((l) => l.id === stampedItem.id);
+          const localIndex = updatedLocalLinks.findIndex(
+            (l) => l.id === stampedItem.id,
+          );
           if (localIndex !== -1) {
             updatedLocalLinks[localIndex].userId = user.id;
           }
         } catch (error) {
-          console.error("[syncService] Failed to sync pending item:", item.id, error);
-          
+          console.error(
+            "[syncService] Failed to sync pending item:",
+            item.id,
+            error,
+          );
+
           if (error instanceof ApiError && error.status === 409) {
-            console.log("[syncService] Item already exists on server (409 Conflict). Removing from queue:", item.id);
+            console.log(
+              "[syncService] Item already exists on server (409 Conflict). Removing from queue:",
+              item.id,
+            );
             // Even if duplicate on server, update local links with user ID for reconciliation
-            const localIndex = updatedLocalLinks.findIndex((l) => l.id === item.id);
+            const localIndex = updatedLocalLinks.findIndex(
+              (l) => l.id === item.id,
+            );
             if (localIndex !== -1) {
               updatedLocalLinks[localIndex].userId = user.id;
             }
@@ -158,7 +208,10 @@ export const syncService = {
 
       await setStorage("links", updatedLocalLinks);
       await setStorage("pending", remaining);
-      console.log("[syncService] Pending sync done. Remaining:", remaining.length);
+      console.log(
+        "[syncService] Pending sync done. Remaining:",
+        remaining.length,
+      );
     } catch (err) {
       console.error("[syncService] Unexpected error in syncPending:", err);
     }
@@ -173,17 +226,27 @@ export const syncService = {
       const pendingDeletes = await getStorage("pendingDeletes");
       if (!pendingDeletes.length) return;
 
-      console.log("[syncService] Syncing pending deletes:", pendingDeletes.length);
+      console.log(
+        "[syncService] Syncing pending deletes:",
+        pendingDeletes.length,
+      );
       const remaining: string[] = [];
 
       for (const id of pendingDeletes) {
         try {
           await apiFetch(`/api/links/${id}`, { method: "DELETE" });
         } catch (error) {
-          console.error("[syncService] Failed to delete from server:", id, error);
-          
+          console.error(
+            "[syncService] Failed to delete from server:",
+            id,
+            error,
+          );
+
           if (error instanceof ApiError && error.status === 404) {
-            console.log("[syncService] Link already deleted from server (404 Not Found). Removing from queue:", id);
+            console.log(
+              "[syncService] Link already deleted from server (404 Not Found). Removing from queue:",
+              id,
+            );
             continue;
           }
 
@@ -192,9 +255,15 @@ export const syncService = {
       }
 
       await setStorage("pendingDeletes", remaining);
-      console.log("[syncService] Pending delete sync done. Remaining:", remaining.length);
+      console.log(
+        "[syncService] Pending delete sync done. Remaining:",
+        remaining.length,
+      );
     } catch (err) {
-      console.error("[syncService] Unexpected error in syncPendingDeletes:", err);
+      console.error(
+        "[syncService] Unexpected error in syncPendingDeletes:",
+        err,
+      );
     }
   },
 
@@ -216,18 +285,31 @@ export const syncService = {
       const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
       const localShortcuts = saved[STORAGE_KEYS.SHORTCUTS] || {};
 
-      const response = await apiFetch<{ success: boolean; data: Record<string, any> }>("/api/shortcuts");
+      const response = await apiFetch<{
+        success: boolean;
+        data: Record<string, any>;
+      }>("/api/shortcuts");
       if (response.success && response.data) {
         const remoteShortcuts = response.data;
-        if (Object.keys(remoteShortcuts).length === 0 && Object.keys(localShortcuts).length > 0) {
-          console.log("[syncService] Database shortcuts are empty. Syncing local shortcuts to database...");
+        if (
+          Object.keys(remoteShortcuts).length === 0 &&
+          Object.keys(localShortcuts).length > 0
+        ) {
+          console.log(
+            "[syncService] Database shortcuts are empty. Syncing local shortcuts to database...",
+          );
           await apiFetch("/api/shortcuts", {
             method: "PUT",
             body: JSON.stringify(localShortcuts),
           });
         } else {
-          console.log("[syncService] Overwriting local shortcuts with database config:", remoteShortcuts);
-          await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: remoteShortcuts });
+          console.log(
+            "[syncService] Overwriting local shortcuts with database config:",
+            remoteShortcuts,
+          );
+          await chrome.storage.local.set({
+            [STORAGE_KEYS.SHORTCUTS]: remoteShortcuts,
+          });
         }
       }
     } catch (error) {

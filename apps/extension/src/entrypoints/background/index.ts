@@ -45,7 +45,9 @@ export default defineBackground(() => {
 
   // 2. Browser Online Listener
   self.addEventListener("online", async () => {
-    console.log("[background] Browser came online; checking auth and syncing pending");
+    console.log(
+      "[background] Browser came online; checking auth and syncing pending",
+    );
     const token = await authService.fetchSessionToken();
     if (token) {
       void syncService.syncPending();
@@ -58,7 +60,8 @@ export default defineBackground(() => {
   // Instantly triggers sync when user logs in or out on the web portal.
   if (chrome.cookies) {
     chrome.cookies.onChanged.addListener(async (changeInfo) => {
-      const isSessionCookie = changeInfo.cookie.name === "better-auth.session_token";
+      const isSessionCookie =
+        changeInfo.cookie.name === "better-auth.session_token";
       const isTargetDomain =
         changeInfo.cookie.domain.includes("localhost") ||
         changeInfo.cookie.domain.includes("127.0.0.1") ||
@@ -69,7 +72,9 @@ export default defineBackground(() => {
       if (!changeInfo.removed) {
         // Cookie was SET — user just logged in.
         // Upload all offline bookmarks saved while logged out, then pull server state.
-        console.log("[background] Login detected — uploading pending links and syncing...");
+        console.log(
+          "[background] Login detected — uploading pending links and syncing...",
+        );
         const token = await authService.fetchSessionToken();
         if (token) {
           await syncService.syncPending();
@@ -112,7 +117,9 @@ export default defineBackground(() => {
   // 5. Extension Installed Listener
   if (chrome.runtime?.onInstalled) {
     chrome.runtime.onInstalled.addListener(async () => {
-      const keys = Object.keys(STORAGE_DEFAULTS) as (keyof typeof STORAGE_DEFAULTS)[];
+      const keys = Object.keys(
+        STORAGE_DEFAULTS,
+      ) as (keyof typeof STORAGE_DEFAULTS)[];
 
       for (const key of keys) {
         const currentValue = await getStorage(key);
@@ -137,6 +144,20 @@ export default defineBackground(() => {
   // 6. Message Listener for content script CORS bypassing (Strict Security Validation)
   if (chrome.runtime?.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      // SECURITY: Verify that the message is coming from our own extension context.
+      // sender.id matches the extension ID for internal messages.
+      if (sender.id !== chrome.runtime.id) {
+        console.error(
+          "[security] Unauthorized message attempt from external sender:",
+          sender,
+        );
+        sendResponse({
+          success: false,
+          error: "Unauthorized sender identity.",
+        });
+        return false;
+      }
+
       if (message && message.type === "PAGE_FOCUS") {
         void analyticsService.recordFocusStart(message.hostname);
         sendResponse({ success: true });
@@ -161,12 +182,23 @@ export default defineBackground(() => {
         // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links or user shortcuts)
         const isCreateEndpoint = endpoint === "/api/links";
         const isShortcutsEndpoint = endpoint === "/api/shortcuts";
-        const isSingleLinkRegex = /^\/api\/links\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/; // UUID validation
+        const isSingleLinkRegex =
+          /^\/api\/links\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/; // UUID validation
         const isSingleLinkEndpoint = isSingleLinkRegex.test(endpoint);
 
-        if (!isCreateEndpoint && !isSingleLinkEndpoint && !isShortcutsEndpoint) {
-          console.warn("[security] Blocked message fetch to unauthorized endpoint:", endpoint);
-          sendResponse({ success: false, error: "Unauthorized endpoint requested." });
+        if (
+          !isCreateEndpoint &&
+          !isSingleLinkEndpoint &&
+          !isShortcutsEndpoint
+        ) {
+          console.warn(
+            "[security] Blocked message fetch to unauthorized endpoint:",
+            endpoint,
+          );
+          sendResponse({
+            success: false,
+            error: "Unauthorized endpoint requested.",
+          });
           return false;
         }
 
@@ -174,8 +206,14 @@ export default defineBackground(() => {
         const method = (options?.method || "GET").toUpperCase();
         const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"];
         if (!allowedMethods.includes(method)) {
-          console.warn("[security] Blocked message fetch using unauthorized HTTP method:", method);
-          sendResponse({ success: false, error: "Unauthorized HTTP method requested." });
+          console.warn(
+            "[security] Blocked message fetch using unauthorized HTTP method:",
+            method,
+          );
+          sendResponse({
+            success: false,
+            error: "Unauthorized HTTP method requested.",
+          });
           return false;
         }
 
@@ -193,7 +231,10 @@ export default defineBackground(() => {
             sendResponse({ success: true, data: res });
           })
           .catch((err) => {
-            sendResponse({ success: false, error: err.message || "Fetch failed" });
+            sendResponse({
+              success: false,
+              error: err.message || "Fetch failed",
+            });
           });
         return true; // Keep message channel open for async response
       }
