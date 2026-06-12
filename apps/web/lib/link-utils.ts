@@ -61,14 +61,12 @@ export function formatLinkResponse(link: LinkWithCategory): LinkResponse {
 
 
 /**
- * Produce a normalized hostname from a URL by lowercasing it and removing common prefixes (`www.`, `m.`, `beta.`).
+ * Convert a comma-separated tag string into a cleaned array of tags.
  *
- * If the input cannot be parsed as a URL, the provided `fallbackHostname` is normalized and returned; if no fallback is given an error is thrown.
+ * Trims whitespace around each tag and omits empty entries produced by extra commas or whitespace.
  *
- * @param urlStr - The full URL to extract a hostname from
- * @param fallbackHostname - Optional hostname to use if `urlStr` cannot be parsed
- * @returns The cleaned hostname string
- * @throws Error If `urlStr` cannot be parsed and `fallbackHostname` is not provided
+ * @param input - Comma-separated tags (e.g., "tag1, tag2,tag3")
+ * @returns An array of trimmed, non-empty tag strings in their original order
  */
 export function parseTagsInput(input: string): string[] {
   return input
@@ -77,6 +75,16 @@ export function parseTagsInput(input: string): string[] {
     .filter((tag) => tag.length > 0);
 }
 
+/**
+ * Extracts a normalized hostname from a URL string, lowercasing it and removing common host prefixes.
+ *
+ * If `urlStr` can be parsed as a URL, returns its hostname lowercased with a leading `www.`, `m.`, or `beta.` removed.
+ *
+ * @param urlStr - The input URL string to extract the hostname from.
+ * @param fallbackHostname - Hostname to use (and normalize) if `urlStr` cannot be parsed.
+ * @returns The normalized hostname (lowercased, without leading `www.`, `m.`, or `beta.`).
+ * @throws Error if `urlStr` is not a valid URL and no `fallbackHostname` is provided.
+ */
 export function extractCleanHostname(urlStr: string, fallbackHostname?: string): string {
   const PREFIX_PATTERN = /^(www\.|m\.|beta\.)/;
   try {
