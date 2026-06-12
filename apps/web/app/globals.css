@@ -5,14 +5,30 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  /* ── Legacy brand tokens (dashboard / other pages) ── */
   --color-brand-dark: #05020c;
   --color-brand-deep: #0c081e;
   --color-brand-indigo: #6366f1;
   --color-brand-magenta: #d946ef;
   --color-brand-violet: #8b5cf6;
   --color-brand-cyan: #06b6d4;
-  --color-glass-bg: rgba(13, 9, 32, 0.45);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
+
+  /* ── Link Crust design system ── */
+  --color-lk-bg: #050814;
+  --color-lk-surface: #0B0F1D;
+  --color-lk-border: #151823;
+  --color-lk-primary: #2763FF;
+  --color-lk-primary-soft: #1F3FCC;
+  --color-lk-primary-hover: #305CFF;
+  --color-lk-secondary: #F9B020;
+  --color-lk-secondary-soft: #FFC24A;
+  --color-lk-accent: #3BD7C3;
+  --color-lk-accent-soft: #2FB9A7;
+  --color-lk-text-secondary: #D0D3E0;
+  --color-lk-text-muted: #8A90A2;
+
+  --color-glass-bg: rgba(11, 15, 29, 0.55);
+  --color-glass-border: rgba(255, 255, 255, 0.07);
 
   --font-display: "Outfit", system-ui, -apple-system, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
@@ -40,16 +56,16 @@
   }
   @keyframes border-glow {
     0% {
-      border-color: rgba(99, 102, 241, 0.2);
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+      border-color: rgba(39, 99, 255, 0.2);
+      box-shadow: 0 0 10px rgba(39, 99, 255, 0.1);
     }
     50% {
-      border-color: rgba(217, 70, 239, 0.6);
-      box-shadow: 0 0 20px rgba(217, 70, 239, 0.3);
+      border-color: rgba(59, 215, 195, 0.6);
+      box-shadow: 0 0 20px rgba(59, 215, 195, 0.3);
     }
     100% {
-      border-color: rgba(99, 102, 241, 0.2);
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.1);
+      border-color: rgba(39, 99, 255, 0.2);
+      box-shadow: 0 0 10px rgba(39, 99, 255, 0.1);
     }
   }
   @keyframes shimmer {
@@ -66,7 +82,7 @@
   }
 
   body {
-    background-color: var(--color-brand-dark);
+    background-color: var(--color-lk-bg);
     color: #f3f4f6;
     font-family: var(--font-sans);
     overflow-x: hidden;
@@ -80,19 +96,19 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--color-brand-dark);
+    background: var(--color-lk-bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--color-brand-indigo), var(--color-brand-magenta));
+    background: linear-gradient(180deg, var(--color-lk-primary), var(--color-lk-accent));
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #4f46e5, #c084fc);
+    background: linear-gradient(180deg, var(--color-lk-primary-soft), var(--color-lk-accent-soft));
   }
 
   /* High fidelity selections */
   ::selection {
-    background-color: rgba(217, 70, 239, 0.3);
+    background-color: rgba(39, 99, 255, 0.25);
     color: #ffffff;
   }
   * {
@@ -110,16 +126,26 @@
     background-position: center center;
   }
 
+  /* Legacy glows (kept for dashboard compatibility) */
   .radial-glow-violet {
     background: radial-gradient(circle 600px at 50% 200px, rgba(139, 92, 246, 0.15), transparent 80%);
   }
-
   .radial-glow-magenta {
     background: radial-gradient(circle 500px at 80% 600px, rgba(217, 70, 239, 0.12), transparent 70%);
   }
-
   .radial-glow-cyan {
     background: radial-gradient(circle 500px at 20% 900px, rgba(6, 182, 212, 0.1), transparent 75%);
+  }
+
+  /* Link Crust design system glows */
+  .radial-glow-blue {
+    background: radial-gradient(circle 700px at 50% 150px, rgba(39, 99, 255, 0.12), transparent 80%);
+  }
+  .radial-glow-yellow {
+    background: radial-gradient(circle 500px at 85% 700px, rgba(249, 176, 32, 0.07), transparent 70%);
+  }
+  .radial-glow-teal {
+    background: radial-gradient(circle 500px at 15% 900px, rgba(59, 215, 195, 0.08), transparent 75%);
   }
 
   /* Glassmorphism Styles */
@@ -133,9 +159,9 @@
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card-hover:hover {
-    background: rgba(20, 15, 45, 0.65);
-    border-color: rgba(217, 70, 239, 0.25);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(217, 70, 239, 0.1);
+    background: rgba(11, 15, 29, 0.80);
+    border-color: rgba(39, 99, 255, 0.25);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(39, 99, 255, 0.08);
     transform: translateY(-4px);
   }
 
@@ -147,7 +173,7 @@
     content: '';
     position: absolute;
     inset: -1px;
-    background: linear-gradient(90deg, var(--color-brand-indigo), var(--color-brand-magenta));
+    background: linear-gradient(90deg, var(--color-lk-primary), var(--color-lk-accent));
     border-radius: inherit;
     z-index: -1;
     opacity: 0;
