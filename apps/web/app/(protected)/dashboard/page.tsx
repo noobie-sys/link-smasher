@@ -3,7 +3,6 @@
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useLinksRealtime } from "@/hooks/useLinksRealtime";
 import { EMOJI_REGEX, parseTagsInput, extractCleanHostname } from "@/lib/link-utils";
 import { formatDurationMs } from "@/lib/analytics-utils";
 import { 
@@ -136,8 +135,27 @@ export default function LinkSaverPage() {
     }
   }, [session]);
 
-  // Subscribe to real-time updates scoped to the current user's links.
-  useLinksRealtime(setLinks, session?.user?.id);
+  // Keep the vault in sync across devices by polling the secured API.
+  // (We deliberately avoid Supabase Realtime — direct DB access from the
+  // browser is locked down by RLS; the API is the only data path.)
+  // Re-fetch on an interval and whenever the tab regains focus.
+  useEffect(() => {
+    if (!session) return;
+
+    const poll = () => {
+      void fetchLinks();
+      void fetchAnalyticsSummary();
+    };
+
+    const intervalId = setInterval(poll, POLL_INTERVAL_MS);
+    const onFocus = () => poll();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [session]);
 
   const fetchCategories = async (options: { showLoading?: boolean } = {}) => {
     try {
