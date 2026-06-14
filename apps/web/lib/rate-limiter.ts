@@ -1,46 +1,4 @@
 /**
- * ============================================================================
- * RATE LIMITING & ABUSE PROTECTION ENGINE
- * ============================================================================
- * 
- * 📘 WHAT IS RATE LIMITING?
- * Rate limiting is a security technique used to control the rate of traffic sent 
- * or received by a network interface or server. It prevents abuse, automated scraping,
- * brute-force authentication attacks, and Denials of Service (DoS) by limiting the
- * number of actions an entity (like an IP address or User ID) can make in a given timeframe.
- * 
- * 🚀 WHAT IS THE "SLIDING WINDOW LOG" ALGORITHM?
- * In this implementation, we use the "Sliding Window Log" algorithm.
- * Unlike "Fixed Window" (which resets exactly at the top of every minute, e.g., at 12:00:00, 
- * 12:01:00), the sliding window log tracks each individual request's exact millisecond timestamp.
- * 
- * 🔍 HOW IT WORKS (STEP-BY-STEP FOR A FRESHER):
- * 1. For every client IP, we store a list of historical request timestamps, e.g., `[ 1716800000000, 1716800010000 ]`.
- * 2. When a new request comes in at time `T`:
- *    a. We calculate the start of our window: `windowStart = T - windowMs` (e.g., if the window is 1 minute, 
- *       we look back exactly 60 seconds from right now).
- *    b. We filter out and delete any historical timestamps in our list that are older than `windowStart`. They no longer count.
- *    c. We count the remaining timestamps. This represents the number of requests made in the last 60 seconds.
- *    d. If the count is LESS than our allowed limit:
- *       - We append the current timestamp `T` to the list.
- *       - The request is allowed to proceed (returns `success: true`).
- *    e. If the count is GREATER than or EQUAL to our allowed limit:
- *       - The request is blocked (returns `success: false`). We do NOT add the new timestamp to the list.
- * 
- * 🔮 HOW CAN WE SWAP THIS FOR REDIS / UPSTASH IN THE FUTURE?
- * In a real production system with multiple servers (serverless or containerized), memory is not shared.
- * If Server A rate-limits you, you could still hit Server B. To solve this, we use a central database like Redis.
- * 
- * To make this incredibly easy to upgrade, this file splits the code into:
- * 1. `RateLimitStore` (Interface) - Defines standard read/write actions.
- * 2. `InMemoryRateLimitStore` (Default) - Stores timestamps in a simple JavaScript Map in memory.
- * 
- * To transition to Redis/Upstash later, you just have to implement `RateLimitStore` using your Redis client
- * (e.g., `@upstash/redis`) and swap the store instance in `rateLimiter`.
- * ============================================================================
- */
-
-/**
  * 1. Define the Rate Limit Store Interface.
  * Any store (In-Memory, Redis, Memcached, Postgres) must implement these methods.
  */
@@ -54,12 +12,12 @@ export interface RateLimitStore {
   check(
     key: string,
     limit: number,
-    windowMs: number
+    windowMs: number,
   ): Promise<{
-    success: boolean;   // True if the request is allowed, false if blocked
-    limit: number;     // Total limit allowed in this window
+    success: boolean; // True if the request is allowed, false if blocked
+    limit: number; // Total limit allowed in this window
     remaining: number; // Remaining requests the client can make before getting blocked
-    reset: number;     // Unix timestamp (ms) when the blocked window fully resets
+    reset: number; // Unix timestamp (ms) when the blocked window fully resets
   }>;
 }
 
@@ -74,8 +32,13 @@ class InMemoryRateLimitStore implements RateLimitStore {
   public async check(
     key: string,
     limit: number,
-    windowMs: number
-  ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+    windowMs: number,
+  ): Promise<{
+    success: boolean;
+    limit: number;
+    remaining: number;
+    reset: number;
+  }> {
     const now = Date.now();
     const windowStart = now - windowMs;
 
@@ -117,15 +80,15 @@ class InMemoryRateLimitStore implements RateLimitStore {
 /**
  * 3. Future Redis/Upstash Implementation Draft (Mental Model).
  * To swap to Upstash/Redis, install `@upstash/redis` and define:
- * 
+ *
  * class RedisRateLimitStore implements RateLimitStore {
  *   private redis = new Redis({ url: '...', token: '...' });
- *   
+ *
  *   public async check(key: string, limit: number, windowMs: number) {
  *     const now = Date.now();
  *     const windowStart = now - windowMs;
  *     const redisKey = `rate_limit:${key}`;
- *     
+ *
  *     // Using Redis Multi/Pipeline transactions to keep it atomic:
  *     // 1. Remove old timestamps: ZREMRANGEBYSCORE key 0 windowStart
  *     // 2. Count remaining elements: ZCARD key
@@ -138,7 +101,7 @@ class InMemoryRateLimitStore implements RateLimitStore {
 
 /**
  * 4. Export the configured rate limiter singleton.
- * To change to Redis in the future, simply replace `new InMemoryRateLimitStore()` 
+ * To change to Redis in the future, simply replace `new InMemoryRateLimitStore()`
  * with your `new RedisRateLimitStore()` instance here! Zero changes needed in API routes.
  */
 const rateLimitStore: RateLimitStore = new InMemoryRateLimitStore();
@@ -149,7 +112,7 @@ export const rateLimiter = {
    */
   tiers: {
     write: { limit: 50, windowMs: 60 * 1000 }, // Write CRUD operations (POST, PATCH, DELETE): 50 reqs/min
-    read: { limit: 60, windowMs: 60 * 1000 },  // Read Sync operations (GET): 60 reqs/min
+    read: { limit: 60, windowMs: 60 * 1000 }, // Read Sync operations (GET): 60 reqs/min
   },
 
   /**
