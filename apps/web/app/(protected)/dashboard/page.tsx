@@ -54,8 +54,7 @@ interface ApiResponse<T> {
   };
 }
 
-// Interval (ms) for background polling to keep the vault in sync across devices.
-const POLL_INTERVAL_MS = 10_000;
+
 
 // Duration (ms) a status toast is shown before automatically dismissing.
 const STATUS_TIMEOUT_MS = 5_000;
@@ -135,24 +134,28 @@ export default function LinkSaverPage() {
     }
   }, [session]);
 
-  // Keep the vault in sync across devices by polling the secured API.
-  // (We deliberately avoid Supabase Realtime — direct DB access from the
-  // browser is locked down by RLS; the API is the only data path.)
-  // Re-fetch on an interval and whenever the tab regains focus.
+  // Keep the vault in sync across devices by refetching when the user
+  // returns to the tab (visibilitychange) or the window regains focus.
+  // This avoids hammering the API on a fixed interval — fetches only happen
+  // when the user is actually looking at the page.
   useEffect(() => {
     if (!session) return;
 
-    const poll = () => {
+    const sync = () => {
       void fetchLinks();
       void fetchAnalyticsSummary();
     };
 
-    const intervalId = setInterval(poll, POLL_INTERVAL_MS);
-    const onFocus = () => poll();
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    const onFocus = () => sync();
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("focus", onFocus);
 
     return () => {
-      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("focus", onFocus);
     };
   }, [session]);
