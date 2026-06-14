@@ -3,7 +3,6 @@ import { STORAGE_DEFAULTS } from "@/shared/types/storage.types";
 import { syncService } from "@/core/services/sync.service";
 import { authService } from "@/core/auth/auth.service";
 import { apiFetch } from "@/core/api/client";
-import { realtimeSyncService } from "@/core/services/realtime-sync.service";
 import { analyticsService } from "@/core/services/analytics.service";
 
 export default defineBackground(() => {
@@ -39,7 +38,6 @@ export default defineBackground(() => {
       console.log("[background] Syncing from Next.js backend on startup...");
       await syncService.syncFromServer();
       await syncService.syncShortcuts();
-      await realtimeSyncService.startSubscription();
     }
   })();
 
@@ -52,7 +50,7 @@ export default defineBackground(() => {
     if (token) {
       void syncService.syncPending();
       void syncService.syncPendingDeletes();
-      void realtimeSyncService.startSubscription();
+      void syncService.syncFromServer();
     }
   });
 
@@ -81,7 +79,6 @@ export default defineBackground(() => {
           await syncService.syncPendingDeletes();
           await syncService.syncFromServer();
           await syncService.syncShortcuts();
-          await realtimeSyncService.startSubscription();
           await analyticsService.flushToServer();
         }
       } else {
@@ -90,7 +87,6 @@ export default defineBackground(() => {
         if (changeInfo.cause === "explicit" || changeInfo.cause === "expired") {
           console.log("[background] Logout detected — clearing local session.");
           await authService.clearSession();
-          await realtimeSyncService.stopSubscription();
         }
       }
     });
@@ -131,12 +127,14 @@ export default defineBackground(() => {
       // Try reading cookies on install
       const token = await authService.fetchSessionToken();
       if (token) {
-        await realtimeSyncService.startSubscription();
+        await syncService.syncFromServer();
       }
 
-      // Create 5-minute periodic sync alarm
+      // Create periodic sync alarm. With Realtime removed, this poll is the
+      // mechanism that pulls links saved on other devices. 1 minute is the
+      // smallest interval Chrome allows for alarms.
       if (chrome.alarms) {
-        chrome.alarms.create("sync", { periodInMinutes: 5 });
+        chrome.alarms.create("sync", { periodInMinutes: 1 });
       }
     });
   }

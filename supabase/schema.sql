@@ -29,40 +29,38 @@
 -- ============================================================
 -- RLS POLICIES — Run these in Supabase SQL Editor
 -- ============================================================
--- Supabase Realtime requires Row Level Security to be enabled,
--- but the default auth.uid() policy breaks because Better Auth
--- users do not have Supabase JWTs.
+-- Security model: clients NEVER read these tables directly through the public
+-- Supabase API key. ALL data access goes through the Next.js API, which
+-- authenticates the user with Better Auth and queries via Prisma using the
+-- privileged DATABASE_URL connection (Prisma bypasses RLS).
 --
--- Data security is enforced at the Next.js API layer (Better Auth).
--- The permissive SELECT policy below allows Supabase Realtime to
--- deliver postgres_changes events to subscribed clients.
+-- Therefore the correct policy here is: enable RLS and define NO policy for
+-- the anon/authenticated roles. With RLS enabled and no permissive policy,
+-- Postgres DENIES all direct reads/writes via PostgREST and Realtime. This
+-- closes the previous data leak where a permissive `USING (true)` policy let
+-- anyone holding the public key read every user's rows.
+--
+-- (The app no longer uses Supabase Realtime; the web dashboard and extension
+-- stay in sync by polling the secured Next.js API.)
 -- ============================================================
 
 ALTER TABLE links ENABLE ROW LEVEL SECURITY;
 
--- Drop the old broken policy (uses auth.uid() which is always null for Better Auth)
+-- Remove any previously-defined policies so re-running is idempotent and the
+-- old wide-open "Allow realtime reads" / auth.uid() policies can never linger.
 DROP POLICY IF EXISTS "Users can manage their own links." ON links;
-
--- Allow Supabase Realtime to broadcast change events.
--- Actual authorization is handled by Better Auth in the Next.js API.
-CREATE POLICY IF NOT EXISTS "Allow realtime reads"
-    ON links FOR SELECT
-    USING (true);
+DROP POLICY IF EXISTS "Allow realtime reads" ON links;
+-- No policy is defined: RLS enabled + no policy = all direct access denied.
 
 -- ============================================================
 -- Analytics Tables RLS — Run these in Supabase SQL Editor
 -- ============================================================
--- Same pattern as links: permissive SELECT for Realtime,
--- actual authorization enforced at the Next.js API layer.
+-- Same model: RLS on, no policy → no direct access. Data flows only through
+-- the Next.js API.
 -- ============================================================
 
 ALTER TABLE site_time_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE link_events ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Allow realtime reads"
-    ON site_time_logs FOR SELECT
-    USING (true);
-
-CREATE POLICY IF NOT EXISTS "Allow realtime reads"
-    ON link_events FOR SELECT
-    USING (true);
+DROP POLICY IF EXISTS "Allow realtime reads" ON site_time_logs;
+DROP POLICY IF EXISTS "Allow realtime reads" ON link_events;
