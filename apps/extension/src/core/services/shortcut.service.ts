@@ -4,6 +4,8 @@ import {
   ShortcutDef,
   KeyCombo,
 } from "@/shared/types/shortcut.types";
+import { getStorage, setStorage } from "@/core/storage/storage.util";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 const DEFAULT_SHORTCUTS: Record<ShortcutAction, ShortcutDef> = {
   [ShortcutAction.SAVE_LINK]: {
@@ -22,9 +24,9 @@ const DEFAULT_SHORTCUTS: Record<ShortcutAction, ShortcutDef> = {
 
 export const shortcutService = {
   async getShortcuts(): Promise<ShortcutDef[]> {
-    const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+    if (!isExtensionContextValid()) return Object.values(DEFAULT_SHORTCUTS);
     const userPrefs =
-      (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyCombo>) || {};
+      (await getStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts") as Record<string, KeyCombo> | null) || {};
 
     return Object.values(DEFAULT_SHORTCUTS).map((def) => ({
       ...def,
@@ -33,12 +35,12 @@ export const shortcutService = {
   },
 
   async updateShortcut(action: ShortcutAction, combo: KeyCombo): Promise<void> {
-    const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+    if (!isExtensionContextValid()) return;
     const userPrefs =
-      (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyCombo>) || {};
+      (await getStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts") as Record<string, KeyCombo> | null) || {};
 
     userPrefs[action] = combo;
-    await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
+    await setStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts", userPrefs as never);
   },
 
   matches(event: KeyboardEvent, combo: KeyCombo): boolean {
@@ -69,3 +71,4 @@ export const shortcutService = {
     return null;
   },
 };
+

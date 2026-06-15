@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Prevent Tailwind's preflight/base from leaking into the host page.
+   All base-layer resets are scoped to the shadow root via :host. */
+@layer base {
+  :host {
+    all: initial;
+  }
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :host,
@@ -117,6 +125,11 @@
 }
 
 @layer base {
+  /* Scoped inside shadow DOM — these IDs only exist within :host */
+  #link-smasher-root *,
+  #social-feed-saver-root * {
+    box-sizing: border-box;
+  }
   #link-smasher-root,
   #link-smasher-root *,
   #social-feed-saver-root,
@@ -129,27 +142,42 @@
   }
 }
 
+/* ─── Shadow host: full-viewport overlay, above everything on the page ─── */
 :host(link-smasher) {
+  /* Override any inherited styles from the host page */
+  all: initial;
+  display: block !important;
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
   height: 100dvh !important;
+  /* Must be max possible so the host sits above every page element */
+  z-index: 2147483647 !important;
   background: transparent !important;
-  color-scheme: normal !important;
+  color-scheme: light dark !important;
+  /* Transparent to host-page mouse events; interactive children opt-in below */
   pointer-events: none !important;
+  /* Contain all layout inside the shadow */
+  contain: layout style;
 }
 
+/* ─── React roots: mirrors the host, transparent pass-through ─── */
 #link-smasher-root,
 #link-smasher-container {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100dvh;
+  /* Propagate the max z-index downward into the shadow stacking context */
+  z-index: 2147483647;
   background: transparent !important;
   color-scheme: normal !important;
   pointer-events: none;
+  /* Isolate this as its own stacking context */
+  isolation: isolate;
 }
 
+/* ─── Interactive extension UI: opt back in to pointer events ─── */
 #link-smasher-root [data-slot="dialog-overlay"],
 #link-smasher-root [data-slot="dialog-content"],
 #link-smasher-root [data-slot="dropdown-menu-content"],
@@ -158,14 +186,17 @@
   pointer-events: auto;
 }
 
+/* ─── Dialog/overlay z-index inside the shadow stacking context ─── */
 #link-smasher-root div[role="dialog"],
 #social-feed-saver-root div[role="dialog"] {
-  z-index: 999999;
+  /* High enough to be above the floating bookmark (z-index: 100) */
+  z-index: 200;
 }
 
+/* ─── Dropdown / select menus: above dialogs ─── */
 #link-smasher-root .select-dropdown,
 #social-feed-saver-root .select-dropdown {
-  z-index: 1000000 !important;
+  z-index: 300 !important;
   pointer-events: auto !important;
 }
 

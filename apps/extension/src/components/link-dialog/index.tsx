@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { categoryService } from "@/core/services/category.service"
 import { Category } from "@/shared/types/category.types"
+import { isExtensionContextValid } from "@/core/utils/extension-context.util"
 
 // New components
 import { CustomDialogHeader } from "./components/dialog-header"
@@ -110,11 +111,15 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }, [open, linkToEdit])
 
   const loadCategories = async () => {
+    // Don't attempt any chrome API calls if the extension context is stale
+    if (!isExtensionContextValid()) return
     setIsLoadingCategories(true)
     try {
       const fetched = await categoryService.fetchCategories()
       setCategories(fetched)
     } catch (err) {
+      // Silently swallow context-invalidation errors — they are not user-actionable
+      if (err instanceof Error && err.message.includes("Extension context invalidated")) return
       console.error("Failed to load categories:", err)
     } finally {
       setIsLoadingCategories(false)
@@ -202,11 +207,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }
 
   const loadCurrentSiteLinks = async (hostname: string) => {
+    if (!isExtensionContextValid()) return
     setIsLoading(true)
     try {
       const links = await linkService.getLinksByHostname(hostname)
       setCurrentSiteLinks(links)
     } catch (error) {
+      if (error instanceof Error && error.message.includes("Extension context invalidated")) return
       console.error("Failed to load current site links", error)
       toast.error("Failed to load links")
     } finally {
@@ -215,11 +222,13 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   }
 
   const loadAllLinks = async () => {
+    if (!isExtensionContextValid()) return
     setIsLoading(true)
     try {
       const links = await linkService.getAllLinks()
       setAllLinks(links)
     } catch (error) {
+      if (error instanceof Error && error.message.includes("Extension context invalidated")) return
       console.error("Failed to load all links:", error)
       toast.error("Failed to load links")
     } finally {
@@ -449,10 +458,14 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="relative w-[calc(100vw-2rem)] max-w-[420px] h-[min(600px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl">
+        <DialogContent
+          aria-describedby={undefined}
+          className="relative w-[calc(100vw-2rem)] max-w-[420px] h-[min(600px,calc(100vh-2rem))] max-h-[calc(100vh-2rem)] flex flex-col p-0 overflow-hidden bg-[#1e1e1e] border-[#1e1e1e]/60 text-white gap-0 rounded-2xl shadow-2xl"
+        >
+          <CustomDialogHeader />
 
           <div className="flex-1 min-w-0 overflow-hidden flex flex-col px-4 pt-2">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0 mt-8">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col min-h-0 mt-2">
               <TabsList className="grid w-full grid-cols-3 bg-[#1A1A1A] mb-4">
                 <TabsTrigger
                   value={ActiveTab.Save}

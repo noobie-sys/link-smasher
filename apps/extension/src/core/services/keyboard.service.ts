@@ -3,6 +3,8 @@
  * Handles keyboard shortcuts independently of any component
  */
 
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
+
 export type KeyboardHandler = (event: KeyboardEvent) => void | Promise<void>;
 
 export interface KeyboardShortcut {
@@ -171,19 +173,37 @@ class KeyboardService {
     console.log("[KeyboardService] startListening() - Adding global keydown capture listener on window");
 
     this.boundHandler = (e: KeyboardEvent) => {
-      console.log("[KeyboardService] Global keydown captured:", e.key, {
-        metaKey: e.metaKey,
-        ctrlKey: e.ctrlKey,
-        altKey: e.altKey,
-        shiftKey: e.shiftKey,
-      });
+      // If the extension was reloaded/updated, this content script's context is
+      // invalidated. Self-destruct to prevent future uncaught errors on every keypress.
+      if (!isExtensionContextValid()) {
+        this.clear();
+        return;
+      }
 
       for (const shortcut of this.shortcuts.values()) {
         if (this.matches(e, shortcut)) {
-          console.log("[KeyboardService] Shortcut matched! Preventing default action and executing handler for shortcut:", shortcut);
           e.preventDefault();
           e.stopPropagation();
-          shortcut.handler(e);
+          try {
+            const result = shortcut.handler(e);
+            // Catch promise rejections from async handlers
+            if (result instanceof Promise) {
+              result.catch((err) => {
+                if (err?.message?.includes("Extension context invalidated")) {
+                  this.clear();
+                } else {
+                  console.error("[KeyboardService] Shortcut handler error:", err);
+                }
+              });
+            }
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (msg.includes("Extension context invalidated")) {
+              this.clear();
+            } else {
+              console.error("[KeyboardService] Shortcut handler error:", err);
+            }
+          }
           break; // Only handle first match
         }
       }

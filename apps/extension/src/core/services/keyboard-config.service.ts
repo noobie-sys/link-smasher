@@ -8,6 +8,8 @@ import { KeyboardShortcutComboSchema } from "@/shared/validation/schemas";
 import { ZodError } from "zod";
 import { authService } from "@/core/auth/auth.service";
 import { apiFetch } from "@/core/api/client";
+import { getStorage, setStorage } from "@/core/storage/storage.util";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 export interface KeyboardShortcutConfig {
   id: string;
@@ -61,18 +63,14 @@ export const keyboardConfigService = {
    * Get all shortcuts with their current configurations
    */
   async getShortcuts(): Promise<KeyboardShortcutConfig[]> {
-    console.log("[keyboardConfigService] getShortcuts() - fetching from local storage");
-    const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+    if (!isExtensionContextValid()) return Object.values(DEFAULT_SHORTCUTS);
     const userPrefs =
-      (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyboardShortcutConfig["defaultCombo"]>) ||
-      {};
-    console.log("[keyboardConfigService] getShortcuts() - raw preferences from storage:", userPrefs);
+      (await getStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts") as Record<string, KeyboardShortcutConfig["defaultCombo"]> | null) || {};
 
     const shortcuts = Object.values(DEFAULT_SHORTCUTS).map((def) => ({
       ...def,
       currentCombo: userPrefs[def.id] || def.defaultCombo,
     }));
-    console.log("[keyboardConfigService] getShortcuts() - resolved configuration list:", shortcuts);
     return shortcuts;
   },
 
@@ -94,13 +92,10 @@ export const keyboardConfigService = {
     action: ShortcutAction,
     combo: KeyboardShortcutConfig["defaultCombo"]
   ): Promise<void> {
-    console.log("[keyboardConfigService] updateShortcut() requested for action:", action, "with combo:", combo);
     let validatedCombo;
     try {
       validatedCombo = KeyboardShortcutComboSchema.parse(combo);
-      console.log("[keyboardConfigService] updateShortcut() - combo passed Zod validation:", validatedCombo);
     } catch (error) {
-      console.error("[keyboardConfigService] updateShortcut() - Zod validation failed for combo:", combo, error);
       if (error instanceof ZodError) {
         const messages = error.issues.map((issue) => issue.message).join(", ");
         throw new Error(messages);
@@ -108,20 +103,18 @@ export const keyboardConfigService = {
       throw error;
     }
 
-    const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+    if (!isExtensionContextValid()) return;
+
     const userPrefs =
-      (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyboardShortcutConfig["defaultCombo"]>) ||
-      {};
+      (await getStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts") as Record<string, KeyboardShortcutConfig["defaultCombo"]> | null) || {};
 
     userPrefs[action] = validatedCombo;
-    console.log("[keyboardConfigService] updateShortcut() - saving updated preferences to storage:", userPrefs);
-    await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
+    await setStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts", userPrefs as never);
 
     // Sync to DB if logged in
     try {
       const authenticated = await authService.isAuthenticated();
-      if (authenticated) {
-        console.log("[keyboardConfigService] Syncing updated shortcuts to database...");
+      if (authenticated && isExtensionContextValid()) {
         await apiFetch("/api/shortcuts", {
           method: "PUT",
           body: JSON.stringify(userPrefs),
@@ -131,8 +124,6 @@ export const keyboardConfigService = {
       console.error("[keyboardConfigService] Failed to sync shortcuts to database:", dbErr);
     }
 
-    // Dispatch event to notify listeners of shortcut change
-    console.log("[keyboardConfigService] updateShortcut() - dispatching ls-shortcut-updated custom event");
     window.dispatchEvent(
       new CustomEvent("ls-shortcut-updated", {
         detail: { action, combo: validatedCombo },
@@ -144,21 +135,18 @@ export const keyboardConfigService = {
    * Reset a shortcut to its default
    */
   async resetShortcut(action: ShortcutAction): Promise<void> {
-    console.log("[keyboardConfigService] resetShortcut() requested for action:", action);
-    const saved = await chrome.storage.local.get(STORAGE_KEYS.SHORTCUTS);
+    if (!isExtensionContextValid()) return;
+
     const userPrefs =
-      (saved[STORAGE_KEYS.SHORTCUTS] as Record<string, KeyboardShortcutConfig["defaultCombo"]>) ||
-      {};
+      (await getStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts") as Record<string, KeyboardShortcutConfig["defaultCombo"]> | null) || {};
 
     delete userPrefs[action];
-    console.log("[keyboardConfigService] resetShortcut() - saving updated preferences to storage:", userPrefs);
-    await chrome.storage.local.set({ [STORAGE_KEYS.SHORTCUTS]: userPrefs });
+    await setStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts", userPrefs as never);
 
     // Sync to DB if logged in
     try {
       const authenticated = await authService.isAuthenticated();
-      if (authenticated) {
-        console.log("[keyboardConfigService] Syncing reset shortcuts to database...");
+      if (authenticated && isExtensionContextValid()) {
         await apiFetch("/api/shortcuts", {
           method: "PUT",
           body: JSON.stringify(userPrefs),
@@ -168,9 +156,7 @@ export const keyboardConfigService = {
       console.error("[keyboardConfigService] Failed to sync reset shortcuts to database:", dbErr);
     }
 
-    // Dispatch event to notify listeners
     const defaultCombo = DEFAULT_SHORTCUTS[action].defaultCombo;
-    console.log("[keyboardConfigService] resetShortcut() - dispatching ls-shortcut-updated event with default combo:", defaultCombo);
     window.dispatchEvent(
       new CustomEvent("ls-shortcut-updated", { detail: { action, combo: defaultCombo } })
     );
@@ -180,15 +166,14 @@ export const keyboardConfigService = {
    * Reset all shortcuts to defaults
    */
   async resetAllShortcuts(): Promise<void> {
-    console.log("[keyboardConfigService] resetAllShortcuts() requested");
-    await chrome.storage.local.remove(STORAGE_KEYS.SHORTCUTS);
-    console.log("[keyboardConfigService] resetAllShortcuts() - shortcuts storage key removed");
+    if (!isExtensionContextValid()) return;
+
+    await setStorage(STORAGE_KEYS.SHORTCUTS as "shortcuts", {} as never);
 
     // Sync to DB if logged in (clear custom configuration)
     try {
       const authenticated = await authService.isAuthenticated();
-      if (authenticated) {
-        console.log("[keyboardConfigService] Resetting database shortcuts...");
+      if (authenticated && isExtensionContextValid()) {
         await apiFetch("/api/shortcuts", {
           method: "PUT",
           body: JSON.stringify({}),

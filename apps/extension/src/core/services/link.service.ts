@@ -11,6 +11,7 @@ import { getHostname } from "@/core/utils/url.util";
 import { categorizeUrl } from "@/core/utils/categorize";
 import { LinkDTOSchema, ImportLinksSchema } from "@/shared/validation/schemas";
 import { ZodError } from "zod";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 export const linkService = {
   async addLink(dto: LinkDTO): Promise<Link | null> {
@@ -64,7 +65,14 @@ export const linkService = {
     // Before: addLink reads storage (read #1) → saveLink reads storage again (read #2)
     // After:  addLink reads storage (read #1) → passes it to saveLink → no read #2 ✅
     await saveLinkToStorage(newLink, links);
-    chrome.runtime.sendMessage({ type: "TRACK_SAVE", hostname: newLink.hostname });
+    // Fire-and-forget analytics ping — guard against invalidated context.
+    if (isExtensionContextValid()) {
+      try {
+        chrome.runtime.sendMessage({ type: "TRACK_SAVE", hostname: newLink.hostname });
+      } catch {
+        // Extension context invalidated; analytics event lost, not critical.
+      }
+    }
     return newLink;
   },
 

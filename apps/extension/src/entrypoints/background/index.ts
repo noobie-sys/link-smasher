@@ -177,9 +177,10 @@ export default defineBackground(() => {
       if (message && message.type === "API_FETCH") {
         const { endpoint, options } = message;
 
-        // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links or user shortcuts)
+        // 1. Strict Endpoint Validation (Only allow creating, updating, or deleting vault links, user shortcuts, or categories)
         const isCreateEndpoint = endpoint === "/api/links";
         const isShortcutsEndpoint = endpoint === "/api/shortcuts";
+        const isCategoriesEndpoint = endpoint === "/api/categories";
         const isSingleLinkRegex =
           /^\/api\/links\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/; // UUID validation
         const isSingleLinkEndpoint = isSingleLinkRegex.test(endpoint);
@@ -187,7 +188,8 @@ export default defineBackground(() => {
         if (
           !isCreateEndpoint &&
           !isSingleLinkEndpoint &&
-          !isShortcutsEndpoint
+          !isShortcutsEndpoint &&
+          !isCategoriesEndpoint
         ) {
           console.warn(
             "[security] Blocked message fetch to unauthorized endpoint:",

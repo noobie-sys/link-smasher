@@ -44,12 +44,12 @@ const Toaster = (props: ToasterProps) => {
       styleElement.setAttribute("data-toast-styles", "true");
       const newLocal = styleElement.textContent = `
       
-      /* Toast container */
+      /* Toast container — fixed inside shadow DOM, above dialogs (z:200) and dropdowns (z:300) */
       [data-sonner-toaster] {
         position: fixed;
         top: 1rem;
         right: 1rem;
-        z-index: 50;
+        z-index: 400;
         pointer-events: auto;
       }
 
@@ -99,7 +99,8 @@ const Toaster = (props: ToasterProps) => {
         width: 100%;
         height: 100%;
         pointer-events: none;
-        z-index: 999999;
+        /* Above dialogs (200) and dropdowns (300), below nothing in the shadow */
+        z-index: 400;
       `;
       shadowRoot.appendChild(container);
     }

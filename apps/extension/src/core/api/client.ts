@@ -1,4 +1,5 @@
 import { getStorage, setStorage } from "@/core/storage/storage.util";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 const BACKEND_URL = import.meta.env.WXT_BACKEND_URL ?? "http://localhost:3000";
 
@@ -31,23 +32,35 @@ export async function apiFetch<T>(
     !chrome.cookies;
 
   if (isContentScript) {
+    // Bail early with a clean error if the extension was reloaded/updated
+    // and the old content script's context is no longer valid.
+    if (!isExtensionContextValid()) {
+      return Promise.reject(new Error("Extension context invalidated."));
+    }
+
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
-        {
-          type: "API_FETCH",
-          endpoint,
-          options,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-          } else if (response && response.success) {
-            resolve(response.data as T);
-          } else {
-            reject(new Error(response?.error || "Background fetch failed"));
+      try {
+        chrome.runtime.sendMessage(
+          {
+            type: "API_FETCH",
+            endpoint,
+            options,
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else if (response && response.success) {
+              resolve(response.data as T);
+            } else {
+              reject(new Error(response?.error || "Background fetch failed"));
+            }
           }
-        }
-      );
+        );
+      } catch (err) {
+        // chrome.runtime.sendMessage itself can throw if context is invalidated
+        // between the guard check and the actual call.
+        reject(err);
+      }
     });
   }
 

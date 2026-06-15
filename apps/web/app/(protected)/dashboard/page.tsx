@@ -582,7 +582,11 @@ export default function LinkSaverPage() {
   });
 
   return (
-    <div className="dark min-h-dvh bg-background text-foreground relative pb-12 font-sans overflow-x-hidden">
+    <div className="dark min-h-dvh bg-background text-foreground relative pb-12 font-sans">
+      {/* overflow-x-hidden is on this non-positioned inner wrapper intentionally —
+          putting it on the outer relative div would create a stacking context that
+          traps the extension's shadow host (z-index: 2147483647) behind page content. */}
+      <div className="overflow-x-hidden">
       {/* Background Orbs */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[130px] animate-pulse-slow" />
@@ -1087,6 +1091,7 @@ export default function LinkSaverPage() {
           </div>
         </div>
       )}
+      </div>{/* end inner overflow-x-hidden wrapper */}
     </div>
   );
 }

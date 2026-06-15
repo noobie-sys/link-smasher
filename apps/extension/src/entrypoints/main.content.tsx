@@ -17,6 +17,7 @@ import { Link } from "@/shared/types/common.types";
 import { ExtensionMessage } from "@/shared/types/message.types";
 import { useSavedLinksStore } from "@/core/store/saved-links.store";
 import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 const ContentRoot = () => {
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
@@ -119,12 +120,14 @@ const ContentRoot = () => {
     loadAndRegisterShortcuts();
 
     // Send initial focus event if page is already visible
-    if (document.visibilityState === "visible") {
-      chrome.runtime.sendMessage({
-        type: "PAGE_FOCUS",
-        hostname: location.hostname,
-        ts: Date.now(),
-      });
+    if (document.visibilityState === "visible" && isExtensionContextValid()) {
+      try {
+        chrome.runtime.sendMessage({
+          type: "PAGE_FOCUS",
+          hostname: location.hostname,
+          ts: Date.now(),
+        });
+      } catch { /* context invalidated */ }
     }
 
     // Listen for messages from popup
@@ -142,20 +145,25 @@ const ContentRoot = () => {
 
     // Track active time and close dialog on tab visibility changes
     const handleVisibilityChange = () => {
+      if (!isExtensionContextValid()) return;
       if (document.hidden) {
         setLinkDialogOpen(false);
         setLinkToEdit(null);
-        chrome.runtime.sendMessage({
-          type: "PAGE_BLUR",
-          hostname: location.hostname,
-          ts: Date.now(),
-        });
+        try {
+          chrome.runtime.sendMessage({
+            type: "PAGE_BLUR",
+            hostname: location.hostname,
+            ts: Date.now(),
+          });
+        } catch { /* context invalidated */ }
       } else {
-        chrome.runtime.sendMessage({
-          type: "PAGE_FOCUS",
-          hostname: location.hostname,
-          ts: Date.now(),
-        });
+        try {
+          chrome.runtime.sendMessage({
+            type: "PAGE_FOCUS",
+            hostname: location.hostname,
+            ts: Date.now(),
+          });
+        } catch { /* context invalidated */ }
       }
     };
 
@@ -164,12 +172,10 @@ const ContentRoot = () => {
       changes: { [key: string]: chrome.storage.StorageChange },
       areaName: string,
     ) => {
-      console.log(
-        "[Content Script] Storage change detected in area:",
-        areaName,
-        "changes:",
-        changes,
-      );
+      // If the extension was reloaded while this content script is still alive,
+      // the context is invalidated — stop triggering further chrome API calls.
+      if (!isExtensionContextValid()) return;
+
       if (areaName === "local") {
         if (changes[STORAGE_KEYS.SHORTCUTS]) {
           console.log(
@@ -210,11 +216,15 @@ const ContentRoot = () => {
         chrome.storage.onChanged.removeListener(handleStorageChange);
       }
       // End any active focus session when content script unmounts
-      chrome.runtime.sendMessage({
-        type: "PAGE_BLUR",
-        hostname: location.hostname,
-        ts: Date.now(),
-      });
+      if (isExtensionContextValid()) {
+        try {
+          chrome.runtime.sendMessage({
+            type: "PAGE_BLUR",
+            hostname: location.hostname,
+            ts: Date.now(),
+          });
+        } catch { /* context invalidated */ }
+      }
     };
   }, []);
 

@@ -6,6 +6,8 @@ import { useSavedLinksStore } from "@/core/store/saved-links.store";
 import { STORAGE_KEYS } from "@/shared/constants/storage.keys";
 import { Link } from "@/shared/types/common.types";
 import { cn } from "@/lib/utils";
+import { getStorage, setStorage } from "@/core/storage/storage.util";
+import { isExtensionContextValid } from "@/core/utils/extension-context.util";
 
 interface FloatingBookmarkProps {
   onOpenEdit: (link: Link) => void;
@@ -37,9 +39,9 @@ export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
   // 1. Detect if blacklisted, and load config
   useEffect(() => {
     const checkBlacklist = async () => {
+      if (!isExtensionContextValid()) { setIsBlacklisted(false); return; }
       try {
-        const result = await chrome.storage.local.get(STORAGE_KEYS.BLACKLIST);
-        const list = (result[STORAGE_KEYS.BLACKLIST] as string[]) || [];
+        const list = (await getStorage(STORAGE_KEYS.BLACKLIST as "blacklist") as string[]) || [];
         setIsBlacklisted(list.includes(currentHostname));
       } catch (err) {
         console.error("[FloatingBookmark] Failed to read blacklist:", err);
@@ -54,6 +56,7 @@ export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
       changes: { [key: string]: chrome.storage.StorageChange },
       areaName: string
     ) => {
+      if (!isExtensionContextValid()) return;
       if (areaName === "local" && changes[STORAGE_KEYS.BLACKLIST]) {
         const list = (changes[STORAGE_KEYS.BLACKLIST].newValue as string[]) || [];
         setIsBlacklisted(list.includes(currentHostname));
@@ -175,20 +178,22 @@ export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
     e.preventDefault();
     e.stopPropagation();
 
+    if (!isExtensionContextValid()) return;
+
     try {
-      const result = await chrome.storage.local.get(STORAGE_KEYS.BLACKLIST);
-      const list = (result[STORAGE_KEYS.BLACKLIST] as string[]) || [];
+      const list = (await getStorage(STORAGE_KEYS.BLACKLIST as "blacklist") as string[]) || [];
       const updatedList = [...list, currentHostname];
-      await chrome.storage.local.set({ [STORAGE_KEYS.BLACKLIST]: updatedList });
+      await setStorage(STORAGE_KEYS.BLACKLIST as "blacklist", updatedList as never);
 
       // Visual feedback toast with UNDO action!
       toast.info(`Bookmark icon hidden on ${currentHostname}`, {
         action: {
           label: "Undo",
           onClick: async () => {
-            const freshList = ((await chrome.storage.local.get(STORAGE_KEYS.BLACKLIST))[STORAGE_KEYS.BLACKLIST] as string[]) || [];
+            if (!isExtensionContextValid()) return;
+            const freshList = (await getStorage(STORAGE_KEYS.BLACKLIST as "blacklist") as string[]) || [];
             const restoredList = freshList.filter((item: string) => item !== currentHostname);
-            await chrome.storage.local.set({ [STORAGE_KEYS.BLACKLIST]: restoredList });
+            await setStorage(STORAGE_KEYS.BLACKLIST as "blacklist", restoredList as never);
             toast.success(`Restored bookmark icon on ${currentHostname}`);
           },
         },
@@ -201,7 +206,7 @@ export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
 
   return (
     <div
-      className="fixed top-6 right-6 flex items-center gap-1.5 pointer-events-auto z-[2147483646]"
+      className="fixed top-6 right-6 flex items-center gap-1.5 pointer-events-auto z-[100]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
