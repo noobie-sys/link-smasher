@@ -78,6 +78,7 @@ export default function LinkSaverPage() {
   // Core API state
   const [links, setLinks] = useState<SavedLink[]>([]);
   const lastSSEUpdateRef = useRef<number>(0);
+  const hasLoadedRef = useRef<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionPending, setIsActionPending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -126,9 +127,10 @@ export default function LinkSaverPage() {
   } | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
-  // 1. Initial Load of Saved Links and Categories
+  // 1. Initial Load of Saved Links and Categories (Guarded to run only once)
   useEffect(() => {
-    if (session) {
+    if (session && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       void fetchLinks({ showLoading: true });
       void fetchCategories({ showLoading: true });
       void fetchAnalyticsSummary();
@@ -144,7 +146,23 @@ export default function LinkSaverPage() {
     if (!session) return;
 
     console.log("[Dashboard] Establishing SSE connection to /api/links/sse...");
-    const eventSource = new EventSource("/api/links/sse");
+    const eventSource = new EventSource("/api/links/sse", { withCredentials: true });
+
+    eventSource.addEventListener("connected", (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        console.log("[Dashboard] SSE Connection Stable:", payload.message);
+      } catch {
+        console.log("[Dashboard] SSE Connection Stable");
+      }
+      
+      // If the dashboard was already loaded, this is a reconnect event.
+      // Re-fetch links to catch up on anything saved during the disconnect.
+      if (hasLoadedRef.current) {
+        console.log("[Dashboard] SSE Reconnected: Pulling updates...");
+        void fetchLinks();
+      }
+    });
 
     eventSource.addEventListener("links_updated", (event) => {
       try {

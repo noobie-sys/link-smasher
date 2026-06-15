@@ -17,43 +17,53 @@ export async function GET(request: NextRequest) {
 
   const userId = session.user.id;
   const encoder = new TextEncoder();
+  let keepAliveInterval: ReturnType<typeof setInterval>;
+  let unsubscribe: () => void;
 
-  // Create a TransformStream to stream data
-  const { readable, writable } = new TransformStream();
-  const writer = writable.getWriter();
+  const stream = new ReadableStream({
+    start(controller) {
+      // 1. Send connection established handshake immediately to confirm stability
+      try {
+        const handshake = `event: connected\ndata: ${JSON.stringify({ status: "active", message: "SSE connection established" })}\n\n`;
+        controller.enqueue(encoder.encode(handshake));
+      } catch (err) {
+        console.error("[SSE Route] Failed to send connection handshake:", err);
+      }
 
-  // Subscribe the user session to the SSE event broker
-  const unsubscribe = sseBroker.subscribeUser(userId, ({ event, data }) => {
-    try {
-      const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-      void writer.write(encoder.encode(payload));
-    } catch (err) {
-      console.error("[SSE Route] Error writing event to stream:", err);
+      // 2. Subscribe user to sseBroker
+      unsubscribe = sseBroker.subscribeUser(userId, ({ event, data }) => {
+        try {
+          const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+          controller.enqueue(encoder.encode(payload));
+        } catch (err) {
+          console.error("[SSE Route] Error writing event to stream:", err);
+        }
+      });
+
+      // 3. Keep-alive heartbeat timer to prevent proxy timeout drops
+      keepAliveInterval = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(": keep-alive\n\n"));
+        } catch {
+          // Connection likely closed
+        }
+      }, 20000); // 20 seconds
+    },
+    cancel() {
+      // Clean up when stream is cancelled/aborted
+      if (keepAliveInterval) clearInterval(keepAliveInterval);
+      if (unsubscribe) unsubscribe();
     }
   });
 
-  // Keep-alive timer to prevent timeout closures by intermediate proxies/gateways
-  const keepAliveInterval = setInterval(() => {
-    try {
-      void writer.write(encoder.encode(": keep-alive\n\n"));
-    } catch {
-      // Ignored: connection might be closing
-    }
-  }, 25000); // 25 seconds is safe for most proxies
-
-  // Cleanup immediately when client aborts the connection (tab closed/refreshed)
+  // Clean up when client aborts the connection (tab closed/refreshed)
   request.signal.addEventListener("abort", () => {
     console.log(`[SSE Route] Connection aborted for user: ${session.user.email}`);
-    clearInterval(keepAliveInterval);
-    unsubscribe();
-    try {
-      void writer.close();
-    } catch {
-      // Ignored
-    }
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+    if (unsubscribe) unsubscribe();
   });
 
-  return new Response(readable, {
+  return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
