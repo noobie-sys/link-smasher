@@ -119,7 +119,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       setCategories(fetched)
     } catch (err) {
       // Silently swallow context-invalidation errors — they are not user-actionable
-      if (err instanceof Error && err.message.includes("Extension context invalidated")) return
+      if (String(err).includes("Extension context invalidated")) return
       console.error("Failed to load categories:", err)
     } finally {
       setIsLoadingCategories(false)
@@ -213,7 +213,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       const links = await linkService.getLinksByHostname(hostname)
       setCurrentSiteLinks(links)
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Extension context invalidated")) return
+      if (String(error).includes("Extension context invalidated")) return
       console.error("Failed to load current site links", error)
       toast.error("Failed to load links")
     } finally {
@@ -228,7 +228,7 @@ export function LinkDialog({ open, onOpenChange, linkToEdit, onEditComplete }: L
       const links = await linkService.getAllLinks()
       setAllLinks(links)
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Extension context invalidated")) return
+      if (String(error).includes("Extension context invalidated")) return
       console.error("Failed to load all links:", error)
       toast.error("Failed to load links")
     } finally {

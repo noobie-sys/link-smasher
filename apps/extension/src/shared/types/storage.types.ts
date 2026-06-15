@@ -37,6 +37,10 @@ export interface StorageSchema {
   pendingAnalyticsEvents: PendingAnalyticsEvent[];
   /** Currently active focus session — hostname being viewed right now */
   activeFocusSession: { hostname: string; startTs: number } | null;
+  /** Custom hotkey shortcuts override map */
+  shortcuts: Record<string, { key: string; metaKey?: boolean; ctrlKey?: boolean; altKey?: boolean; shiftKey?: boolean; }> | null;
+  /** List of blacklisted hostnames where floating UI is hidden */
+  blacklist: string[];
 }
 
 export const STORAGE_DEFAULTS: StorageSchema = {
@@ -52,4 +56,6 @@ export const STORAGE_DEFAULTS: StorageSchema = {
   siteTimeLog: {},
   pendingAnalyticsEvents: [],
   activeFocusSession: null,
+  shortcuts: null,
+  blacklist: [],
 };

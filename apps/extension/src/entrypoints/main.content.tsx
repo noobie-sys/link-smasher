@@ -192,8 +192,30 @@ const ContentRoot = () => {
       }
     };
 
+    // Listen for window postMessages (from the dashboard webpage)
+    const handleWindowMessage = (event: MessageEvent) => {
+      const isDashboardDomain =
+        event.origin.includes("localhost") ||
+        event.origin.includes("127.0.0.1") ||
+        event.origin.includes("linksmasher.com");
+
+      if (!isDashboardDomain) return;
+
+      const msg = event.data;
+      if (msg && msg.type === "LINK_SMASHER_AUTH_SYNC") {
+        console.log("[Content Script] Received auth sync from dashboard, triggering background sync...");
+        if (isExtensionContextValid()) {
+          // Trigger background sync to JIT fetch cookies and sync pending links
+          try {
+            chrome.runtime.sendMessage({ type: "TRIGGER_SYNC" });
+          } catch { /* context invalidated */ }
+        }
+      }
+    };
+
     chrome.runtime.onMessage.addListener(handleMessage);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("message", handleWindowMessage);
     if (
       typeof chrome !== "undefined" &&
       chrome.storage &&
@@ -208,6 +230,7 @@ const ContentRoot = () => {
       unregisterRefs.current.clear();
       chrome.runtime.onMessage.removeListener(handleMessage);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("message", handleWindowMessage);
       if (
         typeof chrome !== "undefined" &&
         chrome.storage &&

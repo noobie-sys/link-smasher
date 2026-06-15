@@ -92,25 +92,7 @@ export default defineBackground(() => {
     });
   }
 
-  // 4. Periodic Background Sync Alarm
-  if (chrome.alarms) {
-    chrome.alarms.onAlarm.addListener(async (alarm) => {
-      if (alarm.name === "sync") {
-        console.log("[background] Periodic background sync alarm triggered");
-        const token = await authService.fetchSessionToken();
-        if (token) {
-          await syncService.syncPending();
-          await syncService.syncPendingDeletes();
-          await syncService.syncFromServer();
-          await syncService.syncShortcuts();
-        }
-        await analyticsService.checkpointFocusSession();
-        await analyticsService.flushToServer();
-      }
-    });
-  }
-
-  // 5. Extension Installed Listener
+  // 4. Extension Installed Listener
   if (chrome.runtime?.onInstalled) {
     chrome.runtime.onInstalled.addListener(async () => {
       const keys = Object.keys(
@@ -128,13 +110,6 @@ export default defineBackground(() => {
       const token = await authService.fetchSessionToken();
       if (token) {
         await syncService.syncFromServer();
-      }
-
-      // Create periodic sync alarm. With Realtime removed, this poll is the
-      // mechanism that pulls links saved on other devices. 1 minute is the
-      // smallest interval Chrome allows for alarms.
-      if (chrome.alarms) {
-        chrome.alarms.create("sync", { periodInMinutes: 1 });
       }
     });
   }
@@ -170,8 +145,34 @@ export default defineBackground(() => {
 
       if (message && message.type === "TRACK_SAVE") {
         void analyticsService.recordSaveEvent(message.hostname);
+        // Trigger JIT sync retries and flush analytics
+        void authService.fetchSessionToken().then((token) => {
+          if (token) {
+            void syncService.syncPending();
+            void syncService.syncPendingDeletes();
+            void analyticsService.flushToServer();
+          }
+        });
         sendResponse({ success: true });
         return false;
+      }
+
+      if (message && message.type === "TRIGGER_SYNC") {
+        const syncOnDemand = async () => {
+          const token = await authService.fetchSessionToken();
+          if (token) {
+            await syncService.syncPending();
+            await syncService.syncPendingDeletes();
+            await syncService.syncFromServer();
+            await syncService.syncShortcuts();
+          }
+          await analyticsService.checkpointFocusSession();
+          await analyticsService.flushToServer();
+        };
+        syncOnDemand()
+          .then(() => sendResponse({ success: true }))
+          .catch((err) => sendResponse({ success: false, error: err?.message || "Sync failed" }));
+        return true;
       }
 
       if (message && message.type === "API_FETCH") {
