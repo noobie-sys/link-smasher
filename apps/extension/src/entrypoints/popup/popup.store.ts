@@ -66,6 +66,11 @@ export function usePopup() {
         const authOk = !!(token && storedUser);
         setIsAuthenticated(authOk);
         setUser(authOk ? storedUser : null);
+
+        // Trigger on-demand sync in background to pull fresh server links/shortcuts asynchronously
+        if (chrome.runtime && chrome.runtime.sendMessage) {
+          chrome.runtime.sendMessage({ type: "TRIGGER_SYNC" });
+        }
       } catch (err) {
         console.error("[usePopup] Bootstrap error:", err);
       } finally {

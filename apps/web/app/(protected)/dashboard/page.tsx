@@ -2,7 +2,7 @@
 
 import { signOut, useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { EMOJI_REGEX, parseTagsInput, extractCleanHostname } from "@/lib/link-utils";
 import { formatDurationMs } from "@/lib/analytics-utils";
 import { 
@@ -77,6 +77,8 @@ export default function LinkSaverPage() {
 
   // Core API state
   const [links, setLinks] = useState<SavedLink[]>([]);
+  const lastSSEUpdateRef = useRef<number>(0);
+  const hasLoadedRef = useRef<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionPending, setIsActionPending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -125,40 +127,91 @@ export default function LinkSaverPage() {
   } | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
-  // 1. Initial Load of Saved Links and Categories
+  // 1. Initial Load of Saved Links and Categories (Guarded to run only once)
   useEffect(() => {
-    if (session) {
+    if (session && !hasLoadedRef.current) {
+      hasLoadedRef.current = true;
       void fetchLinks({ showLoading: true });
       void fetchCategories({ showLoading: true });
       void fetchAnalyticsSummary();
+
+      // Proactively sync authentication state with the Chrome Extension JIT
+      console.log("[Dashboard] Posting auth sync message to content script...");
+      window.postMessage({ type: "LINK_SMASHER_AUTH_SYNC" }, "*");
     }
   }, [session]);
 
-  // Keep the vault in sync across devices by refetching when the user
-  // returns to the tab (visibilitychange) or the window regains focus.
-  // This avoids hammering the API on a fixed interval — fetches only happen
-  // when the user is actually looking at the page.
+  // 1b. Listen for real-time events via Server-Sent Events (SSE)
   useEffect(() => {
     if (!session) return;
 
-    const sync = () => {
-      void fetchLinks();
-      void fetchAnalyticsSummary();
-    };
+    console.log("[Dashboard] Establishing SSE connection to /api/links/sse...");
+    const eventSource = new EventSource("/api/links/sse", { withCredentials: true });
 
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") sync();
-    };
-    const onFocus = () => sync();
+    eventSource.addEventListener("connected", (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        console.log("[Dashboard] SSE Connection Stable:", payload.message);
+      } catch {
+        console.log("[Dashboard] SSE Connection Stable");
+      }
+      
+      // If the dashboard was already loaded, this is a reconnect event.
+      // Re-fetch links to catch up on anything saved during the disconnect.
+      if (hasLoadedRef.current) {
+        console.log("[Dashboard] SSE Reconnected: Pulling updates...");
+        void fetchLinks();
+      }
+    });
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("focus", onFocus);
+    eventSource.addEventListener("links_updated", (event) => {
+      try {
+        const newLink = JSON.parse(event.data) as SavedLink;
+        console.log("[Dashboard] SSE: Link updated/added:", newLink);
+
+        lastSSEUpdateRef.current = Date.now();
+
+        setLinks((current) => {
+          const exists = current.some((l) => l.id === newLink.id);
+          if (exists) {
+            return current.map((l) => (l.id === newLink.id ? newLink : l));
+          }
+          return [newLink, ...current];
+        });
+
+        // Refresh categories dynamically
+        void fetchCategories();
+      } catch (err) {
+        console.error("[Dashboard] Failed to parse updated link from SSE:", err);
+      }
+    });
+
+    eventSource.addEventListener("link_deleted", (event) => {
+      try {
+        const payload = JSON.parse(event.data) as { id: string };
+        console.log("[Dashboard] SSE: Link deleted:", payload.id);
+
+        lastSSEUpdateRef.current = Date.now();
+
+        setLinks((current) => current.filter((l) => l.id !== payload.id));
+        // Refresh categories dynamically
+        void fetchCategories();
+      } catch (err) {
+        console.error("[Dashboard] Failed to parse deleted link ID from SSE:", err);
+      }
+    });
+
+    eventSource.onerror = (err) => {
+      console.warn("[Dashboard] SSE connection encountered an error, reconnecting...", err);
+    };
 
     return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("focus", onFocus);
+      console.log("[Dashboard] Closing SSE connection...");
+      eventSource.close();
     };
   }, [session]);
+
+
 
   const fetchCategories = async (options: { showLoading?: boolean } = {}) => {
     try {

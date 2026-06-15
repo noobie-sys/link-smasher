@@ -5,6 +5,7 @@ import { getAuthSession } from "@/lib/auth-helper";
 import { prisma } from "@/lib/prisma";
 import { withApiHandler } from "@/lib/api-handler";
 import { UnauthorizedError, ConflictError, ValidationError } from "@/lib/errors";
+import { sseBroker } from "@/lib/sse-broker";
 import {
   EMOJI_REGEX,
   formatLinkResponse,
@@ -158,11 +159,14 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     },
   });
 
+  const formatted = formatLinkResponse(newLink);
+  sseBroker.notifyUser(session.user.id, "links_updated", formatted);
+
   return {
     status: 201,
     body: {
       success: true,
-      data: formatLinkResponse(newLink),
+      data: formatted,
     },
   };
 });

@@ -4,6 +4,7 @@ import { getAuthSession } from "@/lib/auth-helper";
 import { prisma } from "@/lib/prisma";
 import { withApiHandler } from "@/lib/api-handler";
 import { UnauthorizedError, NotFoundError, ValidationError } from "@/lib/errors";
+import { sseBroker } from "@/lib/sse-broker";
 import {
   EMOJI_REGEX,
   formatLinkResponse,
@@ -134,10 +135,13 @@ export const PATCH = withApiHandler(async (
     },
   });
 
+  const formatted = formatLinkResponse(updatedLink);
+  sseBroker.notifyUser(session.user.id, "links_updated", formatted);
+
   return {
     success: true,
     message: "Link updated successfully",
-    data: formatLinkResponse(updatedLink),
+    data: formatted,
   };
 });
 
@@ -165,6 +169,7 @@ export const DELETE = withApiHandler(async (
   }
 
   await prisma.link.delete({ where: { id } });
+  sseBroker.notifyUser(session.user.id, "link_deleted", { id });
 
   return {
     success: true,
