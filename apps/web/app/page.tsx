@@ -154,8 +154,8 @@ export default function Home() {
       {/* ══════════════════════════════════════════
           NAVBAR
       ══════════════════════════════════════════ */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className="fixed top-4 left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto">
+        <div className="px-6 h-16 flex items-center justify-between">
 
           <a href="/" className="flex items-center gap-3 group">
             <div className="h-9 w-9 rounded-xl bg-linear-to-tr from-lk-primary to-lk-accent flex items-center justify-center shadow-lg shadow-lk-primary/20 group-hover:scale-105 transition-transform duration-300">

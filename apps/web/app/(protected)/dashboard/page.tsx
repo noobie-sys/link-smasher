@@ -650,8 +650,8 @@ export default function LinkSaverPage() {
       <div className="pointer-events-none absolute inset-0 z-0 grid-pattern opacity-15" />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-border bg-card/65 backdrop-blur-md px-6 py-4 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="relative z-10 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-6xl lg:mx-auto">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-magenta shadow-md shadow-primary/20">
               <Link2 className="h-5 w-5 text-white animate-pulse" />
