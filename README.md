@@ -186,17 +186,3 @@ link-smasher/
 | **Database** | Supabase PostgreSQL (+ Realtime) |
 
 ---
-
-## 🤝 Contributing
-
-- **TypeScript only** — no `.js`/`.jsx` in either app; keep strict mode happy.
-- **pnpm only** — install scoped: `pnpm --filter web add <pkg>` / `pnpm --filter extension add <pkg>` / `pnpm add -Dw <pkg>` for root dev deps.
-- **Tailwind first** — avoid vanilla CSS; use `cn()` + CVA for variants.
-- **Focused commits** — scope messages: `web: …`, `extension: …`, `shared: …`, `db: …`.
-- Each app has its own `CLAUDE.md` with detailed rules — read it before contributing.
-
----
-
-<div align="center">
-<sub>Built with ⚡ as a local-first, sync-everywhere link manager.</sub>
-</div>
