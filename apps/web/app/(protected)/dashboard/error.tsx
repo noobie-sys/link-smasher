@@ -20,7 +20,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
   }, [error]);
 
   return (
-    <div className="dark min-h-dvh bg-background text-foreground flex items-center justify-center px-6">
+    <div className="min-h-dvh bg-background text-foreground flex items-center justify-center px-6">
       {/* Ambient glow */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-destructive/10 blur-[130px]" />

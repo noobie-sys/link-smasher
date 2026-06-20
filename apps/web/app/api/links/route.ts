@@ -55,6 +55,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
 
   const queryHostname = request.nextUrl.searchParams.get("hostname");
   const searchQuery = request.nextUrl.searchParams.get("search");
+  const queryCategory = request.nextUrl.searchParams.get("category");
 
   // Build a typed Prisma `where` clause — use spread to avoid mutation.
   const hostnameFilter: Prisma.LinkWhereInput = queryHostname
@@ -72,10 +73,22 @@ export const GET = withApiHandler(async (request: NextRequest) => {
       }
     : {};
 
+  const categoryFilter: Prisma.LinkWhereInput = queryCategory
+    ? {
+        category: {
+          name: {
+            equals: queryCategory,
+            mode: "insensitive",
+          },
+        },
+      }
+    : {};
+
   const whereClause: Prisma.LinkWhereInput = {
     userId: session.user.id,
     ...hostnameFilter,
     ...searchFilter,
+    ...categoryFilter,
   };
 
   const links = await prisma.link.findMany({

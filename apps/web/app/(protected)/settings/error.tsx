@@ -18,7 +18,7 @@ export default function SettingsError({ error, reset }: SettingsErrorProps) {
   }, [error]);
 
   return (
-    <div className="dark min-h-dvh bg-background text-foreground flex items-center justify-center px-6">
+    <div className="min-h-dvh bg-background text-foreground flex items-center justify-center px-6">
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-destructive/8 blur-[120px]" />
       </div>

@@ -4,15 +4,15 @@
  */
 export default function SettingsLoading() {
   return (
-    <div className="dark min-h-dvh bg-background text-foreground pb-12 font-sans">
+    <div className="min-h-dvh bg-background text-foreground pb-12 font-sans">
       {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/4 top-1/3 h-[400px] w-[400px] rounded-full bg-primary/10 blur-[120px] animate-pulse" />
       </div>
 
       {/* Header skeleton */}
-      <header className="relative z-10 border-b border-border bg-card/65 backdrop-blur-md px-6 py-4 shadow-sm">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-4xl lg:mx-auto">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-white/10 animate-pulse" />
             <div className="h-5 w-32 rounded bg-white/10 animate-pulse" />

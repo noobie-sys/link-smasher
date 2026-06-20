@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 
 export default async function ProtectedLayout({
   children,
@@ -15,5 +17,20 @@ export default async function ProtectedLayout({
     redirect("/login");
   }
 
-  return <>{children}</>;
+  return (
+    <SidebarProvider
+      className="h-svh overflow-hidden"
+      style={
+        {
+          "--sidebar-width": "260px",
+          "--header-height": "48px",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset className="bg-background flex flex-col flex-1 min-h-0 overflow-hidden">
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }

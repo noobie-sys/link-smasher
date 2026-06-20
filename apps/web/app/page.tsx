@@ -9,6 +9,10 @@ import {
   ArrowRight, Keyboard, Folder,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { cn } from "@/lib/utils";
+import { ModeToggle } from "@/components/mode-toggle";
+
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 const MOCK_LINKS = [
@@ -69,6 +73,8 @@ const COLOR_CLASSES: Record<string, {
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function Home() {
   const { data: session } = useSession();
+  const isNavbarVisible = useScrollDirection();
+
 
   const [savesCount, setSavesCount] = useState(12480);
   useEffect(() => {
@@ -154,14 +160,17 @@ export default function Home() {
       {/* ══════════════════════════════════════════
           NAVBAR
       ══════════════════════════════════════════ */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <header className={cn(
+        "fixed left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+        isNavbarVisible ? "top-4 opacity-100 translate-y-0" : "-translate-y-[150%] opacity-0 pointer-events-none"
+      )}>
+        <div className="px-6 h-16 flex items-center justify-between">
 
           <a href="/" className="flex items-center gap-3 group">
             <div className="h-9 w-9 rounded-xl bg-linear-to-tr from-lk-primary to-lk-accent flex items-center justify-center shadow-lg shadow-lk-primary/20 group-hover:scale-105 transition-transform duration-300">
               <Link2 className="h-4.5 w-4.5 text-white" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight text-white">
+            <span className="font-display font-bold text-lg tracking-tight text-foreground">
               Link <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">Crust</span>
             </span>
           </a>
@@ -180,6 +189,7 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ModeToggle />
             <a href="https://github.com" target="_blank" rel="noreferrer" className="text-lk-text-muted hover:text-white transition-colors p-2 hidden sm:flex">
               <GithubIcon className="h-5 w-5" />
             </a>
@@ -228,7 +238,7 @@ export default function Home() {
                 100% Free &amp; Open Source
               </div>
 
-              <h1 className="font-display font-extrabold text-[3.4rem] sm:text-[4.5rem] xl:text-[5.25rem] tracking-tight leading-[1.0] text-white">
+              <h1 className="font-display font-extrabold text-[3.4rem] sm:text-[4.5rem] xl:text-[5.25rem] tracking-tight leading-[1.0] text-foreground">
                 Save links.<br />
                 Find them<br />
                 <span className="bg-linear-to-r from-lk-primary via-lk-primary-hover to-lk-accent bg-clip-text text-transparent">
@@ -423,7 +433,7 @@ export default function Home() {
             <Zap className="h-3.5 w-3.5 animate-pulse" />
             Built for Power Users
           </div>
-          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight">
+          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
             Everything you need,<br />
             <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">nothing you don&apos;t</span>
           </h2>
@@ -460,7 +470,7 @@ export default function Home() {
               <MousePointer className="h-3.5 w-3.5" />
               Zero Learning Curve
             </div>
-            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight">
+            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
               Three keystrokes.<br />
               <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">That&apos;s the whole workflow.</span>
             </h2>
@@ -521,7 +531,7 @@ export default function Home() {
             <Sparkles className="h-3.5 w-3.5 animate-pulse text-lk-secondary" />
             Fully Interactive
           </div>
-          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight">
+          <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
             Try the HUD right now
           </h2>
           <p className="text-lk-text-muted text-base font-light leading-relaxed">
@@ -714,7 +724,7 @@ export default function Home() {
               <Star className="h-3.5 w-3.5 fill-lk-secondary" />
               Loved by 2,400+ users
             </div>
-            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight">
+            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
               What power users<br />
               <span className="bg-linear-to-r from-lk-accent to-lk-secondary bg-clip-text text-transparent">are saying</span>
             </h2>
@@ -798,7 +808,7 @@ export default function Home() {
               <Shield className="h-3.5 w-3.5" />
               Shadow DOM Isolation
             </div>
-            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight leading-tight">
+            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight leading-tight">
               Styles that never<br />
               <span className="bg-linear-to-r from-lk-accent to-lk-primary bg-clip-text text-transparent">break your pages</span>
             </h2>
@@ -835,7 +845,7 @@ export default function Home() {
               <HelpCircle className="h-3.5 w-3.5" />
               Got Questions?
             </div>
-            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-white tracking-tight">
+            <h2 className="font-display font-extrabold text-4xl sm:text-5xl text-foreground tracking-tight">
               Frequently Asked
             </h2>
           </div>
@@ -878,7 +888,7 @@ export default function Home() {
                 Free forever · No credit card · Open source
               </div>
 
-              <h2 className="font-display font-extrabold text-4xl sm:text-6xl text-white tracking-tight leading-tight">
+              <h2 className="font-display font-extrabold text-4xl sm:text-6xl text-foreground tracking-tight leading-tight">
                 Ready to upgrade<br />your link workflow?
               </h2>
 

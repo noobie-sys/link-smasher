@@ -5,7 +5,7 @@
  */
 export default function DashboardLoading() {
   return (
-    <div className="dark min-h-dvh bg-background text-foreground relative pb-12 font-sans overflow-x-hidden">
+    <div className="min-h-dvh bg-background text-foreground relative pb-12 font-sans overflow-x-hidden">
       {/* Background orbs — kept for visual continuity with the real page */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[130px] animate-pulse" />
@@ -13,8 +13,8 @@ export default function DashboardLoading() {
       </div>
 
       {/* Skeleton Header */}
-      <header className="relative z-10 border-b border-border bg-card/65 backdrop-blur-md px-6 py-4 shadow-sm">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-6xl lg:mx-auto">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-white/10 animate-pulse" />
             <div className="space-y-2">
