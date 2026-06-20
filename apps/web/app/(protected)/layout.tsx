@@ -19,6 +19,7 @@ export default async function ProtectedLayout({
 
   return (
     <SidebarProvider
+      className="h-svh overflow-hidden"
       style={
         {
           "--sidebar-width": "260px",
@@ -27,7 +28,7 @@ export default async function ProtectedLayout({
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="bg-background flex flex-col flex-1">
+      <SidebarInset className="bg-background flex flex-col flex-1 min-h-0 overflow-hidden">
         {children}
       </SidebarInset>
     </SidebarProvider>

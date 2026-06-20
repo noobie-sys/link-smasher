@@ -353,7 +353,7 @@ export default function SimulatorPage() {
   });
 
   return (
-    <div className="flex flex-1 flex-col pb-12 font-sans bg-background text-foreground relative overflow-hidden">
+    <div className="flex h-full flex-col font-sans bg-background text-foreground relative overflow-hidden">
       {/* Ambient background orbs */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/8 blur-[120px] animate-pulse" />
@@ -390,8 +390,8 @@ export default function SimulatorPage() {
       </header>
 
       {/* Main Container */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 mt-8 w-full space-y-6">
-        <div className="space-y-1.5">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 py-6 w-full flex-1 flex flex-col min-h-0 overflow-hidden space-y-6">
+        <div className="space-y-1.5 shrink-0">
           <h2 className="text-xl font-display font-bold tracking-tight">Interactive Extension Simulator</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Test the Companion Extension save form and filter parameters. Saving here writes directly to your database.
@@ -400,22 +400,18 @@ export default function SimulatorPage() {
 
         {/* Status Messages */}
         {statusMessage && (
-          <div className={`w-full flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-md animate-in fade-in slide-in-from-top-4 duration-300 ${
-            statusMessage.type === "success" 
-              ? "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400" 
-              : "bg-destructive/10 border-destructive/30 text-destructive"
-          }`}>
+          <div className="w-full flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-md animate-in fade-in slide-in-from-top-4 duration-300 shrink-0 bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span className="font-medium">{statusMessage.text}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch flex-1 min-h-0 overflow-hidden">
           {/* LEFT SIDE: Simulator popup mockup (exactly w-[370px]) */}
-          <section className="lg:col-span-5 flex justify-center lg:justify-start w-full">
-            <div className="w-[370px] shrink-0 rounded-2xl border border-border bg-card p-5 text-center shadow-2xl backdrop-blur-md animate-in fade-in duration-500">
+          <section className="lg:col-span-5 flex justify-center lg:justify-start items-start w-full h-full overflow-hidden">
+            <div className="w-[370px] shrink-0 rounded-2xl border border-border bg-card p-5 text-center shadow-2xl backdrop-blur-md animate-in fade-in duration-500 flex flex-col max-h-full overflow-y-auto scrollbar-thin">
               {/* Extension Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
+              <div className="flex items-center justify-between pb-3 border-b border-border mb-4 shrink-0">
                 <div className="flex items-center gap-2">
                   <Link2 className="h-4 w-4 text-primary" />
                   <span className="text-sm font-bold text-foreground leading-none">Instant Link Crust</span>
@@ -516,7 +512,7 @@ export default function SimulatorPage() {
               </form>
 
               {/* Local Search & Host Filters */}
-              <div className="mt-5 pt-4 border-t border-border space-y-3.5 text-left">
+              <div className="mt-5 pt-4 border-t border-border space-y-3.5 text-left shrink-0">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
@@ -555,8 +551,8 @@ export default function SimulatorPage() {
           </section>
 
           {/* RIGHT SIDE: Vault listings */}
-          <section className="lg:col-span-7 space-y-4 w-full">
-            <div className="flex items-center justify-between">
+          <section className="lg:col-span-7 flex flex-col w-full h-full overflow-hidden space-y-4">
+            <div className="flex items-center justify-between shrink-0">
               <h3 className="font-bold text-sm text-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <BookOpen className="h-4 w-4 text-primary" />
                 Live Vault Records
@@ -567,19 +563,19 @@ export default function SimulatorPage() {
             </div>
 
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-20 bg-card border border-border rounded-xl">
+              <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border rounded-xl">
                 <div className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
                 <p className="text-muted-foreground text-xs mt-3">Fetching synchronized database records...</p>
               </div>
             ) : filteredLinks.length === 0 ? (
-              <div className="text-center py-20 bg-card border border-border rounded-xl">
+              <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border rounded-xl py-20">
                 <p className="text-muted-foreground text-sm font-semibold">No matching links in vault</p>
                 <p className="text-muted-foreground/80 text-xs mt-1">
                   Try typing another search term, toggling host filter off, or saving a new link.
                 </p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[580px] overflow-y-auto pr-1">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-3 scrollbar-thin">
                 {filteredLinks.map((link) => (
                   <div
                     key={link.id}

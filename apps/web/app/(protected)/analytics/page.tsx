@@ -59,7 +59,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col pb-12 font-sans bg-background">
+    <div className="h-full overflow-y-auto flex flex-col pb-12 font-sans bg-background">
       {/* Header */}
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />

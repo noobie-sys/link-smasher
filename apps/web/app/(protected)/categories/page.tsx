@@ -112,7 +112,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col pb-12 font-sans bg-background text-foreground relative overflow-hidden">
+    <div className="h-full overflow-y-auto flex flex-col pb-12 font-sans bg-background text-foreground relative">
       {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/3 top-1/4 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[120px] animate-pulse" />

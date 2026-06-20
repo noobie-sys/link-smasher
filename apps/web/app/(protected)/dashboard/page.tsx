@@ -520,7 +520,7 @@ export default function LinkSaverPage() {
   });
 
   return (
-    <div className="min-h-dvh bg-background text-foreground relative pb-12 font-sans">
+    <div className="h-full overflow-y-auto bg-background text-foreground relative pb-12 font-sans">
       {/* overflow-x-hidden is on this non-positioned inner wrapper intentionally —
           putting it on the outer relative div would create a stacking context that
           traps the extension's shadow host (z-index: 2147483647) behind page content. */}

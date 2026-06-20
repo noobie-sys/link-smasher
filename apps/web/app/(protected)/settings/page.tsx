@@ -266,7 +266,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="min-h-dvh bg-background text-foreground pb-16 font-sans overflow-x-hidden">
+    <div className="h-full overflow-y-auto overflow-x-hidden bg-background text-foreground pb-16 font-sans relative">
       {/* Ambient background orbs */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/8 blur-[120px] animate-pulse" />
