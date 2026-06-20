@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "@/lib/auth-client";
-import { useScrollDirection } from "@/lib/useScrollDirection";
+
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -29,6 +29,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+
 
 interface SavedLink {
   id: string;
@@ -76,7 +79,7 @@ const STATUS_TIMEOUT_MS = 5_000;
 export default function LinkSaverPage() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
-  const isNavbarVisible = useScrollDirection();
+
 
 
   // Core API state
@@ -654,53 +657,28 @@ export default function LinkSaverPage() {
       <div className="pointer-events-none absolute inset-0 z-0 grid-pattern opacity-15" />
 
       {/* Header */}
-      <header className={cn(
-        "sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-6xl lg:mx-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
-        isNavbarVisible ? "translate-y-0 opacity-100" : "-translate-y-[150%] opacity-0 pointer-events-none"
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-magenta shadow-md shadow-primary/20">
-              <Link2 className="h-5 w-5 text-white animate-pulse" />
-            </div>
-            <div>
-              <h1 className="font-display text-lg font-bold tracking-tight text-white leading-none">
-                Link Crust
-              </h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
-                API Developer Sandbox
-              </p>
-            </div>
-          </div>
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
+        <SidebarTrigger className="-ml-1 text-slate-400 hover:text-white" />
+        <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
+        <div className="flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-primary animate-pulse" />
+          <h1 className="text-sm font-semibold text-white tracking-tight">API Developer Sandbox</h1>
+        </div>
 
-          <div className="flex items-center gap-4">
-            {/* Throttling HUD */}
-            <div className="hidden sm:flex items-center gap-3 text-xs bg-black/35 rounded-lg border border-border px-3 py-1.5">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Gauge className="h-3.5 w-3.5" />
-                <span>API Quota:</span>
-              </div>
-              <div className="flex items-center gap-2 font-medium">
-                <span className={rateLimit.remaining > 15 ? "text-green-400" : rateLimit.remaining > 5 ? "text-amber-400" : "text-destructive"}>
-                  {rateLimit.remaining}
-                </span>
-                <span className="text-slate-600">/</span>
-                <span className="text-slate-400">{rateLimit.limit} reqs</span>
-              </div>
+        <div className="ml-auto flex items-center gap-4">
+          {/* Throttling HUD */}
+          <div className="flex items-center gap-3 text-xs bg-black/35 rounded-lg border border-border px-3 py-1.5">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Gauge className="h-3.5 w-3.5" />
+              <span>API Quota:</span>
             </div>
-
-            <a
-              href="/settings"
-              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors border border-border rounded-lg px-3 py-1.5 hover:bg-white/[0.03]"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Settings
-            </a>
-
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-white">
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+            <div className="flex items-center gap-2 font-medium">
+              <span className={rateLimit.remaining > 15 ? "text-green-400" : rateLimit.remaining > 5 ? "text-amber-400" : "text-destructive"}>
+                {rateLimit.remaining}
+              </span>
+              <span className="text-slate-600">/</span>
+              <span className="text-slate-400">{rateLimit.limit} reqs</span>
+            </div>
           </div>
         </div>
       </header>

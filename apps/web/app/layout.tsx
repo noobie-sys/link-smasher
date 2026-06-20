@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -24,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("scroll-smooth", outfit.variable, "font-sans", geist.variable)}>
       <body className="antialiased selection:bg-brand-magenta/30 selection:text-white">
-        {children}
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   );

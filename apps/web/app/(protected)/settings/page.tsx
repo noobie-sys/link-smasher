@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
-import { useScrollDirection } from "@/lib/useScrollDirection";
 import { cn } from "@/lib/utils";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 import {
   Link2,
@@ -139,7 +140,6 @@ function KeyBadge({ combo }: { combo: KeyCombo }) {
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const isNavbarVisible = useScrollDirection();
 
 
   // Category management state
@@ -277,48 +277,12 @@ export default function SettingsPage() {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className={cn(
-        "sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-4xl lg:mx-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
-        isNavbarVisible ? "translate-y-0 opacity-100" : "-translate-y-[150%] opacity-0 pointer-events-none"
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-purple-600 shadow-md shadow-primary/20">
-              <Link2 className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-display text-lg font-bold tracking-tight text-white leading-none">
-                Link Crust
-              </h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
-                Account Settings
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <a
-              href="/dashboard"
-              className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors border border-border rounded-lg px-3 py-1.5 hover:bg-white/[0.03]"
-            >
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              Dashboard
-            </a>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="text-muted-foreground hover:text-white"
-            >
-              {isSigningOut ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogOut className="h-4 w-4" />
-              )}
-              <span className="hidden sm:inline">{isSigningOut ? "Signing out…" : "Sign out"}</span>
-            </Button>
-          </div>
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
+        <SidebarTrigger className="-ml-1 text-slate-400 hover:text-white" />
+        <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
+        <div className="flex items-center gap-2">
+          <Settings className="h-4 w-4 text-purple-500 animate-pulse" />
+          <h1 className="text-sm font-semibold text-white tracking-tight">Account Settings</h1>
         </div>
       </header>
 
