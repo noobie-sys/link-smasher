@@ -14,7 +14,7 @@ export const metadata: Metadata = {
  */
 export default function NotFound() {
   return (
-    <div className="dark min-h-dvh bg-background text-foreground flex items-center justify-center px-6 relative overflow-hidden font-sans">
+    <div className="min-h-dvh bg-background text-foreground flex items-center justify-center px-6 relative overflow-hidden font-sans">
       {/* Ambient glows */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/2 top-1/3 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/8 blur-[130px]" />

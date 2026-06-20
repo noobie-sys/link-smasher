@@ -52,14 +52,14 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-[80vh] w-full items-center justify-center dark bg-background">
+      <div className="flex h-[80vh] w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="dark flex flex-1 flex-col pb-12 font-sans bg-background">
+    <div className="flex flex-1 flex-col pb-12 font-sans bg-background">
       {/* Header */}
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
         <SidebarTrigger className="-ml-1 text-slate-400 hover:text-white" />

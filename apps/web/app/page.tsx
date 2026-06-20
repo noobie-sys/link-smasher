@@ -11,6 +11,7 @@ import {
 import { useSession, signOut } from "@/lib/auth-client";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { cn } from "@/lib/utils";
+import { ModeToggle } from "@/components/mode-toggle";
 
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
@@ -188,6 +189,7 @@ export default function Home() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ModeToggle />
             <a href="https://github.com" target="_blank" rel="noreferrer" className="text-lk-text-muted hover:text-white transition-colors p-2 hidden sm:flex">
               <GithubIcon className="h-5 w-5" />
             </a>

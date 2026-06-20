@@ -4,7 +4,7 @@
  */
 export default function SettingsLoading() {
   return (
-    <div className="dark min-h-dvh bg-background text-foreground pb-12 font-sans">
+    <div className="min-h-dvh bg-background text-foreground pb-12 font-sans">
       {/* Ambient background */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/4 top-1/3 h-[400px] w-[400px] rounded-full bg-primary/10 blur-[120px] animate-pulse" />

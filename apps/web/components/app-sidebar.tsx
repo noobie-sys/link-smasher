@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth-client"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { ModeToggle } from "@/components/mode-toggle"
 import {
   Sidebar,
   SidebarContent,
@@ -94,7 +95,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="py-2">
         <NavMain items={navMain} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-border/50 py-2">
+      <SidebarFooter className="border-t border-border/50 py-2 gap-2">
+        <div className="flex items-center justify-between px-3.5 py-1.5 rounded-lg hover:bg-sidebar-accent/30 text-sidebar-foreground transition-colors">
+          <span className="text-xs font-medium text-muted-foreground">Theme</span>
+          <ModeToggle />
+        </div>
         <NavSecondary items={navSecondary} className="mb-1" />
         <NavUser user={user} />
       </SidebarFooter>

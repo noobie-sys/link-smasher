@@ -5,7 +5,7 @@
  */
 export default function DashboardLoading() {
   return (
-    <div className="dark min-h-dvh bg-background text-foreground relative pb-12 font-sans overflow-x-hidden">
+    <div className="min-h-dvh bg-background text-foreground relative pb-12 font-sans overflow-x-hidden">
       {/* Background orbs — kept for visual continuity with the real page */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[130px] animate-pulse" />
