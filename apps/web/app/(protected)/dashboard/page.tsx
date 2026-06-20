@@ -655,7 +655,7 @@ export default function LinkSaverPage() {
 
       {/* Header */}
       <header className={cn(
-        "sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-6xl lg:mx-auto transition-all duration-300 ease-in-out",
+        "sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-6xl lg:mx-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
         isNavbarVisible ? "translate-y-0 opacity-100" : "-translate-y-[150%] opacity-0 pointer-events-none"
       )}>
         <div className="flex items-center justify-between">

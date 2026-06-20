@@ -160,7 +160,7 @@ export default function Home() {
           NAVBAR
       ══════════════════════════════════════════ */}
       <header className={cn(
-        "fixed left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto transition-all duration-300 ease-in-out",
+        "fixed left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
         isNavbarVisible ? "top-4 opacity-100 translate-y-0" : "-translate-y-[150%] opacity-0 pointer-events-none"
       )}>
         <div className="px-6 h-16 flex items-center justify-between">
