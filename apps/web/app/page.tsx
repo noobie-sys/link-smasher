@@ -9,6 +9,9 @@ import {
   ArrowRight, Keyboard, Folder,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { cn } from "@/lib/utils";
+
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 const MOCK_LINKS = [
@@ -69,6 +72,8 @@ const COLOR_CLASSES: Record<string, {
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function Home() {
   const { data: session } = useSession();
+  const isNavbarVisible = useScrollDirection();
+
 
   const [savesCount, setSavesCount] = useState(12480);
   useEffect(() => {
@@ -154,7 +159,10 @@ export default function Home() {
       {/* ══════════════════════════════════════════
           NAVBAR
       ══════════════════════════════════════════ */}
-      <header className="fixed top-4 left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto">
+      <header className={cn(
+        "fixed left-4 right-4 z-50 glass-panel border border-white/10 backdrop-blur-xl rounded-2xl shadow-xl shadow-black/20 max-w-7xl mx-auto transition-all duration-300 ease-in-out",
+        isNavbarVisible ? "top-4 opacity-100 translate-y-0" : "-translate-y-[150%] opacity-0 pointer-events-none"
+      )}>
         <div className="px-6 h-16 flex items-center justify-between">
 
           <a href="/" className="flex items-center gap-3 group">

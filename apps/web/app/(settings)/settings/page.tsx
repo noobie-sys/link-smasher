@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
+import { useScrollDirection } from "@/lib/useScrollDirection";
+import { cn } from "@/lib/utils";
+
 import {
   Link2,
   Settings,
@@ -136,6 +139,8 @@ function KeyBadge({ combo }: { combo: KeyCombo }) {
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const isNavbarVisible = useScrollDirection();
+
 
   // Category management state
   const [categories, setCategories] = useState<CategoryOption[]>([]);
@@ -272,7 +277,10 @@ export default function SettingsPage() {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-4xl lg:mx-auto">
+      <header className={cn(
+        "sticky top-4 z-50 mx-4 md:mx-6 mt-4 border border-border bg-card/65 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-4xl lg:mx-auto transition-all duration-300 ease-in-out",
+        isNavbarVisible ? "translate-y-0 opacity-100" : "-translate-y-[150%] opacity-0 pointer-events-none"
+      )}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-purple-600 shadow-md shadow-primary/20">
