@@ -35,7 +35,7 @@ export function SectionCards({
             <Link2 className="h-3.5 w-3.5 text-primary" />
             Total Saved Links
           </CardDescription>
-          <CardTitle className="text-2xl font-bold tabular-nums text-white pt-1">
+          <CardTitle className="text-2xl font-bold tabular-nums text-foreground pt-1">
             {totalLinks}
           </CardTitle>
         </CardHeader>
@@ -51,7 +51,7 @@ export function SectionCards({
             <Clock className="h-3.5 w-3.5 text-indigo-400" />
             Saves This Week
           </CardDescription>
-          <CardTitle className="text-2xl font-bold tabular-nums text-white pt-1">
+          <CardTitle className="text-2xl font-bold tabular-nums text-foreground pt-1">
             {savedThisWeek}
           </CardTitle>
           {weekOverWeekDelta !== null && (
@@ -88,7 +88,7 @@ export function SectionCards({
             <Globe className="h-3.5 w-3.5 text-teal-400" />
             Top Site (Active Time)
           </CardDescription>
-          <CardTitle className="text-lg font-bold text-white truncate pt-1 max-w-[200px]">
+          <CardTitle className="text-lg font-bold text-foreground truncate pt-1 max-w-[200px]">
             {topSite?.hostname || "—"}
           </CardTitle>
         </CardHeader>
@@ -108,7 +108,7 @@ export function SectionCards({
             <Activity className="h-3.5 w-3.5 text-emerald-400" />
             Sync Status
           </CardDescription>
-          <CardTitle className="text-2xl font-bold text-white pt-1 flex items-center gap-2">
+          <CardTitle className="text-2xl font-bold text-foreground pt-1 flex items-center gap-2">
             Active
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

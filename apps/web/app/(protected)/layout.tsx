@@ -27,7 +27,7 @@ export default async function ProtectedLayout({
       }
     >
       <AppSidebar variant="inset" />
-      <SidebarInset className="bg-background dark flex flex-col flex-1">
+      <SidebarInset className="bg-background flex flex-col flex-1">
         {children}
       </SidebarInset>
     </SidebarProvider>

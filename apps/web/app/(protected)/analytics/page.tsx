@@ -62,11 +62,11 @@ export default function AnalyticsPage() {
     <div className="flex flex-1 flex-col pb-12 font-sans bg-background">
       {/* Header */}
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
-        <SidebarTrigger className="-ml-1 text-slate-400 hover:text-white" />
+        <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-primary" />
-          <h1 className="text-sm font-semibold text-white tracking-tight">Analytics Dashboard</h1>
+          <h1 className="text-sm font-semibold text-foreground tracking-tight">Analytics Dashboard</h1>
         </div>
       </header>
 
@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
       <main className="flex-1 space-y-6 p-4 md:p-6 max-w-6xl w-full mx-auto animate-in fade-in duration-500">
         {/* Section Title */}
         <div className="space-y-1">
-          <h2 className="text-xl font-bold tracking-tight text-white">Vault Insights</h2>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">Vault Insights</h2>
           <p className="text-xs text-muted-foreground">
             Monitor link saving growth, browsing activity logs, and system sync statistics.
           </p>

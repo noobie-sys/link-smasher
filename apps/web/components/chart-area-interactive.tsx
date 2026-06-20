@@ -77,7 +77,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
   return (
     <Card className="@container/card border-border/60 bg-card/65 backdrop-blur-xl">
       <CardHeader>
-        <CardTitle className="text-white text-base">User Activity & Research Logs</CardTitle>
+        <CardTitle className="text-foreground text-base">User Activity & Research Logs</CardTitle>
         <CardDescription className="text-muted-foreground text-xs">
           Showing {totals.saves} saved links and {totals.minutes} minutes of active browsing.
         </CardDescription>
@@ -143,7 +143,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid vertical={false} stroke="var(--border)" opacity={0.6} />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -157,7 +157,8 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                   day: "numeric",
                 })
               }}
-              stroke="rgba(255,255,255,0.4)"
+              stroke="var(--muted-foreground)"
+              opacity={0.7}
             />
             <ChartTooltip
               cursor={false}

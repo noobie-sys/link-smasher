@@ -22,6 +22,8 @@ import {
   Settings,
   CircleHelp,
   Link2,
+  Folder,
+  Sparkles,
 } from "lucide-react"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -44,6 +46,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Dashboard",
       url: "/dashboard",
       icon: <LayoutDashboard className="size-4" />,
+    },
+    {
+      title: "Categories",
+      url: "/categories",
+      icon: <Folder className="size-4" />,
+    },
+    {
+      title: "Simulator",
+      url: "/simulator",
+      icon: <Sparkles className="size-4" />,
     },
     {
       title: "Analytics",
@@ -80,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Link2 className="h-5 w-5" />
                 </div>
                 <div className="flex flex-col justify-center leading-none">
-                  <span className="font-display font-bold text-sm tracking-tight text-white">
+                  <span className="font-display font-bold text-sm tracking-tight text-foreground">
                     Link <span className="bg-gradient-to-r from-primary to-brand-magenta bg-clip-text text-transparent">Crust</span>
                   </span>
                   <span className="text-[9px] text-muted-foreground uppercase tracking-widest mt-0.5">

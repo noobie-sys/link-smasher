@@ -80,13 +80,13 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[rgba(13,9,32,0.45)] shadow-md overflow-hidden">
+    <section className="rounded-2xl border border-border bg-card shadow-md overflow-hidden">
       <div className="px-6 py-4 border-b border-border flex items-start gap-3">
         <div className="mt-0.5 h-8 w-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
           <Icon className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-white">{title}</h2>
+          <h2 className="text-sm font-bold text-foreground">{title}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         </div>
       </div>
@@ -108,7 +108,7 @@ function SettingsRow({
   return (
     <div className="flex items-center justify-between gap-6 px-6 py-4">
       <div className="space-y-0.5 min-w-0">
-        <p className="text-sm font-medium text-white/90">{label}</p>
+        <p className="text-sm font-medium text-foreground">{label}</p>
         {description && (
           <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
         )}
@@ -126,7 +126,7 @@ function KeyBadge({ combo }: { combo: KeyCombo }) {
       {keys.map((k, idx) => (
         <kbd
           key={idx}
-          className="px-2 py-1 text-[10px] font-mono font-semibold rounded-md border border-border bg-secondary/60 text-white shadow-sm"
+          className="px-2 py-1 text-[10px] font-mono font-semibold rounded-md border border-border bg-secondary/60 text-foreground shadow-sm"
         >
           {k}
         </kbd>
@@ -278,11 +278,11 @@ export default function SettingsPage() {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
-        <SidebarTrigger className="-ml-1 text-slate-400 hover:text-white" />
+        <SidebarTrigger className="-ml-1 text-slate-400 hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
           <Settings className="h-4 w-4 text-purple-500 animate-pulse" />
-          <h1 className="text-sm font-semibold text-white tracking-tight">Account Settings</h1>
+          <h1 className="text-sm font-semibold text-foreground tracking-tight">Account Settings</h1>
         </div>
       </header>
 
@@ -292,7 +292,7 @@ export default function SettingsPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-display font-bold text-white tracking-tight">
+            <h2 className="text-xl font-display font-bold text-foreground tracking-tight">
               Settings
             </h2>
           </div>
@@ -387,7 +387,7 @@ export default function SettingsPage() {
               <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary/60" />
               <span>
                 To customize shortcuts, open the extension popup and navigate to the{" "}
-                <strong className="text-white/70">Settings</strong> tab inside it. Changes
+                <strong className="text-foreground/80">Settings</strong> tab inside it. Changes
                 sync instantly across all open tabs.
               </span>
             </div>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
               variant="outline"
               size="sm"
               onClick={() => void handleExportData()}
-              className="text-muted-foreground hover:text-white gap-1.5"
+              className="text-muted-foreground hover:text-foreground gap-1.5"
             >
               <Download className="h-3.5 w-3.5" />
               Export JSON

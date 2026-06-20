@@ -37,7 +37,7 @@ export function NavSecondary({
                   isActive={isActive}
                   className={cn(
                     "transition-all duration-200",
-                    isActive ? "bg-primary/15 text-primary font-semibold!" : "text-muted-foreground hover:text-white"
+                    isActive ? "bg-primary/15 text-primary font-semibold!" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Link href={item.url}>
