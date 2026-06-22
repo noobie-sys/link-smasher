@@ -180,6 +180,15 @@
   .glow-border:hover::after {
     opacity: 1;
   }
+
+  /* Scrollbar Utilities */
+  .scrollbar-none {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
 
 @theme inline {

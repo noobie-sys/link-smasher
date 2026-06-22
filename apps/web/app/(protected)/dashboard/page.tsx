@@ -106,8 +106,6 @@ export default function LinkSaverPage() {
 
   // Quick Extension Filter State
   const [searchQuery, setSearchQuery] = useState("");
-  const [hostnameFilter, setHostnameFilter] = useState("");
-  const [isHostnameFilterActive, setIsHostnameFilterActive] = useState(false);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState("All");
 
   // Edit Inline State
@@ -509,14 +507,10 @@ export default function LinkSaverPage() {
       link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (link.notes && link.notes.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // Hostname filter
-    const matchesHost = !isHostnameFilterActive || 
-      (hostnameFilter.trim() && link.hostname.toLowerCase().includes(hostnameFilter.trim().toLowerCase()));
-
     // Category filter
     const matchesCategory = selectedCategoryTab === "All" || link.category === selectedCategoryTab;
 
-    return matchesSearch && matchesHost && matchesCategory;
+    return matchesSearch && matchesCategory;
   });
 
   return (
@@ -626,10 +620,10 @@ export default function LinkSaverPage() {
         {/* Scoped Link List & Manager (Full-Width) */}
         {/* ========================================== */}
         <section className="col-span-full space-y-6 w-full">
-          {/* Toolbar: Search, Host Filter, and Categories Tabs */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
+          {/* Toolbar: Search and Categories Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
             {/* Categories Horizontal Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto max-w-full md:max-w-[60%] py-1 scrollbar-none">
+            <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1 scrollbar-none">
               {uniqueCategories.map((cat) => (
                 <button
                   key={cat}
@@ -645,39 +639,15 @@ export default function LinkSaverPage() {
               ))}
             </div>
 
-            {/* Local Search & Hostname Filter */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto md:justify-end">
-              {/* Search bar */}
-              <div className="relative w-full sm:w-60">
-                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search vault locally..."
-                  className="pl-8 h-9 text-xs bg-muted/20 border-border text-foreground w-full"
-                />
-              </div>
-
-              {/* Hostname Filter checkbox/input */}
-              <div className="flex items-center gap-2 bg-muted/20 border border-border rounded-lg px-3 py-1 h-9 w-full sm:w-auto">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider select-none shrink-0">
-                  Host Filter
-                </span>
-                <input
-                  type="checkbox"
-                  checked={isHostnameFilterActive}
-                  onChange={(e) => setIsHostnameFilterActive(e.target.checked)}
-                  className="h-3.5 w-3.5 accent-primary cursor-pointer shrink-0"
-                />
-                {isHostnameFilterActive && (
-                  <Input
-                    value={hostnameFilter}
-                    onChange={(e) => setHostnameFilter(e.target.value)}
-                    placeholder="e.g. github.com"
-                    className="h-7 text-[10px] w-28 bg-background border-border text-foreground py-0.5 px-2 ml-1"
-                  />
-                )}
-              </div>
+            {/* Search bar */}
+            <div className="relative w-full sm:w-60 shrink-0">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search vault locally..."
+                className="pl-8 h-9 text-xs bg-muted/20 border-border text-foreground w-full"
+              />
             </div>
           </div>
 
@@ -692,7 +662,7 @@ export default function LinkSaverPage() {
               <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground text-sm font-semibold">No saved links found</p>
               <p className="text-muted-foreground/80 text-xs mt-1">
-                {isHostnameFilterActive || searchQuery || selectedCategoryTab !== "All"
+                {searchQuery || selectedCategoryTab !== "All"
                   ? "Try relaxing your filter parameters or search queries."
                   : "Save a new webpage URL using the simulator to start your vault!"}
               </p>
