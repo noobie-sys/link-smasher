@@ -266,7 +266,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden bg-background text-foreground pb-16 font-sans relative">
+    <div className="h-full flex flex-col overflow-hidden bg-background text-foreground relative font-sans">
       {/* Ambient background orbs */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute left-1/4 top-1/4 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/8 blur-[120px] animate-pulse" />
@@ -277,7 +277,7 @@ export default function SettingsPage() {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 bg-background/50 backdrop-blur-xs relative z-20">
         <SidebarTrigger className="-ml-1 text-slate-400 hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
@@ -286,8 +286,10 @@ export default function SettingsPage() {
         </div>
       </header>
 
-      {/* ── Main Content ───────────────────────────────────────────────────── */}
-      <main className="relative z-10 max-w-4xl mx-auto px-6 mt-8 space-y-6">
+      {/* Main Content Area (Scrollable) */}
+      <div className="flex-1 overflow-y-auto pb-16 relative z-10">
+        {/* ── Main Content ───────────────────────────────────────────────────── */}
+        <main className="relative z-10 max-w-4xl mx-auto px-6 mt-8 space-y-6">
         {/* Page heading */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -534,6 +536,7 @@ export default function SettingsPage() {
           </SettingsRow>
         </SettingsSection>
       </main>
+      </div>
     </div>
   );
 }

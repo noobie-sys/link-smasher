@@ -59,9 +59,9 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto flex flex-col pb-12 font-sans bg-background">
+    <div className="h-full flex flex-col overflow-hidden font-sans bg-background text-foreground relative">
       {/* Header */}
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 bg-background/50 backdrop-blur-xs relative z-20">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
@@ -70,8 +70,10 @@ export default function AnalyticsPage() {
         </div>
       </header>
 
-      {/* Main Grid */}
-      <main className="flex-1 space-y-6 p-4 md:p-6 max-w-6xl w-full mx-auto animate-in fade-in duration-500">
+      {/* Main Content Area (Scrollable) */}
+      <div className="flex-1 overflow-y-auto pb-12 relative z-10">
+        {/* Main Grid */}
+        <main className="space-y-6 p-4 md:p-6 max-w-6xl w-full mx-auto animate-in fade-in duration-500">
         {/* Section Title */}
         <div className="space-y-1">
           <h2 className="text-xl font-bold tracking-tight text-foreground">Vault Insights</h2>
@@ -93,6 +95,7 @@ export default function AnalyticsPage() {
           <ChartAreaInteractive data={history} />
         </div>
       </main>
+      </div>
     </div>
   );
 }

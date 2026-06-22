@@ -514,22 +514,9 @@ export default function LinkSaverPage() {
   });
 
   return (
-    <div className="h-full overflow-y-auto bg-background text-foreground relative pb-12 font-sans">
-      {/* overflow-x-hidden is on this non-positioned inner wrapper intentionally —
-          putting it on the outer relative div would create a stacking context that
-          traps the extension's shadow host (z-index: 2147483647) behind page content. */}
-      <div className="overflow-x-hidden">
-      {/* Background Orbs */}
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute left-1/4 top-1/4 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[130px] animate-pulse-slow" />
-        <div className="absolute bottom-1/4 right-1/4 h-[500px] w-[500px] translate-x-1/2 translate-y-1/2 rounded-full bg-brand-magenta/5 blur-[110px] animate-pulse-slow [animation-delay:3s]" />
-      </div>
-
-      {/* Grid Pattern */}
-      <div className="pointer-events-none absolute inset-0 z-0 grid-pattern opacity-15" />
-
+    <div className="h-full flex flex-col overflow-hidden bg-background text-foreground relative font-sans">
       {/* Header */}
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 relative z-20 bg-background/50 backdrop-blur-xs">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
@@ -554,6 +541,19 @@ export default function LinkSaverPage() {
           </div>
         </div>
       </header>
+
+      {/* overflow-x-hidden is on this non-positioned inner wrapper intentionally —
+          putting it on the outer relative div would create a stacking context that
+          traps the extension's shadow host (z-index: 2147483647) behind page content. */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-12 relative z-10">
+        {/* Background Orbs */}
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <div className="absolute left-1/4 top-1/4 h-[550px] w-[550px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[130px] animate-pulse-slow" />
+          <div className="absolute bottom-1/4 right-1/4 h-[500px] w-[500px] translate-x-1/2 translate-y-1/2 rounded-full bg-brand-magenta/5 blur-[110px] animate-pulse-slow [animation-delay:3s]" />
+        </div>
+
+        {/* Grid Pattern */}
+        <div className="pointer-events-none absolute inset-0 z-0 grid-pattern opacity-15" />
 
       {/* Main Grid */}
       <main className="relative z-10 max-w-6xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
