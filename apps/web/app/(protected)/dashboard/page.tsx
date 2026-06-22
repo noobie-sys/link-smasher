@@ -621,7 +621,7 @@ export default function LinkSaverPage() {
         {/* ========================================== */}
         <section className="col-span-full space-y-6 w-full">
           {/* Toolbar: Search and Categories Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
             {/* Categories Horizontal Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1 scrollbar-none">
               {uniqueCategories.map((cat) => (
