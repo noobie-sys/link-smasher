@@ -370,23 +370,6 @@ export default function SimulatorPage() {
           <Sparkles className="h-4 w-4 text-primary animate-pulse" />
           <h1 className="text-sm font-semibold text-foreground tracking-tight">Companion Simulator</h1>
         </div>
-
-        <div className="ml-auto flex items-center gap-4">
-          {/* Throttling HUD */}
-          <div className="flex items-center gap-3 text-xs bg-card rounded-lg border border-border px-3 py-1.5 shadow-xs">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Gauge className="h-3.5 w-3.5" />
-              <span>API Quota:</span>
-            </div>
-            <div className="flex items-center gap-2 font-medium">
-              <span className={rateLimit.remaining > 15 ? "text-green-400" : rateLimit.remaining > 5 ? "text-amber-400" : "text-destructive"}>
-                {rateLimit.remaining}
-              </span>
-              <span className="text-muted-foreground/60">/</span>
-              <span className="text-muted-foreground">{rateLimit.limit} reqs</span>
-            </div>
-          </div>
-        </div>
       </header>
 
       {/* Main Container */}

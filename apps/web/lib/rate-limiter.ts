@@ -111,8 +111,8 @@ export const rateLimiter = {
    * Throttling configuration tiers as defined in backend specifications.
    */
   tiers: {
-    write: { limit: 50, windowMs: 60 * 1000 }, // Write CRUD operations (POST, PATCH, DELETE): 50 reqs/min
-    read: { limit: 60, windowMs: 60 * 1000 }, // Read Sync operations (GET): 60 reqs/min
+    write: { limit: 200, windowMs: 60 * 1000 }, // Write CRUD operations (POST, PATCH, DELETE): 200 reqs/min
+    read: { limit: 200, windowMs: 60 * 1000 }, // Read Sync operations (GET): 200 reqs/min
   },
 
   /**

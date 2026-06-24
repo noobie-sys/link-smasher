@@ -594,32 +594,15 @@ export default function LinkSaverPage() {
           <h1 className="text-sm font-semibold text-foreground tracking-tight">API Developer Sandbox</h1>
         </div>
 
-        <div className="ml-auto flex items-center gap-3 w-full sm:w-auto justify-end">
-          {/* Search bar */}
-          <div className="relative w-full max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:w-80 shrink-0">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search vault..."
-              className="pl-8 h-8 text-xs bg-muted/20 border-border text-foreground w-full"
-            />
-          </div>
-
-          {/* Throttling HUD */}
-          <div className="flex items-center gap-3 text-xs bg-card rounded-lg border border-border px-3 py-1.5 shadow-xs shrink-0">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Gauge className="h-3.5 w-3.5" />
-              <span className="hidden xs:inline">API Quota:</span>
-            </div>
-            <div className="flex items-center gap-2 font-medium">
-              <span className={rateLimit.remaining > 15 ? "text-green-400" : rateLimit.remaining > 5 ? "text-amber-400" : "text-destructive"}>
-                {rateLimit.remaining}
-              </span>
-              <span className="text-muted-foreground/60">/</span>
-              <span className="text-muted-foreground">{rateLimit.limit}<span className="hidden xs:inline"> reqs</span></span>
-            </div>
-          </div>
+        {/* Search bar */}
+        <div className="ml-auto relative w-full max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:w-80 shrink-0">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search vault..."
+            className="pl-8 h-8 text-xs bg-muted/20 border-border text-foreground w-full"
+          />
         </div>
       </header>
 
