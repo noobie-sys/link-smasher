@@ -23,7 +23,9 @@ import {
   Gauge, 
   CornerDownRight, 
   History,
-  Settings
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,6 +92,13 @@ export default function LinkSaverPage() {
   const [isActionPending, setIsActionPending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
   // Throttling Hud State
   const [rateLimit, setRateLimit] = useState({
     limit: 60,
@@ -124,11 +133,36 @@ export default function LinkSaverPage() {
   } | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
 
-  // 1. Initial Load of Saved Links and Categories (Guarded to run only once)
+  // Debounce search query input to avoid rate-limiting depletion
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Reset page to 1 on search query or category tab change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchQuery, selectedCategoryTab]);
+
+  // Unified effect for querying links on mount or parameter changes
+  useEffect(() => {
+    if (session) {
+      void fetchLinks({
+        page,
+        limit,
+        search: debouncedSearchQuery,
+        category: selectedCategoryTab,
+        showLoading: true,
+      });
+    }
+  }, [session, page, limit, debouncedSearchQuery, selectedCategoryTab]);
+
+  // 1. Initial Load of Categories and Analytics (Guarded to run only once)
   useEffect(() => {
     if (session && !hasLoadedRef.current) {
       hasLoadedRef.current = true;
-      void fetchLinks({ showLoading: true });
       void fetchCategories({ showLoading: true });
       void fetchAnalyticsSummary();
 
@@ -157,7 +191,7 @@ export default function LinkSaverPage() {
       // Re-fetch links to catch up on anything saved during the disconnect.
       if (hasLoadedRef.current) {
         console.log("[Dashboard] SSE Reconnected: Pulling updates...");
-        void fetchLinks();
+        void fetchLinks({ page, limit, search: debouncedSearchQuery, category: selectedCategoryTab });
       }
     });
 
@@ -168,13 +202,20 @@ export default function LinkSaverPage() {
 
         lastSSEUpdateRef.current = Date.now();
 
+        let isUpdate = false;
         setLinks((current) => {
           const exists = current.some((l) => l.id === newLink.id);
           if (exists) {
+            isUpdate = true;
             return current.map((l) => (l.id === newLink.id ? newLink : l));
           }
-          return [newLink, ...current];
+          return current;
         });
+
+        // If it's a new link, silently re-fetch to get correct layout & count
+        if (!isUpdate) {
+          void fetchLinks({ page, limit, search: debouncedSearchQuery, category: selectedCategoryTab });
+        }
 
         // Refresh categories dynamically
         void fetchCategories();
@@ -191,6 +232,10 @@ export default function LinkSaverPage() {
         lastSSEUpdateRef.current = Date.now();
 
         setLinks((current) => current.filter((l) => l.id !== payload.id));
+
+        // Silently re-fetch to fill the slot and update page count
+        void fetchLinks({ page, limit, search: debouncedSearchQuery, category: selectedCategoryTab });
+
         // Refresh categories dynamically
         void fetchCategories();
       } catch (err) {
@@ -329,18 +374,56 @@ export default function LinkSaverPage() {
     }
   };
 
-  const fetchLinks = async (options: { showLoading?: boolean } = {}) => {
+  const fetchLinks = async (options: { 
+    showLoading?: boolean;
+    page?: number;
+    limit?: number;
+    search?: string;
+    category?: string;
+  } = {}) => {
     try {
       if (options.showLoading) {
         setIsLoading(true);
       }
-      const res = await fetch("/api/links");
+      
+      const queryParams = new URLSearchParams();
+      const fetchPage = options.page ?? page;
+      const fetchLimit = options.limit ?? limit;
+      queryParams.set("page", fetchPage.toString());
+      queryParams.set("limit", fetchLimit.toString());
+
+      const fetchSearch = options.search !== undefined ? options.search : debouncedSearchQuery;
+      if (fetchSearch.trim()) {
+        queryParams.set("search", fetchSearch.trim());
+      }
+
+      const fetchCategory = options.category !== undefined ? options.category : selectedCategoryTab;
+      if (fetchCategory && fetchCategory !== "All") {
+        queryParams.set("category", fetchCategory);
+      }
+
+      const res = await fetch(`/api/links?${queryParams.toString()}`);
 
       updateRateHeaders(res.headers);
-      const payload = await res.json() as ApiResponse<SavedLink[]>;
+      const payload = await res.json() as ApiResponse<SavedLink[]> & {
+        pagination?: {
+          totalCount: number;
+          totalPages: number;
+          currentPage: number;
+          limit: number;
+          hasMore: boolean;
+        };
+      };
 
       if (payload.success) {
         setLinks(payload.data || []);
+        if (payload.pagination) {
+          setTotalCount(payload.pagination.totalCount);
+          setTotalPages(payload.pagination.totalPages);
+          if (fetchPage > payload.pagination.totalPages && payload.pagination.totalPages > 0) {
+            setPage(payload.pagination.totalPages);
+          }
+        }
       } else {
         showStatus("error", payload.error?.message || "Failed to load links.");
       }
@@ -498,20 +581,7 @@ export default function LinkSaverPage() {
   };
 
   // 5. Compute lists & unique Categories
-  const uniqueCategories = ["All", ...Array.from(new Set(links.map((link) => link.category)))];
-
-  const filteredLinks = links.filter((link) => {
-    // Search filter
-    const matchesSearch = 
-      link.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      link.url.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (link.notes && link.notes.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    // Category filter
-    const matchesCategory = selectedCategoryTab === "All" || link.category === selectedCategoryTab;
-
-    return matchesSearch && matchesCategory;
-  });
+  const uniqueCategories = ["All", ...categories.map((c) => c.name)];
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-background text-foreground relative font-sans">
@@ -645,7 +715,7 @@ export default function LinkSaverPage() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search vault locally..."
+                placeholder="Search vault..."
                 className="pl-8 h-9 text-xs bg-muted/20 border-border text-foreground w-full"
               />
             </div>
@@ -657,7 +727,7 @@ export default function LinkSaverPage() {
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
               <p className="text-muted-foreground text-xs mt-3">Fetching synchronized vault cards...</p>
             </div>
-          ) : filteredLinks.length === 0 ? (
+          ) : links.length === 0 ? (
             <div className="text-center py-20 bg-card border border-border rounded-2xl">
               <BookOpen className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground text-sm font-semibold">No saved links found</p>
@@ -668,8 +738,9 @@ export default function LinkSaverPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredLinks.map((link) => (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {links.map((link) => (
                 <Card key={link.id} className="relative z-10 border border-border bg-card hover:border-primary/30 transition-all duration-300 shadow-sm flex flex-col justify-between overflow-hidden">
                   <CardHeader className="p-4 pb-2">
                     <div className="flex items-start justify-between gap-2">
@@ -808,7 +879,69 @@ export default function LinkSaverPage() {
                 </Card>
               ))}
             </div>
-          )}
+
+            {/* Pagination Controls */}
+            {totalCount > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm mt-4 select-none">
+                <div className="text-xs text-muted-foreground">
+                  Showing <span className="font-semibold text-foreground">{((page - 1) * limit) + 1}</span> to{" "}
+                  <span className="font-semibold text-foreground">
+                    {Math.min(page * limit, totalCount)}
+                  </span>{" "}
+                  of <span className="font-semibold text-foreground">{totalCount}</span> links
+                </div>
+
+                <div className="flex items-center gap-4">
+                  {/* Page Size Selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Show</span>
+                    <select
+                      value={limit}
+                      onChange={(e) => {
+                        setLimit(parseInt(e.target.value, 10));
+                        setPage(1);
+                      }}
+                      className="bg-muted/40 border border-border text-foreground text-xs rounded px-2 py-1 outline-none cursor-pointer"
+                    >
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                      disabled={page === 1}
+                      className="h-8 px-2.5 text-xs flex gap-1 cursor-pointer"
+                    >
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                      Prev
+                    </Button>
+
+                    <div className="text-xs text-muted-foreground font-medium px-2">
+                      Page <span className="text-foreground">{page}</span> of{" "}
+                      <span className="text-foreground">{totalPages}</span>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                      disabled={page === totalPages}
+                      className="h-8 px-2.5 text-xs flex gap-1 cursor-pointer"
+                    >
+                      Next
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
         </section>
       </main>
 

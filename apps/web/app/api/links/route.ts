@@ -45,7 +45,7 @@ const URL_PREFIX_PATTERN = /^(www\.|m\.|beta\.)/;
 
 /**
  * GET /api/links
- * Retrieves links saved by the authenticated user with optional search and hostname filters.
+ * Retrieves links saved by the authenticated user with optional search, hostname, category, and pagination filters.
  */
 export const GET = withApiHandler(async (request: NextRequest) => {
   const session = await getAuthSession(request);
@@ -56,6 +56,10 @@ export const GET = withApiHandler(async (request: NextRequest) => {
   const queryHostname = request.nextUrl.searchParams.get("hostname");
   const searchQuery = request.nextUrl.searchParams.get("search");
   const queryCategory = request.nextUrl.searchParams.get("category");
+  const pageParam = request.nextUrl.searchParams.get("page");
+  const limitParam = request.nextUrl.searchParams.get("limit");
+
+  const isPaginated = pageParam !== null || limitParam !== null;
 
   // Build a typed Prisma `where` clause — use spread to avoid mutation.
   const hostnameFilter: Prisma.LinkWhereInput = queryHostname
@@ -91,26 +95,81 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     ...categoryFilter,
   };
 
-  const links = await prisma.link.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      userId: true,
-      url: true,
-      title: true,
-      hostname: true,
-      tags: true,
-      notes: true,
-      createdAt: true,
-      updatedAt: true,
-      category: { select: { name: true } },
-    },
-  });
+  let links;
+  let totalCount = 0;
+  let totalPages = 0;
+  let page = 1;
+  let limit = 10;
+
+  if (isPaginated) {
+    page = parseInt(pageParam || "1", 10);
+    limit = parseInt(limitParam || "10", 10);
+
+    // Validate inputs
+    if (isNaN(page) || page < 1) page = 1;
+    if (isNaN(limit) || limit < 1) limit = 10;
+    if (limit > 100) limit = 100; // max limit for safety
+
+    const skip = (page - 1) * limit;
+
+    const [fetchedLinks, count] = await Promise.all([
+      prisma.link.findMany({
+        where: whereClause,
+        orderBy: { createdAt: "desc" },
+        skip: skip,
+        take: limit,
+        select: {
+          id: true,
+          userId: true,
+          url: true,
+          title: true,
+          hostname: true,
+          tags: true,
+          notes: true,
+          createdAt: true,
+          updatedAt: true,
+          category: { select: { name: true } },
+        },
+      }),
+      prisma.link.count({ where: whereClause }),
+    ]);
+
+    links = fetchedLinks;
+    totalCount = count;
+    totalPages = Math.ceil(totalCount / limit);
+  } else {
+    links = await prisma.link.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        userId: true,
+        url: true,
+        title: true,
+        hostname: true,
+        tags: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
+        category: { select: { name: true } },
+      },
+    });
+  }
+
+  const formattedLinks = links.map(formatLinkResponse);
 
   return {
     success: true,
-    data: links.map(formatLinkResponse),
+    data: formattedLinks,
+    ...(isPaginated ? {
+      pagination: {
+        totalCount,
+        totalPages,
+        currentPage: page,
+        limit,
+        hasMore: page < totalPages,
+      }
+    } : {}),
   };
 });
 
