@@ -105,7 +105,7 @@ export default function CategoriesPage() {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* Header */}
-      <header className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4 lg:px-6 bg-background/50 backdrop-blur-xs">
+      <header className="relative z-20 flex h-14 shrink-0 items-center gap-2 border-b border-border/50 px-4 lg:px-6 bg-background/50 backdrop-blur-xs">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">

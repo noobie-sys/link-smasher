@@ -586,7 +586,7 @@ export default function LinkSaverPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden bg-background text-foreground relative font-sans">
       {/* Header */}
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 relative z-20 bg-background/50 backdrop-blur-xs">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 relative z-20 bg-background/50 backdrop-blur-xs">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2 hidden sm:flex">

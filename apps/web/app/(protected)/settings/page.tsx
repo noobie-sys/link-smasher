@@ -277,7 +277,7 @@ export default function SettingsPage() {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 bg-background/50 backdrop-blur-xs relative z-20">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 bg-background/50 backdrop-blur-xs relative z-20">
         <SidebarTrigger className="-ml-1 text-slate-400 hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2">
