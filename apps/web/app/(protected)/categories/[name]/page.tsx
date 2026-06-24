@@ -151,15 +151,29 @@ export default function CategoryDetailPage({ params }: PageProps) {
       <div className="pointer-events-none fixed inset-0 z-0 grid-pattern opacity-10" />
 
       {/* Header */}
-      <header className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4 lg:px-6 bg-background/50 backdrop-blur-xs">
-        <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
-        <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Link href="/categories" className="hover:text-foreground transition-colors">
-            Categories
-          </Link>
-          <span className="text-border/80">/</span>
-          <span className="text-foreground font-semibold font-display tracking-wide">{categoryName}</span>
+      <header className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-4 lg:px-6 bg-background/50 backdrop-blur-xs justify-between">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
+          <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Link href="/categories" className="hover:text-foreground transition-colors">
+              Categories
+            </Link>
+            <span className="text-border/80">/</span>
+            <span className="text-foreground font-semibold font-display tracking-wide">{categoryName}</span>
+          </div>
+        </div>
+
+        {/* Search bar */}
+        <div className="relative w-40 sm:w-60 md:w-80 shrink-0">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search in this folder..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-muted/20 border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary transition-colors"
+          />
         </div>
       </header>
 
@@ -175,18 +189,6 @@ export default function CategoryDetailPage({ params }: PageProps) {
             <ArrowLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
             Back to folders
           </Link>
-
-          {/* Search bar */}
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search in this folder..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-card border border-border rounded-lg pl-8 pr-3 py-1.5 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
         </div>
 
         {/* Status notification */}
@@ -212,7 +214,7 @@ export default function CategoryDetailPage({ params }: PageProps) {
               {links.map((link) => (
               <div
                 key={link.id}
-                className="group relative rounded-xl border border-border bg-card/50 p-5 shadow-xs hover:border-primary/20 hover:bg-primary/[0.01] transition-all flex flex-col justify-between gap-4"
+                className="group relative rounded-xl border border-border bg-card p-5 shadow-sm hover:border-primary/30 transition-all duration-300 flex flex-col justify-between gap-4"
               >
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-4">
@@ -268,7 +270,7 @@ export default function CategoryDetailPage({ params }: PageProps) {
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-border/40 text-xs">
-                  <div className="flex items-center gap-1.5 font-medium text-primary">
+                  <div className="flex items-center gap-1.5 font-medium text-sky-500 dark:text-sky-400">
                     <Link2 className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate max-w-[200px]">{link.short}</span>
                   </div>

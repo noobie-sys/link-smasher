@@ -589,24 +589,35 @@ export default function LinkSaverPage() {
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 transition-[width,height] ease-linear px-4 lg:px-6 relative z-20 bg-background/50 backdrop-blur-xs">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 hidden sm:flex">
           <Link2 className="h-4 w-4 text-primary animate-pulse" />
           <h1 className="text-sm font-semibold text-foreground tracking-tight">API Developer Sandbox</h1>
         </div>
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-3 w-full sm:w-auto justify-end">
+          {/* Search bar */}
+          <div className="relative w-full max-w-[140px] xs:max-w-[200px] sm:max-w-xs md:w-80 shrink-0">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search vault..."
+              className="pl-8 h-8 text-xs bg-muted/20 border-border text-foreground w-full"
+            />
+          </div>
+
           {/* Throttling HUD */}
-          <div className="flex items-center gap-3 text-xs bg-card rounded-lg border border-border px-3 py-1.5 shadow-xs">
+          <div className="flex items-center gap-3 text-xs bg-card rounded-lg border border-border px-3 py-1.5 shadow-xs shrink-0">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Gauge className="h-3.5 w-3.5" />
-              <span>API Quota:</span>
+              <span className="hidden xs:inline">API Quota:</span>
             </div>
             <div className="flex items-center gap-2 font-medium">
               <span className={rateLimit.remaining > 15 ? "text-green-400" : rateLimit.remaining > 5 ? "text-amber-400" : "text-destructive"}>
                 {rateLimit.remaining}
               </span>
               <span className="text-muted-foreground/60">/</span>
-              <span className="text-muted-foreground">{rateLimit.limit} reqs</span>
+              <span className="text-muted-foreground">{rateLimit.limit}<span className="hidden xs:inline"> reqs</span></span>
             </div>
           </div>
         </div>
@@ -690,10 +701,10 @@ export default function LinkSaverPage() {
         {/* Scoped Link List & Manager (Full-Width) */}
         {/* ========================================== */}
         <section className="col-span-full space-y-6 w-full">
-          {/* Toolbar: Search and Categories Tabs */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
-            {/* Categories Horizontal Tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1 scrollbar-none">
+          {/* Toolbar: Categories Tabs */}
+          <div className="bg-card border border-border p-4 rounded-xl shadow-sm">
+            {/* Categories Horizontal Tabs (Scrollable & Full Width) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto w-full py-1 scrollbar-none">
               {uniqueCategories.map((cat) => (
                 <button
                   key={cat}
@@ -707,17 +718,6 @@ export default function LinkSaverPage() {
                   {cat}
                 </button>
               ))}
-            </div>
-
-            {/* Search bar */}
-            <div className="relative w-full sm:w-60 shrink-0">
-              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search vault..."
-                className="pl-8 h-9 text-xs bg-muted/20 border-border text-foreground w-full"
-              />
             </div>
           </div>
 
@@ -765,7 +765,7 @@ export default function LinkSaverPage() {
                       </CardTitle>
                     )}
 
-                    <div className="flex items-center gap-1 text-[11px] text-primary/80 hover:underline mt-1 break-all truncate font-medium">
+                    <div className="flex items-center gap-1 text-[11px] text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors hover:underline mt-1 break-all truncate font-medium">
                       <Globe className="h-3 w-3 shrink-0" />
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate">
                         {link.hostname}
