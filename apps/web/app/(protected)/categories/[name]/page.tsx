@@ -14,6 +14,8 @@ import {
   Search,
   EyeOff,
   Globe,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
@@ -46,20 +48,55 @@ export default function CategoryDetailPage({ params }: PageProps) {
   const [isDeleting, setIsDeleting] = React.useState<string | null>(null)
   const [statusMessage, setStatusMessage] = React.useState<{ type: "success" | "error"; text: string } | null>(null)
 
+  // Pagination & Debounce State
+  const [page, setPage] = React.useState(1)
+  const [limit, setLimit] = React.useState(10)
+  const [totalCount, setTotalCount] = React.useState(0)
+  const [totalPages, setTotalPages] = React.useState(0)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [searchQuery])
+
+  // Reset page to 1 on search query change
+  React.useEffect(() => {
+    setPage(1)
+  }, [debouncedSearchQuery])
+
   const fetchLinks = React.useCallback(async () => {
     try {
       setIsLoading(true)
-      const res = await fetch(`/api/links?category=${encodeURIComponent(categoryName)}`)
+      
+      const queryParams = new URLSearchParams()
+      queryParams.set("category", categoryName)
+      queryParams.set("page", page.toString())
+      queryParams.set("limit", limit.toString())
+      if (debouncedSearchQuery.trim()) {
+        queryParams.set("search", debouncedSearchQuery.trim())
+      }
+
+      const res = await fetch(`/api/links?${queryParams.toString()}`)
       const data = await res.json()
       if (data.success && Array.isArray(data.data)) {
         setLinks(data.data)
+        if (data.pagination) {
+          setTotalCount(data.pagination.totalCount)
+          setTotalPages(data.pagination.totalPages)
+          if (page > data.pagination.totalPages && data.pagination.totalPages > 0) {
+            setPage(data.pagination.totalPages)
+          }
+        }
       }
     } catch {
       showStatus("error", "Failed to retrieve links for this category.")
     } finally {
       setIsLoading(false)
     }
-  }, [categoryName])
+  }, [categoryName, page, limit, debouncedSearchQuery])
 
   React.useEffect(() => {
     void fetchLinks()
@@ -103,16 +140,7 @@ export default function CategoryDetailPage({ params }: PageProps) {
     }
   }
 
-  const filteredLinks = links.filter((link) => {
-    if (!searchQuery) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      link.title.toLowerCase().includes(q) ||
-      link.url.toLowerCase().includes(q) ||
-      link.hostname.toLowerCase().includes(q) ||
-      link.tags.some((t) => t.toLowerCase().includes(q))
-    )
-  })
+  // links array is already filtered by server-side query parameters.
 
   return (
     <div className="h-full flex flex-col overflow-hidden font-sans bg-background text-foreground relative">
@@ -179,9 +207,10 @@ export default function CategoryDetailPage({ params }: PageProps) {
           <div className="flex h-60 w-full items-center justify-center">
             <Loader2 className="h-7 w-7 text-primary animate-spin" />
           </div>
-        ) : filteredLinks.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredLinks.map((link) => (
+        ) : links.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {links.map((link) => (
               <div
                 key={link.id}
                 className="group relative rounded-xl border border-border bg-card/50 p-5 shadow-xs hover:border-primary/20 hover:bg-primary/[0.01] transition-all flex flex-col justify-between gap-4"
@@ -268,7 +297,69 @@ export default function CategoryDetailPage({ params }: PageProps) {
               </div>
             ))}
           </div>
-        ) : (
+
+          {/* Pagination Controls */}
+          {totalCount > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm mt-4 select-none relative z-20">
+              <div className="text-xs text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{((page - 1) * limit) + 1}</span> to{" "}
+                <span className="font-semibold text-foreground">
+                  {Math.min(page * limit, totalCount)}
+                </span>{" "}
+                of <span className="font-semibold text-foreground">{totalCount}</span> links
+              </div>
+
+              <div className="flex items-center gap-4">
+                {/* Page Size Selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Show</span>
+                  <select
+                    value={limit}
+                    onChange={(e) => {
+                      setLimit(parseInt(e.target.value, 10))
+                      setPage(1)
+                    }}
+                    className="bg-muted/40 border border-border text-foreground text-xs rounded px-2 py-1 outline-none cursor-pointer"
+                  >
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    disabled={page === 1}
+                    className="h-8 px-2.5 text-xs flex gap-1 cursor-pointer"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    Prev
+                  </Button>
+
+                  <div className="text-xs text-muted-foreground font-medium px-2">
+                    Page <span className="text-foreground">{page}</span> of{" "}
+                    <span className="text-foreground">{totalPages}</span>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={page === totalPages}
+                    className="h-8 px-2.5 text-xs flex gap-1 cursor-pointer"
+                  >
+                    Next
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
           <div className="text-center py-24 border border-dashed border-border rounded-xl bg-card/25 space-y-3">
             <EyeOff className="h-8 w-8 text-muted-foreground mx-auto" />
             <h3 className="font-semibold text-sm text-foreground">No links found</h3>
