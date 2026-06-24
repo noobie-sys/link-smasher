@@ -78,14 +78,23 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     : {};
 
   const categoryFilter: Prisma.LinkWhereInput = queryCategory
-    ? {
-        category: {
-          name: {
-            equals: queryCategory,
-            mode: "insensitive",
+    ? queryCategory.toLowerCase() === "general"
+      ? {
+          // Include links that have the "General" category OR have no category at all
+          // (null categoryId is treated as "General" by formatLinkResponse)
+          OR: [
+            { category: { name: { equals: queryCategory, mode: "insensitive" } } },
+            { categoryId: null },
+          ],
+        }
+      : {
+          category: {
+            name: {
+              equals: queryCategory,
+              mode: "insensitive",
+            },
           },
-        },
-      }
+        }
     : {};
 
   const whereClause: Prisma.LinkWhereInput = {

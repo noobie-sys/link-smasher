@@ -164,8 +164,8 @@ export default function CategoryDetailPage({ params }: PageProps) {
       </header>
 
       {/* Main Content Area (Scrollable) */}
-      <div className="flex-1 overflow-y-auto pb-12 relative z-10">
-        <main className="relative z-10 max-w-5xl mx-auto px-6 mt-8 w-full space-y-6">
+      <div className="flex-1 overflow-y-auto relative z-10 flex flex-col">
+        <main className="flex-1 relative z-10 max-w-5xl mx-auto px-6 mt-8 w-full space-y-6">
         {/* Navigation Action Back Row */}
         <div className="flex items-center justify-between gap-4">
           <Link
@@ -202,13 +202,12 @@ export default function CategoryDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Links listing */}
-        {isLoading ? (
-          <div className="flex h-60 w-full items-center justify-center">
-            <Loader2 className="h-7 w-7 text-primary animate-spin" />
-          </div>
-        ) : links.length > 0 ? (
-          <>
+          {/* Links listing */}
+          {isLoading ? (
+            <div className="flex h-60 w-full items-center justify-center">
+              <Loader2 className="h-7 w-7 text-primary animate-spin" />
+            </div>
+          ) : links.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {links.map((link) => (
               <div
@@ -297,10 +296,23 @@ export default function CategoryDetailPage({ params }: PageProps) {
               </div>
             ))}
           </div>
+          ) : (
+              <div className="text-center py-24 border border-dashed border-border rounded-xl bg-card/25 space-y-3">
+                <EyeOff className="h-8 w-8 text-muted-foreground mx-auto" />
+                <h3 className="font-semibold text-sm text-foreground">No links found</h3>
+                <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                  {searchQuery
+                    ? "We couldn't find any links matching your search filters in this category."
+                    : `This folder is currently empty. Open the Simulator and save a new tab into "${categoryName}".`}
+                </p>
+              </div>
+          )}
+        </main>
 
-          {/* Pagination Controls */}
-          {totalCount > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm mt-4 select-none relative z-20">
+        {/* Pagination Controls — always rendered at the bottom, outside the content flow */}
+        {!isLoading && totalCount > 0 && (
+          <div className="max-w-5xl mx-auto px-6 pb-6 w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm select-none">
               <div className="text-xs text-muted-foreground">
                 Showing <span className="font-semibold text-foreground">{((page - 1) * limit) + 1}</span> to{" "}
                 <span className="font-semibold text-foreground">
@@ -357,20 +369,8 @@ export default function CategoryDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
-          )}
-        </>
-      ) : (
-          <div className="text-center py-24 border border-dashed border-border rounded-xl bg-card/25 space-y-3">
-            <EyeOff className="h-8 w-8 text-muted-foreground mx-auto" />
-            <h3 className="font-semibold text-sm text-foreground">No links found</h3>
-            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              {searchQuery
-                ? "We couldn't find any links matching your search filters in this category."
-                : `This folder is currently empty. Open the Simulator and save a new tab into "${categoryName}".`}
-            </p>
           </div>
         )}
-      </main>
       </div>
     </div>
   )
