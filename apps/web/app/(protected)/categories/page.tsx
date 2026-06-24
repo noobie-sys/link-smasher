@@ -20,16 +20,11 @@ interface CategoryOption {
   name: string;
   color: string;
   isSystem: boolean;
-}
-
-interface LinkItem {
-  id: string;
-  category: string;
+  linkCount: number;
 }
 
 export default function CategoriesPage() {
   const [categories, setCategories] = React.useState<CategoryOption[]>([])
-  const [links, setLinks] = React.useState<LinkItem[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [newCatName, setNewCatName] = React.useState("")
   const [newCatColor, setNewCatColor] = React.useState("#6366F1")
@@ -50,22 +45,14 @@ export default function CategoriesPage() {
   const fetchData = React.useCallback(async () => {
     try {
       setIsLoading(true)
-      const [catRes, linkRes] = await Promise.all([
-        fetch("/api/categories"),
-        fetch("/api/links"),
-      ])
+      const catRes = await fetch("/api/categories")
       const catData = await catRes.json()
-      const linkData = await linkRes.json()
-
       if (catData.success && Array.isArray(catData.data)) {
         setCategories(catData.data)
       }
-      if (linkData.success && Array.isArray(linkData.data)) {
-        setLinks(linkData.data)
-      }
     } catch (err) {
       console.error(err)
-      showStatus("error", "Failed to retrieve category counts.")
+      showStatus("error", "Failed to retrieve categories.")
     } finally {
       setIsLoading(false)
     }
@@ -107,9 +94,6 @@ export default function CategoriesPage() {
     }
   }
 
-  const getLinkCount = (categoryName: string) => {
-    return links.filter((link) => link.category.toLowerCase() === categoryName.toLowerCase()).length
-  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden font-sans bg-background text-foreground relative">
@@ -169,7 +153,7 @@ export default function CategoriesPage() {
             ) : categories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {categories.map((cat) => {
-                  const count = getLinkCount(cat.name)
+                  const count = cat.linkCount
                   return (
                     <Link
                       key={cat.id}

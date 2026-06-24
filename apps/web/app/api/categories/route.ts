@@ -36,25 +36,37 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     throw new UnauthorizedError();
   }
 
+  const userId = session.user.id;
+
   // 1. Fetch custom categories from the DB
   const dbCategories = await prisma.category.findMany({
-    where: {
-      userId: session.user.id,
-    },
-    orderBy: {
-      name: "asc",
-    },
+    where: { userId },
+    orderBy: { name: "asc" },
   });
 
-  // 2. Prepare merged list, beginning with system categories
+  // 2. Compute link counts per category name, consistent with formatLinkResponse
+  //    (links with null categoryId are treated as "General")
+  const userLinks = await prisma.link.findMany({
+    where: { userId },
+    select: { category: { select: { name: true } } },
+  });
+
+  const countMap: Record<string, number> = {};
+  for (const link of userLinks) {
+    const name = link.category?.name ?? "General";
+    countMap[name] = (countMap[name] ?? 0) + 1;
+  }
+
+  // 3. Prepare merged list, beginning with system categories
   const merged = SYSTEM_CATEGORIES.map((sys) => ({
     id: sys.name,
     name: sys.name,
     color: sys.color,
     isSystem: true,
+    linkCount: countMap[sys.name] ?? 0,
   }));
 
-  // 3. Append custom categories that do not conflict with system names
+  // 4. Append custom categories that do not conflict with system names
   for (const dbCat of dbCategories) {
     const isSystemName = SYSTEM_CATEGORIES.some(
       (sys) => sys.name.toLowerCase() === dbCat.name.toLowerCase()
@@ -65,6 +77,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
         name: dbCat.name,
         color: dbCat.color,
         isSystem: false,
+        linkCount: countMap[dbCat.name] ?? 0,
       });
     }
   }

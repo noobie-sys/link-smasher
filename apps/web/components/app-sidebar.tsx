@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from "next/link"
-import { useSession } from "@/lib/auth-client"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
-import { ModeToggle } from "@/components/mode-toggle"
+import * as React from "react";
+import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
   BarChart3,
@@ -24,10 +24,10 @@ import {
   Link2,
   Folder,
   Sparkles,
-} from "lucide-react"
+} from "lucide-react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession()
+  const { data: session } = useSession();
 
   const user = session?.user
     ? {
@@ -39,7 +39,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         name: "Loading...",
         email: "",
         avatar: "",
-      }
+      };
 
   const navMain = [
     {
@@ -62,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/analytics",
       icon: <BarChart3 className="size-4" />,
     },
-  ]
+  ];
 
   const navSecondary = [
     {
@@ -75,10 +75,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "#",
       icon: <CircleHelp className="size-4" />,
     },
-  ]
+  ];
 
   return (
-    <Sidebar collapsible="offcanvas" {...props} className="border-r border-border bg-card/45 backdrop-blur-xl">
+    <Sidebar
+      collapsible="offcanvas"
+      {...props}
+      className="  bg-card/45 backdrop-blur-xl"
+    >
       <SidebarHeader className="border-b border-border/50 py-3">
         <SidebarMenu>
           <SidebarMenuItem>
@@ -93,7 +97,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="flex flex-col justify-center leading-none">
                   <span className="font-display font-bold text-sm tracking-tight text-foreground">
-                    Link <span className="bg-gradient-to-r from-primary to-brand-magenta bg-clip-text text-transparent">Crust</span>
+                    Link{" "}
+                    <span className="bg-gradient-to-r from-primary to-brand-magenta bg-clip-text text-transparent">
+                      Crust
+                    </span>
                   </span>
                   <span className="text-[9px] text-muted-foreground uppercase tracking-widest mt-0.5">
                     Dev Companion
@@ -109,12 +116,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter className="border-t border-border/50 py-2 gap-2">
         <div className="flex items-center justify-between px-3.5 py-1.5 rounded-lg hover:bg-sidebar-accent/30 text-sidebar-foreground transition-colors">
-          <span className="text-xs font-medium text-muted-foreground">Theme</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            Theme
+          </span>
           <ModeToggle />
         </div>
         <NavSecondary items={navSecondary} className="mb-1" />
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
