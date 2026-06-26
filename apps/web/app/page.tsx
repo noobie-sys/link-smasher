@@ -21,6 +21,7 @@ function BackgroundShapes() {
         src="/PUumUbREZYBmHp59xpu05KuD3g.jpg"
         alt="Background Pattern"
         fill
+        sizes="100vw"
         className="object-cover object-center"
         priority
       />
@@ -28,91 +29,37 @@ function BackgroundShapes() {
   );
 }
 
-// ─── Bento Visual: Keyboard Save ────────────────────────────────────────────
-function KeyboardVisual() {
+// ─── Bento Visual: Folders / Categories List ──────────────────────────────
+function FoldersVisual() {
+  const folders = [
+    { name: "Development", count: 2, color: "#7950F7" },
+    { name: "Social Media", count: 2, color: "#d946ef" },
+    { name: "Productivity", count: 1, color: "#06b6d4" },
+    { name: "Entertainment", count: 0, color: "#f97316" },
+    { name: "Custom Categories", count: 0, color: "#6b7280" },
+  ];
+
   return (
-    <div className="flex-1 flex items-end justify-center pt-4 pb-2 overflow-hidden">
-      <div className="relative flex flex-col items-center gap-3">
-        {/* Browser bar mockup */}
-        <div className="w-64 bg-[#f0f0f7] rounded-xl px-4 py-2.5 flex items-center gap-2 border border-[#e5e5f0]">
-          <div className="w-2 h-2 rounded-full bg-[#7950F7]/30" />
-          <div className="flex-1 h-2 rounded bg-[#ddddf5]" />
-          <div className="w-2 h-2 rounded-full bg-[#7950F7]/20" />
-        </div>
-
-        {/* Toast notification */}
-        <div className="absolute -right-8 top-0 bg-white rounded-2xl shadow-[0_4px_24px_rgba(121,80,247,0.18)] border border-[#7950F7]/15 px-3 py-2.5 flex items-center gap-2.5 whitespace-nowrap">
-          <div className="w-6 h-6 rounded-lg bg-[#7950F7]/10 flex items-center justify-center shrink-0">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#7950F7"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-[10px] text-[#6b6b6b] leading-none mb-0.5">
-              Link saved!
-            </p>
-            <p className="text-[11px] font-bold text-[#7950F7] font-mono">
-              lnkr.app/tf-paper
-            </p>
-          </div>
-        </div>
-
-        {/* Keyboard keys */}
-        <div className="flex items-center gap-2 mt-1">
-          <div className="bg-white border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-bold text-[#0a0a0a] leading-none">
-              Alt
+    <div className="flex-1 p-4 flex flex-col gap-2 mt-2 justify-center w-full">
+      {folders.map((folder, i) => (
+        <div
+          key={i}
+          className="bg-white border border-[#ebebeb] rounded-xl px-3 py-2 flex items-center justify-between shadow-sm hover:border-[#7950F7]/30 transition-all duration-200"
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: folder.color }}
+            />
+            <span className="text-xs font-semibold text-[#0a0a0a]">
+              {folder.name}
             </span>
           </div>
-          <span className="text-[#9ca3af] text-sm font-light">+</span>
-          <div className="bg-[#7950F7] border border-[#6a3de8] rounded-lg px-4 py-2 shadow-[0_2px_12px_rgba(121,80,247,0.4)] flex flex-col items-center gap-0.5">
-            <span className="text-[14px] font-bold text-white leading-none">
-              S
-            </span>
-          </div>
-        </div>
-
-        {/* Pulse ring */}
-        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-[#7950F7]/6 animate-ping" />
-      </div>
-    </div>
-  );
-}
-
-// ─── Bento Visual: Analytics bars ───────────────────────────────────────────
-function AnalyticsVisual() {
-  const bars = [40, 65, 45, 80, 55, 90, 70];
-  return (
-    <div className="flex items-end gap-2 h-20 px-2 pt-4">
-      {bars.map((h, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <div
-            className="w-full rounded-t-md transition-all duration-700"
-            style={{
-              height: `${h}%`,
-              background:
-                i === 5
-                  ? "linear-gradient(to top, #7950F7, #a78bfa)"
-                  : i === 3
-                    ? "linear-gradient(to top, #7950F7cc, #a78bfaaa)"
-                    : "#f0eeff",
-            }}
-          />
+          <span className="text-[10px] text-[#6b6b6b] font-medium bg-[#f5f5f7] px-2 py-0.5 rounded-full">
+            {folder.count} link{folder.count !== 1 ? "s" : ""}
+          </span>
         </div>
       ))}
-      {/* Badge */}
-      <div className="absolute top-4 right-4 bg-[#7950F7] text-white text-[10px] font-bold px-2 py-1 rounded-full">
-        +2K
-      </div>
     </div>
   );
 }
@@ -120,13 +67,22 @@ function AnalyticsVisual() {
 // ─── Bento Visual: Domain filter ────────────────────────────────────────────
 function DomainVisual() {
   const dots = [
-    { cx: 50, cy: 50, r: 38, opacity: 0.12 },
-    { cx: 50, cy: 50, r: 26, opacity: 0.2 },
-    { cx: 50, cy: 50, r: 14, opacity: 1 },
+    { cx: 100, cy: 100, r: 96, opacity: 0.02 },
+    { cx: 100, cy: 100, r: 80, opacity: 0.04 },
+    { cx: 100, cy: 100, r: 64, opacity: 0.07 },
+    { cx: 100, cy: 100, r: 48, opacity: 0.12 },
+    { cx: 100, cy: 100, r: 32, opacity: 0.22 },
+    { cx: 100, cy: 100, r: 18, opacity: 1 },
   ];
   return (
-    <div className="flex items-center justify-center h-28 relative">
-      <svg viewBox="0 0 100 100" className="w-24 h-24">
+    <div className="flex items-center justify-center h-full relative w-full overflow-hidden select-none">
+      {/* Outer concentric pulsing indicator lines */}
+      <div className="absolute w-64 h-64 rounded-full border border-[#7950F7]/10 animate-ping duration-1000 opacity-20 pointer-events-none" />
+
+      <svg
+        viewBox="0 0 200 200"
+        className="w-[320px] h-[320px] overflow-visible drop-shadow-[0_4px_20px_rgba(121,80,247,0.2)] relative z-0"
+      >
         {dots.map((d, i) => (
           <circle
             key={i}
@@ -135,124 +91,118 @@ function DomainVisual() {
             r={d.r}
             fill="#7950F7"
             fillOpacity={d.opacity}
+            className={i < 5 ? "animate-pulse" : ""}
+            style={
+              i < 5
+                ? { animationDelay: `${i * 200}ms`, animationDuration: "3s" }
+                : undefined
+            }
           />
         ))}
         <text
-          x="50"
-          y="55"
+          x="100"
+          y="104"
           textAnchor="middle"
-          fontSize="8"
-          fontWeight="700"
+          fontSize="11"
+          fontWeight="800"
           fill="white"
+          fontFamily="monospace"
+          className="tracking-tight"
         >
           lnkr
         </text>
       </svg>
 
-      {/* Floating site chips */}
-      <div className="absolute top-2 left-0 bg-white border border-[#e5e5e5] rounded-full px-2 py-1 text-[10px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1">
+      {/* Floating site chips - positioned in 4 quadrants */}
+      <div className="absolute top-12 left-2 bg-white border border-[#ebebeb] rounded-full px-3 py-1.5 text-[9px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1.5 hover:scale-105 hover:border-[#7950F7]/30 transition-all duration-200 z-10">
         <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7]" />
         github.com
       </div>
-      <div className="absolute bottom-2 right-0 bg-white border border-[#e5e5e5] rounded-full px-2 py-1 text-[10px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#a78bfa]" />
+      <div className="absolute top-15 right-2 bg-white border border-[#ebebeb] rounded-full px-3 py-1.5 text-[9px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1.5 hover:scale-105 hover:border-[#7950F7]/30 transition-all duration-200 z-10">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#d946ef]" />
+        claude.ai
+      </div>
+      <div className="absolute bottom-10 right-5 bg-white border border-[#ebebeb] rounded-full px-3 py-1.5 text-[9px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1.5 hover:scale-105 hover:border-[#7950F7]/30 transition-all duration-200 z-10">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#06b6d4]" />
         arxiv.org
+      </div>
+      <div className="absolute bottom-4 left-2 bg-white border border-[#ebebeb] rounded-full px-3 py-1.5 text-[9px] font-semibold text-[#0a0a0a] shadow-sm flex items-center gap-1.5 hover:scale-105 hover:border-[#7950F7]/30 transition-all duration-200 z-10">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#f97316]" />
+        reddit.com
       </div>
     </div>
   );
 }
 
-// ─── Bento Visual: Cross-device sync ────────────────────────────────────────
-function SyncVisual() {
+// ─── Bento Visual: Dashboard Mockup ──────────────────────────────────────────
+function DashboardVisual() {
+  const links = [
+    {
+      title: "Instagram",
+      url: "instagram.com",
+      date: "6/20/2026",
+      color: "#d946ef",
+    },
+    {
+      title: "Any gud movies or web series suggestions pls : r/delhi",
+      url: "reddit.com",
+      date: "6/16/2026",
+      color: "#f97316",
+    },
+    {
+      title: "How jobcopilot works - Claude",
+      url: "claude.ai",
+      date: "6/16/2026",
+      color: "#a78bfa",
+    },
+  ];
+
   return (
-    <div className="flex items-center justify-center gap-4 py-4">
-      {/* Central hub */}
-      <div className="relative flex items-center justify-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#7950F7] shadow-[0_4px_24px_rgba(121,80,247,0.4)] flex items-center justify-center z-10 relative">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-          {/* Orbiting dots */}
-          <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-white border-2 border-[#7950F7] shadow-sm flex items-center justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#7950F7]" />
+    <div className="flex-1 flex flex-col gap-2 w-full mt-2 select-none">
+      {links.map((link, idx) => (
+        <div
+          key={idx}
+          className="bg-white border border-[#ebebeb] rounded-xl p-2.5 shadow-sm hover:border-[#7950F7]/30 transition-all duration-200 flex flex-col gap-1 w-full text-left"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold text-[#7950F7] bg-[#7950F7]/5 px-2 py-0.5 rounded-md">
+              {link.url}
+            </span>
+            <span className="text-[9px] text-[#9ca3af] font-mono">
+              {link.date}
+            </span>
           </div>
-          <div className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-white border-2 border-[#a78bfa] shadow-sm flex items-center justify-center">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#a78bfa]" />
+          <p className="text-[10px] font-extrabold text-[#0a0a0a] truncate w-[90%]">
+            {link.title}
+          </p>
+          <div className="flex items-center justify-between text-[9px] text-[#9ca3af] mt-0.5 border-t border-[#f5f5f7] pt-1">
+            <span className="font-mono">
+              ID:{" "}
+              {idx === 0
+                ? "7d5df8d..."
+                : idx === 1
+                  ? "fd74256..."
+                  : "41c7f40..."}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: link.color }}
+              />
+              <svg
+                width="8"
+                height="8"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Device icons */}
-      <div className="flex flex-col gap-3">
-        {/* Browser */}
-        <div className="w-10 h-10 rounded-xl bg-[#f0eeff] border border-[#7950F7]/20 flex items-center justify-center">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#7950F7"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
-        </div>
-        {/* Mobile */}
-        <div className="w-10 h-10 rounded-xl bg-[#f0eeff] border border-[#7950F7]/20 flex items-center justify-center">
-          <svg
-            width="14"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#7950F7"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-            <line x1="12" y1="18" x2="12.01" y2="18" />
-          </svg>
-        </div>
-      </div>
-
-      {/* Connecting lines */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-        viewBox="0 0 200 100"
-      >
-        <line
-          x1="90"
-          y1="50"
-          x2="140"
-          y2="30"
-          stroke="#7950F7"
-          strokeWidth="1"
-          strokeDasharray="3,3"
-        />
-        <line
-          x1="90"
-          y1="50"
-          x2="140"
-          y2="70"
-          stroke="#7950F7"
-          strokeWidth="1"
-          strokeDasharray="3,3"
-        />
-      </svg>
+      ))}
     </div>
   );
 }
@@ -266,91 +216,134 @@ function BentoSection() {
         <div className="text-center mb-14 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7950F7]/25 bg-[#7950F7]/5 text-xs font-semibold text-[#7950F7]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7] animate-pulse" />
-            LNKR Features
+            Product Capabilities
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0a0a0a] tracking-tight leading-tight font-display">
-            Smooth Functionality,
+            A Powerful Workflow,
             <br />
-            <span className="text-[#7950F7]">Effortless</span> Experience
+            <span className="text-[#7950F7]">Beautifully</span> Structured
           </h2>
         </div>
 
         {/* Bento grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[220px]">
-          {/* Card 1 — Large left (spans 2 cols, 1 row) */}
-          <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
-            <div>
-              <h3 className="text-lg font-bold text-[#0a0a0a] mb-1">
-                <span className="font-extrabold">Instant</span>{" "}
-                <span className="font-light text-[#6b6b6b]">Alt+S Save</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1 — Detailed Activity & Source Analytics (spans 2 cols on desktop) */}
+          <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl flex flex-col justify-between overflow-hidden relative group  min-h-[460px]">
+            <div className="mb-4 p-6 md:p-8 pb-0 md:pb-0 ">
+              <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
+                Curation Insights
+              </span>
+              <h3 className="text-xl font-bold text-[#0a0a0a] font-display">
+                Detailed Activity & Source Analytics
               </h3>
-              <p className="text-sm text-[#6b6b6b] leading-relaxed max-w-xs">
-                One keystroke captures the active tab — URL, title, domain, and
-                timestamp — without switching context.
+              <p className="text-sm text-[#6b6b6b] max-w-xl mt-1">
+                Monitor your collection habits. Review saving trends, track
+                weekly resource collection metrics, and see which platforms you
+                reference most.
               </p>
             </div>
-            <KeyboardVisual />
-          </div>
 
-          {/* Card 2 — Small right top (1 col, 1 row) */}
-          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
-            <div className="absolute top-4 right-4">
-              <div className="bg-[#7950F7] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                +2K
-              </div>
-            </div>
-            <h3 className="text-base font-bold text-[#0a0a0a] mb-1 mt-6">
-              <span className="font-extrabold">Smart</span>{" "}
-              <span className="font-light text-[#6b6b6b]">Analytics</span>
-            </h3>
-            <p className="text-xs text-[#6b6b6b] leading-relaxed">
-              Gain insights into your link activity and find patterns fast.
-            </p>
-            <div className="flex-1 flex items-end relative">
-              <AnalyticsVisual />
+            {/* Floating dashboard mockup sliding container */}
+            <div className="relative w-full flex-1 rounded-t-2xl overflow-hidden min-h-[300px]">
+              <Image
+                src="/analytics.png"
+                alt="Detailed Activity and Source Analytics Dashboard"
+                fill
+                sizes="(max-width: 768px) 100vw, 680px"
+                className="object-cover  "
+                priority
+              />
             </div>
           </div>
 
-          {/* Card 3 — Small bottom left (1 col, 1 row) */}
-          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
-            <DomainVisual />
-            <div className="mt-auto">
-              <h3 className="text-base font-bold text-[#0a0a0a] mb-0.5">
-                <span className="font-extrabold">Domain</span>{" "}
-                <span className="font-light text-[#6b6b6b]">Isolation</span>
+          {/* Card 2 — Top Sources & Metrics (spans 1 col on desktop) */}
+          <div className="md:col-span-1 bg-[#fafafa] border border-[#ebebeb] rounded-3xl  flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[460px]">
+            <div className="mb-4 p-4 md:p-6 pb-0 md:pb-0">
+              <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
+                Source Metrics
+              </span>
+              <h3 className="text-xl font-bold text-[#0a0a0a] font-display">
+                Top Sources & Metrics
+              </h3>
+              <p className="text-sm text-[#6b6b6b] mt-1">
+                View which platforms you save from most and track overall saving
+                benchmarks.
+              </p>
+            </div>
+
+            {/* Floating stats breakdown sliding container */}
+            <div className="relative w-full flex-1 rounded-t-2xl overflow-hidden min-h-[280px]">
+              <Image
+                src="/stats.jpeg"
+                alt="Stats Overview Breakdown"
+                fill
+                sizes="(max-width: 768px) 100vw, 340px"
+                className="object-cover rounded-t-2xl object-left"
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Card 3 — Organized Vaults (spans 1 col) */}
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl  flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+            <div className="p-6 pb-0">
+              <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
+                Custom Categories
+              </span>
+              <h3 className="text-lg font-bold text-[#0a0a0a] mb-1 font-display">
+                Organized Vaults
               </h3>
               <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                The HUD auto-filters to only show links from the site
-                you&apos;re currently on.
+                Sort your links into dedicated folders with custom theme colors
+                to keep your research structured.
               </p>
             </div>
+            <FoldersVisual />
           </div>
 
-          {/* Card 4 — Large bottom right (2 cols, 1 row) */}
-          <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
-            <h3 className="text-lg font-bold text-[#0a0a0a] mb-1">
-              <span className="font-extrabold">Cross-Device</span>{" "}
-              <span className="font-light text-[#6b6b6b]">Sync</span>
-            </h3>
-            <p className="text-sm text-[#6b6b6b] leading-relaxed max-w-sm">
-              Every save is pushed to your secure vault in real time. Access
-              your links from the extension or web dashboard, anywhere.
-            </p>
-            <div className="flex-1 flex items-center justify-center relative">
-              <SyncVisual />
+          {/* Card 4 — Smart Filtering (spans 1 col) */}
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+            <div>
+              <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
+                Context-Aware Views
+              </span>
+              <h3 className="text-lg font-bold text-[#0a0a0a] mb-1 font-display">
+                Smart Filtering
+              </h3>
+              <p className="text-xs text-[#6b6b6b] leading-relaxed">
+                Automatically filters your vault to show links matching the
+                website you are currently browsing.
+              </p>
+            </div>
+            <DomainVisual />
+          </div>
 
-              {/* Extra decorative pills */}
-              <div className="absolute bottom-2 left-4 flex gap-2">
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
-                  Supabase
-                </span>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
-                  Real-time
-                </span>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
-                  End-to-end
-                </span>
-              </div>
+          {/* Card 5 — Link Vault Dashboard (spans 1 col) */}
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+            <div>
+              <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
+                Vault Repository
+              </span>
+              <h3 className="text-lg font-bold text-[#0a0a0a] mb-1 font-display">
+                Link Vault
+              </h3>
+              <p className="text-xs text-[#6b6b6b] leading-relaxed">
+                Your secure repository for everything you save. Easily browse,
+                search, and manage your collection from a clean web dashboard.
+              </p>
+            </div>
+
+            <div className="my-2 w-full">
+              <DashboardVisual />
+            </div>
+
+            <div className="flex gap-2 flex-wrap mt-2">
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
+                Searchable
+              </span>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
+                Vault
+              </span>
             </div>
           </div>
         </div>
@@ -392,13 +385,14 @@ export default function Home() {
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl font-bold text-[#0a0a0a] tracking-tight leading-tight mb-4 font-display">
-            Get your early access today!
+            Streamline how you save and organize the web.
           </h1>
 
           {/* Subtext */}
-          <p className="text-[#6b6b6b] text-base sm:text-lg mb-10 max-w-md leading-relaxed">
-            Be first to experience LNKR. Don&apos;t miss out — join the line for
-            updates and early access.
+          <p className="text-[#6b6b6b] text-base sm:text-lg mb-10 max-w-xl leading-relaxed">
+            LyncFlow helps developers, researchers, and creators save web
+            resources instantly, group them into theme-colored vaults, and track
+            collection trends over time.
           </p>
 
           {/* Waitlist Form */}
@@ -410,8 +404,8 @@ export default function Home() {
           <div className="flex flex-col items-center gap-3">
             <p className="text-sm text-[#6b6b6b]">
               Join with{" "}
-              <span className="font-semibold text-[#0a0a0a]">15,725+</span>{" "}
-              others on waitlist
+              <span className="font-semibold text-[#0a0a0a]">15+</span> others
+              on waitlist
             </p>
             <div className="flex items-center -space-x-2">
               {AVATARS.map((src, i) => (
@@ -524,6 +518,9 @@ function WaitlistForm() {
       </form>
 
       <div className="h-[2px] w-full rounded-b-2xl bg-gradient-to-r from-transparent via-[#7950F7]/40 to-transparent mt-0" />
+      <span className="text-xs text-[#7950F7] font-[600] text-shadow-2xs">
+        Join the waitlist for updates and early access
+      </span>
 
       {message && (
         <p
