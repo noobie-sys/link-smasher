@@ -64,3 +64,20 @@ ALTER TABLE link_events ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow realtime reads" ON site_time_logs;
 DROP POLICY IF EXISTS "Allow realtime reads" ON link_events;
+
+-- ============================================================
+-- Waitlist RLS — Run this in Supabase SQL Editor
+-- ============================================================
+-- Waitlist submissions go through the Next.js API using the private database
+-- connection. Public Supabase clients must not read, list, update, delete, or
+-- insert waitlist rows directly.
+-- ============================================================
+
+ALTER TABLE waitlist_entries ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read waitlist entries" ON waitlist_entries;
+DROP POLICY IF EXISTS "Anyone can insert waitlist entries" ON waitlist_entries;
+DROP POLICY IF EXISTS "Enable read access for all users" ON waitlist_entries;
+DROP POLICY IF EXISTS "Enable insert for all users" ON waitlist_entries;
+DROP POLICY IF EXISTS "Public can submit waitlist email" ON waitlist_entries;
+-- No policy is defined: RLS enabled + no policy = all direct access denied.
