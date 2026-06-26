@@ -8,10 +8,10 @@ import {
   Star, Clock, MousePointer, Database, Lock,
   ArrowRight, Keyboard, Folder,
 } from "lucide-react";
-import { useSession, signOut } from "@/lib/auth-client";
 import { useScrollDirection } from "@/lib/useScrollDirection";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "@/components/mode-toggle";
+
 
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
@@ -72,8 +72,8 @@ const COLOR_CLASSES: Record<string, {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { data: session } = useSession();
   const isNavbarVisible = useScrollDirection();
+
 
 
   const [savesCount, setSavesCount] = useState(12480);
@@ -194,30 +194,11 @@ export default function Home() {
               <GithubIcon className="h-5 w-5" />
             </a>
 
-            {session?.user ? (
-              <>
-                <a href="/dashboard" className="px-4 py-2 rounded-lg text-sm font-semibold text-lk-text-secondary hover:text-white hover:bg-white/5 border border-white/8 transition-all">
-                  Dashboard
-                </a>
-                <button
-                  onClick={() => signOut({ fetchOptions: { onSuccess: () => window.location.reload() } })}
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-lk-text-muted hover:text-white hover:bg-white/5 transition-all cursor-pointer"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <a href="/login" className="px-4 py-2 rounded-lg text-sm font-semibold text-lk-text-secondary hover:text-white hover:bg-white/5 border border-white/8 transition-all">
-                Sign In
-              </a>
-            )}
-
             <a
-              href="#download"
+              href="#waitlist"
               className="px-5 py-2.5 rounded-xl text-sm font-bold bg-lk-primary hover:bg-lk-primary-hover text-white shadow-lg shadow-lk-primary/20 hover:shadow-lk-primary/30 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center gap-2"
             >
-              <Download className="h-4 w-4" />
-              Install Free
+              Join Waitlist
             </a>
           </div>
         </div>
@@ -250,21 +231,8 @@ export default function Home() {
                 The keyboard-first browser extension that saves, shortens, and retrieves your links — filtered to the exact site you&apos;re on.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="#download"
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-full font-bold text-base bg-lk-primary hover:bg-lk-primary-hover text-white shadow-xl shadow-lk-primary/25 hover:shadow-lk-primary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
-                >
-                  Install Extension Free
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </a>
-                <a
-                  href="#simulator"
-                  className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-full font-semibold text-base glass-panel border border-white/10 hover:border-lk-primary/30 text-lk-text-secondary hover:text-white hover:bg-lk-primary/5 transition-all duration-200"
-                >
-                  <Eye className="h-5 w-5" />
-                  See Live Demo
-                </a>
+              <div id="waitlist" className="max-w-md">
+                <WaitlistForm />
               </div>
 
               {/* Trust */}
@@ -893,30 +861,15 @@ export default function Home() {
               </h2>
 
               <p className="text-lk-text-muted text-base md:text-lg font-light leading-relaxed">
-                Install Link Crust in 30 seconds. Save your first link with Alt+S. You&apos;ll never use a bookmark folder again.
+                Join the waitlist today. We will email you an invite to the private beta as soon as slots open up.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                <a
-                  href="https://chromewebstore.google.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold bg-lk-primary hover:bg-lk-primary-hover text-white shadow-2xl shadow-lk-primary/30 hover:shadow-lk-primary/40 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3 group"
-                >
-                  <Download className="h-5 w-5" />
-                  Add to Chrome — It&apos;s Free
-                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </a>
-                <a
-                  href="/login"
-                  className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold glass-panel border border-lk-border hover:border-lk-primary/30 text-lk-text-secondary hover:text-white hover:bg-lk-primary/5 transition-all duration-200"
-                >
-                  Access Web Vault
-                </a>
+              <div className="max-w-md mx-auto pt-2">
+                <WaitlistForm />
               </div>
 
               <p className="text-xs text-lk-text-muted/60">
-                No account needed for local-only saves. Sync is optional and free.
+                We respect your privacy. Zero spam. Unsubscribe anytime.
               </p>
             </div>
           </div>
@@ -966,10 +919,8 @@ export default function Home() {
                 ],
               },
               {
-                heading: "Account",
+                heading: "Legal",
                 links: [
-                  { label: "Sign In", href: "/login" },
-                  { label: "Web Vault", href: "/dashboard" },
                   { label: "Privacy Policy", href: "#" },
                   { label: "Terms of Service", href: "#" },
                 ],
@@ -1005,6 +956,86 @@ export default function Home() {
         </div>
       </footer>
 
+    </div>
+  );
+}
+
+// ─── Waitlist Form component ─────────────────────────────────────────────────
+function WaitlistForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong. Please try again.");
+      }
+
+      setStatus("success");
+      setMessage(data.message || "Thank you for joining the waitlist!");
+      setEmail("");
+    } catch (err: any) {
+      setStatus("error");
+      setMessage(err.message || "An unexpected error occurred.");
+    }
+  };
+
+  return (
+    <div className="w-full text-left">
+      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-grow">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={status === "loading" || status === "success"}
+            placeholder="Enter your email address..."
+            required
+            className="w-full px-5 py-4 rounded-xl bg-white/[0.03] border border-white/10 focus:border-lk-primary/50 text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-lk-primary/50 backdrop-blur-md transition-all duration-300 disabled:opacity-50"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={status === "loading" || status === "success"}
+          className="px-6 py-4 rounded-xl font-bold bg-lk-primary hover:bg-lk-primary-hover disabled:hover:bg-lk-primary text-white shadow-lg shadow-lk-primary/20 hover:shadow-lk-primary/30 transition-all duration-300 active:scale-[0.98] disabled:scale-100 disabled:opacity-50 flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer"
+        >
+          {status === "loading" ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Joining...
+            </span>
+          ) : status === "success" ? (
+            "Joined!"
+          ) : (
+            "Join Waitlist"
+          )}
+        </button>
+      </form>
+      {message && (
+        <p className={cn(
+          "mt-3 text-sm px-1 font-medium transition-all duration-300 animate-in fade-in slide-in-from-top-1",
+          status === "success" ? "text-emerald-400" : "text-rose-400"
+        )}>
+          {message}
+        </p>
+      )}
     </div>
   );
 }
