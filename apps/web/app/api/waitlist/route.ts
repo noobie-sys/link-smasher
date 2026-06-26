@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { withApiHandler } from "@/lib/api-handler";
@@ -28,10 +29,11 @@ export const POST = withApiHandler(async (request: NextRequest) => {
 
   const { email } = waitlistSchema.parse(body);
   const cleanEmail = email.toLowerCase().trim();
+  const id = randomUUID();
 
   const [entry] = await prisma.$queryRaw<WaitlistRow[]>`
-    INSERT INTO waitlist_entries (email)
-    VALUES (${cleanEmail})
+    INSERT INTO waitlist_entries (id, email)
+    VALUES (${id}, ${cleanEmail})
     ON CONFLICT (email) DO NOTHING
     RETURNING id, email, created_at AS "createdAt"
   `;
