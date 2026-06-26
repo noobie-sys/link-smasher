@@ -94,20 +94,20 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: var(--color-lk-bg);
+    background: #f5f5f5;
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--color-lk-primary), var(--color-lk-accent));
+    background: #7950F7;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--color-lk-primary-soft), var(--color-lk-accent-soft));
+    background: #6a3de8;
   }
 
   /* High fidelity selections */
   ::selection {
-    background-color: rgba(39, 99, 255, 0.25);
-    color: #ffffff;
+    background-color: rgba(121, 80, 247, 0.25);
+    color: #0a0a0a;
   }
   * {
     @apply border-border outline-ring/50;
@@ -284,24 +284,24 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
 
-  /* Brand Theme Variables (Light) */
-  --brand-dark: oklch(0.967 0.001 286.375);
-  --brand-deep: oklch(0.92 0.004 286.32);
-  --lk-bg: oklch(1 0 0);
-  --lk-surface: oklch(1 0 0);
-  --lk-border: oklch(0.92 0.004 286.32);
-  --lk-primary: oklch(0.488 0.243 264.376);
-  --lk-primary-soft: oklch(0.488 0.243 264.376 / 12%);
-  --lk-primary-hover: oklch(0.42 0.24 264.376);
-  --lk-secondary: oklch(0.967 0.001 286.375);
-  --lk-secondary-soft: oklch(0.967 0.001 286.375 / 12%);
-  --lk-accent: oklch(0.967 0.001 286.375);
-  --lk-accent-soft: oklch(0.967 0.001 286.375 / 12%);
-  --lk-text-secondary: oklch(0.4 0.01 285.823);
-  --lk-text-muted: oklch(0.552 0.016 285.938);
-  --glass-bg: oklch(1 0 0 / 75%);
-  --glass-border: oklch(0.141 0.005 285.823 / 8%);
-  --grid-color: oklch(0.141 0.005 285.823 / 5%);
+  /* Brand Theme Variables — Black/White + Purple #7950F7 */
+  --brand-dark: #ffffff;
+  --brand-deep: #ffffff;
+  --lk-bg: #ffffff;
+  --lk-surface: #f9f9f9;
+  --lk-border: rgba(121, 80, 247, 0.12);
+  --lk-primary: #7950F7;
+  --lk-primary-soft: rgba(121, 80, 247, 0.08);
+  --lk-primary-hover: #6a3de8;
+  --lk-secondary: #7950F7;
+  --lk-secondary-soft: rgba(121, 80, 247, 0.08);
+  --lk-accent: #7950F7;
+  --lk-accent-soft: rgba(121, 80, 247, 0.08);
+  --lk-text-secondary: #0a0a0a;
+  --lk-text-muted: #6b6b6b;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(121, 80, 247, 0.1);
+  --grid-color: rgba(121, 80, 247, 0.03);
   --chart-background: oklch(1 0 0);
   --chart-foreground: oklch(0.145 0.004 285);
   --chart-foreground-muted: oklch(0.55 0.014 260);
@@ -353,24 +353,24 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
 
-  /* Brand Theme Variables (Dark) */
-  --brand-dark: oklch(0.1 0.003 285.8);
-  --brand-deep: oklch(0.141 0.005 285.823);
-  --lk-bg: oklch(0.141 0.005 285.823);
-  --lk-surface: oklch(0.21 0.006 285.885);
-  --lk-border: oklch(1 0 0 / 10%);
-  --lk-primary: oklch(0.424 0.199 265.638);
-  --lk-primary-soft: oklch(0.424 0.199 265.638 / 15%);
-  --lk-primary-hover: oklch(0.52 0.19 265.638);
-  --lk-secondary: oklch(0.274 0.006 286.033);
-  --lk-secondary-soft: oklch(0.274 0.006 286.033 / 15%);
-  --lk-accent: oklch(0.274 0.006 286.033);
-  --lk-accent-soft: oklch(0.274 0.006 286.033 / 15%);
-  --lk-text-secondary: oklch(0.8 0.005 285.8);
-  --lk-text-muted: oklch(0.705 0.015 286.067);
-  --glass-bg: oklch(0.21 0.006 285.885 / 55%);
-  --glass-border: oklch(1 0 0 / 7%);
-  --grid-color: oklch(1 0 0 / 4%);
+  /* Brand Theme Variables (Dark) - Listify Redesign */
+  --brand-dark: #0b051f;
+  --brand-deep: #0a041a;
+  --lk-bg: #0b051f;
+  --lk-surface: #130a2f;
+  --lk-border: rgba(115, 96, 255, 0.15);
+  --lk-primary: #7360ff;
+  --lk-primary-soft: rgba(115, 96, 255, 0.15);
+  --lk-primary-hover: #5d4aeb;
+  --lk-secondary: #9bef1c;
+  --lk-secondary-soft: rgba(155, 239, 28, 0.15);
+  --lk-accent: #9bef1c;
+  --lk-accent-soft: rgba(155, 239, 28, 0.15);
+  --lk-text-secondary: #dde2f1;
+  --lk-text-muted: #9997a8;
+  --glass-bg: rgba(19, 10, 47, 0.45);
+  --glass-border: rgba(115, 96, 255, 0.15);
+  --grid-color: rgba(115, 96, 255, 0.05);
   --chart-background: oklch(0.145 0 0);
   --chart-foreground: oklch(0.45 0 0);
   --chart-foreground-muted: oklch(0.65 0.01 260);
