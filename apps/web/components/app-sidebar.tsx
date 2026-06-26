@@ -21,7 +21,6 @@ import {
   BarChart3,
   Settings,
   CircleHelp,
-  Link2,
   Folder,
   Sparkles,
 } from "lucide-react";
@@ -91,21 +90,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:p-1.5! hover:bg-transparent"
             >
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-brand-magenta shadow-md shadow-primary/20 text-white shrink-0">
-                  <Link2 className="h-5 w-5" />
-                </div>
-                <div className="flex flex-col justify-center leading-none">
-                  <span className="font-display font-bold text-sm tracking-tight text-foreground">
-                    Link{" "}
-                    <span className="bg-gradient-to-r from-primary to-brand-magenta bg-clip-text text-transparent">
-                      Crust
-                    </span>
+              <Link href="/dashboard" className="flex items-center gap-2.5">
+                <img
+                  src="/logo.png"
+                  alt="Lyncflow"
+                  className="h-9 w-9 shrink-0 rounded-xl object-cover"
+                />
+                <span className="font-display font-bold text-sm tracking-tight text-foreground">
+                  Lync
+                  <span className="bg-gradient-to-r from-primary to-brand-magenta bg-clip-text text-transparent">
+                    flow
                   </span>
-                  <span className="text-[9px] text-muted-foreground uppercase tracking-widest mt-0.5">
-                    Dev Companion
-                  </span>
-                </div>
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

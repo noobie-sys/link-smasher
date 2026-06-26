@@ -13,7 +13,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Link Crust | The Ultimate In-Context Link Smasher",
+  title: "Lyncflow | The Ultimate In-Context Link Smasher",
   description: "Save and retrieve links contextually in 1-click. A sleek keyboard-driven companion extension and web vault designed for developers and researchers.",
   keywords: ["URL shortener", "Link manager", "Chrome extension", "Developer tools", "Bookmark manager", "Contextual search"],
 };

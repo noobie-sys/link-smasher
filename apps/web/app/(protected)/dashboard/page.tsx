@@ -590,8 +590,7 @@ export default function LinkSaverPage() {
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
         <Separator orientation="vertical" className="mx-2 h-4 bg-border/50" />
         <div className="flex items-center gap-2 hidden sm:flex">
-          <Link2 className="h-4 w-4 text-primary animate-pulse" />
-          <h1 className="text-sm font-semibold text-foreground tracking-tight">API Developer Sandbox</h1>
+          <h1 className="text-sm font-semibold text-foreground tracking-tight">Link Vault</h1>
         </div>
 
         {/* Search bar */}
@@ -748,7 +747,7 @@ export default function LinkSaverPage() {
                       </CardTitle>
                     )}
 
-                    <div className="flex items-center gap-1 text-[11px] text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 transition-colors hover:underline mt-1 break-all truncate font-medium">
+                    <div className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors hover:underline mt-1 break-all truncate font-medium">
                       <Globe className="h-3 w-3 shrink-0" />
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="truncate">
                         {link.hostname}
@@ -835,7 +834,7 @@ export default function LinkSaverPage() {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-[10px] text-muted-foreground/60 font-mono truncate max-w-[140px]">
+                        <span className="text-[10px] text-primary font-mono truncate max-w-[140px]">
                           ID: {link.id.substring(0, 8)}...
                         </span>
 
