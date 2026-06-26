@@ -15,7 +15,7 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "LNKR | The Ultimate In-Context Link Companion",
   description: "Save and retrieve links contextually in 1-click. A sleek keyboard-driven companion extension and web vault designed for developers and researchers.",
-  keywords: ["URL shortener", "Link manager", "Chrome extension", "Developer tools", "Bookmark manager", "Contextual search"],
+  keywords: ["Link manager", "Chrome extension", "Developer tools", "Bookmark manager", "Contextual search"],
 };
 
 export default function RootLayout({

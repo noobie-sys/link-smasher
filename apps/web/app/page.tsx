@@ -27,7 +27,7 @@ const TESTIMONIALS = [
   { name: "Arjun Mehta", role: "ML Researcher", text: "I save 30+ papers a day. LNKR's domain isolation means I instantly see only the arXiv links when I'm on arXiv. Genuinely game-changing.", stars: 5 },
   { name: "Sofia Lindqvist", role: "Senior Frontend Engineer", text: "Alt+S → Alt+K. That's literally the whole workflow. I've retired my bookmark folders entirely. The glassmorphic HUD feels incredible.", stars: 5 },
   { name: "Marcus Webb", role: "Technical Writer", text: "The Shadow DOM isolation means it never breaks the pages I'm reading. It's the first extension I've used that just works everywhere.", stars: 5 },
-  { name: "Priya Natarajan", role: "Product Manager", text: "I share lnkr.app short links in Notion pages and Slack threads. Having a vault that syncs across all my devices is everything.", stars: 5 },
+  { name: "Priya Natarajan", role: "Product Manager", text: "I share lnkr.app links in Notion pages and Slack threads. Having a vault that syncs across all my devices is everything.", stars: 5 },
   { name: "Daniel Kowalski", role: "PhD Student, CS", text: "Before LNKR I had 600 tabs open. Now I save them on save and pull them up filtered by site. My browser RAM usage dropped 80%.", stars: 5 },
   { name: "Hana Yoshida", role: "Design Engineer", text: "The UI is honestly better designed than most SaaS products I pay for. Free, open-source, and works offline too. There's no downside.", stars: 5 },
 ];
@@ -44,7 +44,7 @@ const FEATURES = [
 const HOW_IT_WORKS = [
   { step: "01", color: "lk-primary",   icon: Keyboard, title: "Press Alt+S on any tab",  desc: "LNKR captures the URL, page title, and hostname automatically. No typing required. Works on every website." },
   { step: "02", color: "lk-accent",    icon: Command,  title: "Press Alt+K to search",   desc: "The in-context HUD rises over the page, already filtered to the site you're on. Type to search across your full vault." },
-  { step: "03", color: "lk-secondary", icon: Copy,     title: "Copy the short link",     desc: "Every saved URL gets a lnkr.app alias. Share it in Slack, Notion, or email — it resolves to the original in one click." },
+  { step: "03", color: "lk-secondary", icon: Copy,     title: "Recall or copy instantly",     desc: "Access your saved links with quick copy-to-clipboard actions or launch them directly with hotkeys. Share them in Slack or Notion in a click." },
 ];
 
 // Static Tailwind class maps — JIT scanner requires complete strings, no interpolation.
@@ -141,7 +141,7 @@ export default function Home() {
   });
 
   const FAQS = [
-    { q: 'What exactly is "LNKR"?', a: "It shortens a long, messy URL into a short, context-aware lnkr.app alias. The alias is yours permanently and resolves to the original. Think bit.ly but private, offline-capable, and built into your browser." },
+    { q: 'What exactly is "LNKR"?', a: "It saves your links with context-aware shortcuts. The links are yours permanently and sync across your devices. It is private, offline-capable, and built right into your browser." },
     { q: "How does domain isolation actually work?", a: "When you open the Alt+K HUD, LNKR reads the current tab's hostname and pre-filters your vault to only links saved from that same domain. You can toggle it off with one click to see everything." },
     { q: "Does it work without an account?", a: "Yes. Links are saved locally to chrome.storage instantly. When you create an account, everything that was saved offline is automatically uploaded. You never lose a save." },
     { q: "Will the HUD break my websites?", a: "Never. The entire UI is rendered inside a browser Shadow DOM with a strict shadow root. No global CSS is injected into host pages — the HUD looks perfect regardless of what the page looks like." },
@@ -228,7 +228,7 @@ export default function Home() {
               </h1>
 
               <p className="text-lk-text-muted text-lg md:text-xl max-w-md leading-relaxed font-light">
-                The keyboard-first browser extension that saves, shortens, and retrieves your links — filtered to the exact site you&apos;re on.
+                The keyboard-first browser extension that saves, organizes, and retrieves your links — filtered to the exact site you&apos;re on.
               </p>
 
               <div id="waitlist" className="max-w-md">
@@ -406,7 +406,7 @@ export default function Home() {
             <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">nothing you don&apos;t</span>
           </h2>
           <p className="text-lk-text-muted text-base leading-relaxed font-light">
-            Bookmark bars are noisy. Generic shorteners have no context. LNKR fixes both with keyboard-first design and smart isolation.
+            Bookmark bars are noisy. Traditional bookmark managers have no context. LNKR fixes both with keyboard-first design and smart isolation.
           </p>
         </div>
 
