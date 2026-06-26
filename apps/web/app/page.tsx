@@ -13,83 +13,17 @@ const AVATARS = [
   "https://i.pravatar.cc/40?img=5",
 ];
 
-// ─── Background SVG Blobs ───────────────────────────────────────────────────
+// ─── Background Shapes ───────────────────────────────────────────────────────
 function BackgroundShapes() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-      <svg
-        className="absolute -top-32 -left-40 w-[700px] h-[700px] opacity-60"
-        viewBox="0 0 700 700"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <ellipse cx="300" cy="300" rx="300" ry="280" fill="url(#grad-tl)" />
-        <defs>
-          <radialGradient id="grad-tl" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#7950F7" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#7950F7" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-      </svg>
-
-      <svg
-        className="absolute -bottom-40 -right-40 w-[700px] h-[700px] opacity-50"
-        viewBox="0 0 700 700"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <ellipse cx="380" cy="380" rx="320" ry="290" fill="url(#grad-br)" />
-        <defs>
-          <radialGradient id="grad-br" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#7950F7" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-      </svg>
-
-      <svg
-        className="absolute top-0 left-0 w-full h-full opacity-[0.07]"
-        viewBox="0 0 1440 900"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {[...Array(8)].map((_, i) => (
-          <path
-            key={i}
-            d={`M${-200 + i * 30} ${100 + i * 60}C${200 + i * 20} ${
-              -50 + i * 40
-            } ${500 + i * 15} ${400 + i * 30} ${800 + i * 10} ${
-              300 + i * 50
-            }S${1200 + i * 8} ${700 + i * 20} ${1600 + i * 5} ${400 + i * 30}`}
-            stroke="#7950F7"
-            strokeWidth={1.5}
-            fill="none"
-          />
-        ))}
-      </svg>
-
-      <svg
-        className="absolute top-0 right-0 w-1/2 h-full opacity-[0.06]"
-        viewBox="0 0 720 900"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        {[...Array(6)].map((_, i) => (
-          <path
-            key={i}
-            d={`M${700 - i * 25} ${-50 + i * 80}C${500 - i * 20} ${
-              200 + i * 30
-            } ${600 - i * 15} ${500 + i * 20} ${400 - i * 10} ${
-              700 + i * 15
-            }S${300 - i * 8} ${900 + i * 10} ${100 - i * 5} ${600 + i * 20}`}
-            stroke="#7950F7"
-            strokeWidth={1.5}
-            fill="none"
-          />
-        ))}
-      </svg>
+      <Image
+        src="/PUumUbREZYBmHp59xpu05KuD3g.jpg"
+        alt="Background Pattern"
+        fill
+        className="object-cover object-center"
+        priority
+      />
     </div>
   );
 }
@@ -109,24 +43,41 @@ function KeyboardVisual() {
         {/* Toast notification */}
         <div className="absolute -right-8 top-0 bg-white rounded-2xl shadow-[0_4px_24px_rgba(121,80,247,0.18)] border border-[#7950F7]/15 px-3 py-2.5 flex items-center gap-2.5 whitespace-nowrap">
           <div className="w-6 h-6 rounded-lg bg-[#7950F7]/10 flex items-center justify-center shrink-0">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7950F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#7950F7"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M20 6 9 17l-5-5" />
             </svg>
           </div>
           <div>
-            <p className="text-[10px] text-[#6b6b6b] leading-none mb-0.5">Link saved!</p>
-            <p className="text-[11px] font-bold text-[#7950F7] font-mono">lnkr.app/tf-paper</p>
+            <p className="text-[10px] text-[#6b6b6b] leading-none mb-0.5">
+              Link saved!
+            </p>
+            <p className="text-[11px] font-bold text-[#7950F7] font-mono">
+              lnkr.app/tf-paper
+            </p>
           </div>
         </div>
 
         {/* Keyboard keys */}
         <div className="flex items-center gap-2 mt-1">
           <div className="bg-white border border-[#e5e5e5] rounded-lg px-3 py-2 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col items-center gap-0.5">
-            <span className="text-[10px] font-bold text-[#0a0a0a] leading-none">Alt</span>
+            <span className="text-[10px] font-bold text-[#0a0a0a] leading-none">
+              Alt
+            </span>
           </div>
           <span className="text-[#9ca3af] text-sm font-light">+</span>
           <div className="bg-[#7950F7] border border-[#6a3de8] rounded-lg px-4 py-2 shadow-[0_2px_12px_rgba(121,80,247,0.4)] flex flex-col items-center gap-0.5">
-            <span className="text-[14px] font-bold text-white leading-none">S</span>
+            <span className="text-[14px] font-bold text-white leading-none">
+              S
+            </span>
           </div>
         </div>
 
@@ -148,11 +99,12 @@ function AnalyticsVisual() {
             className="w-full rounded-t-md transition-all duration-700"
             style={{
               height: `${h}%`,
-              background: i === 5
-                ? "linear-gradient(to top, #7950F7, #a78bfa)"
-                : i === 3
-                ? "linear-gradient(to top, #7950F7cc, #a78bfaaa)"
-                : "#f0eeff",
+              background:
+                i === 5
+                  ? "linear-gradient(to top, #7950F7, #a78bfa)"
+                  : i === 3
+                    ? "linear-gradient(to top, #7950F7cc, #a78bfaaa)"
+                    : "#f0eeff",
             }}
           />
         </div>
@@ -176,9 +128,25 @@ function DomainVisual() {
     <div className="flex items-center justify-center h-28 relative">
       <svg viewBox="0 0 100 100" className="w-24 h-24">
         {dots.map((d, i) => (
-          <circle key={i} cx={d.cx} cy={d.cy} r={d.r} fill="#7950F7" fillOpacity={d.opacity} />
+          <circle
+            key={i}
+            cx={d.cx}
+            cy={d.cy}
+            r={d.r}
+            fill="#7950F7"
+            fillOpacity={d.opacity}
+          />
         ))}
-        <text x="50" y="55" textAnchor="middle" fontSize="8" fontWeight="700" fill="white">lnkr</text>
+        <text
+          x="50"
+          y="55"
+          textAnchor="middle"
+          fontSize="8"
+          fontWeight="700"
+          fill="white"
+        >
+          lnkr
+        </text>
       </svg>
 
       {/* Floating site chips */}
@@ -201,7 +169,16 @@ function SyncVisual() {
       {/* Central hub */}
       <div className="relative flex items-center justify-center">
         <div className="w-16 h-16 rounded-2xl bg-[#7950F7] shadow-[0_4px_24px_rgba(121,80,247,0.4)] flex items-center justify-center z-10 relative">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
@@ -219,14 +196,33 @@ function SyncVisual() {
       <div className="flex flex-col gap-3">
         {/* Browser */}
         <div className="w-10 h-10 rounded-xl bg-[#f0eeff] border border-[#7950F7]/20 flex items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7950F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" />
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#7950F7"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
         </div>
         {/* Mobile */}
         <div className="w-10 h-10 rounded-xl bg-[#f0eeff] border border-[#7950F7]/20 flex items-center justify-center">
-          <svg width="14" height="18" viewBox="0 0 24 24" fill="none" stroke="#7950F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="14"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#7950F7"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
             <line x1="12" y1="18" x2="12.01" y2="18" />
           </svg>
@@ -234,9 +230,28 @@ function SyncVisual() {
       </div>
 
       {/* Connecting lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 200 100">
-        <line x1="90" y1="50" x2="140" y2="30" stroke="#7950F7" strokeWidth="1" strokeDasharray="3,3" />
-        <line x1="90" y1="50" x2="140" y2="70" stroke="#7950F7" strokeWidth="1" strokeDasharray="3,3" />
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
+        viewBox="0 0 200 100"
+      >
+        <line
+          x1="90"
+          y1="50"
+          x2="140"
+          y2="30"
+          stroke="#7950F7"
+          strokeWidth="1"
+          strokeDasharray="3,3"
+        />
+        <line
+          x1="90"
+          y1="50"
+          x2="140"
+          y2="70"
+          stroke="#7950F7"
+          strokeWidth="1"
+          strokeDasharray="3,3"
+        />
       </svg>
     </div>
   );
@@ -247,7 +262,6 @@ function BentoSection() {
   return (
     <section className="w-full bg-white py-24 px-4">
       <div className="max-w-5xl mx-auto">
-
         {/* Section header */}
         <div className="text-center mb-14 space-y-4">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7950F7]/25 bg-[#7950F7]/5 text-xs font-semibold text-[#7950F7]">
@@ -255,14 +269,14 @@ function BentoSection() {
             LNKR Features
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#0a0a0a] tracking-tight leading-tight font-display">
-            Smooth Functionality,<br />
+            Smooth Functionality,
+            <br />
             <span className="text-[#7950F7]">Effortless</span> Experience
           </h2>
         </div>
 
         {/* Bento grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[220px]">
-
           {/* Card 1 — Large left (spans 2 cols, 1 row) */}
           <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
             <div>
@@ -271,7 +285,8 @@ function BentoSection() {
                 <span className="font-light text-[#6b6b6b]">Alt+S Save</span>
               </h3>
               <p className="text-sm text-[#6b6b6b] leading-relaxed max-w-xs">
-                One keystroke captures the active tab — URL, title, domain, and timestamp — without switching context.
+                One keystroke captures the active tab — URL, title, domain, and
+                timestamp — without switching context.
               </p>
             </div>
             <KeyboardVisual />
@@ -280,7 +295,9 @@ function BentoSection() {
           {/* Card 2 — Small right top (1 col, 1 row) */}
           <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300">
             <div className="absolute top-4 right-4">
-              <div className="bg-[#7950F7] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">+2K</div>
+              <div className="bg-[#7950F7] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                +2K
+              </div>
             </div>
             <h3 className="text-base font-bold text-[#0a0a0a] mb-1 mt-6">
               <span className="font-extrabold">Smart</span>{" "}
@@ -303,7 +320,8 @@ function BentoSection() {
                 <span className="font-light text-[#6b6b6b]">Isolation</span>
               </h3>
               <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                The HUD auto-filters to only show links from the site you&apos;re currently on.
+                The HUD auto-filters to only show links from the site
+                you&apos;re currently on.
               </p>
             </div>
           </div>
@@ -315,20 +333,26 @@ function BentoSection() {
               <span className="font-light text-[#6b6b6b]">Sync</span>
             </h3>
             <p className="text-sm text-[#6b6b6b] leading-relaxed max-w-sm">
-              Every save is pushed to your secure vault in real time. Access your links from the extension or web dashboard, anywhere.
+              Every save is pushed to your secure vault in real time. Access
+              your links from the extension or web dashboard, anywhere.
             </p>
             <div className="flex-1 flex items-center justify-center relative">
               <SyncVisual />
 
               {/* Extra decorative pills */}
               <div className="absolute bottom-2 left-4 flex gap-2">
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">Supabase</span>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">Real-time</span>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">End-to-end</span>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
+                  Supabase
+                </span>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
+                  Real-time
+                </span>
+                <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#7950F7]/8 text-[#7950F7] border border-[#7950F7]/15 font-medium">
+                  End-to-end
+                </span>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -339,31 +363,29 @@ function BentoSection() {
 export default function Home() {
   return (
     <div className="w-full bg-white overflow-x-hidden">
-
       {/* ── Hero / Waitlist ── */}
       <div className="relative min-h-screen flex flex-col items-center justify-center">
         <BackgroundShapes />
         <main className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-2xl mx-auto py-16">
-
           {/* Logo */}
           <div className="flex flex-col items-center gap-3 mb-8">
             <Image
-              src="/logo.png"
-              alt="LNKR Logo"
+              src="/lnkr.png"
+              alt="LyncFlow Logo"
               width={64}
               height={64}
               className="rounded-2xl"
               priority
             />
-            <span className="text-[#0a0a0a] font-bold text-2xl tracking-tight font-display">
-              LNKR
+            <span className="text-[#7950F7] font-bold text-2xl tracking-tight font-display">
+              LyncFlow
             </span>
           </div>
 
           {/* Coming Soon badge */}
           <div className="mb-5">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0a0a0a] text-white text-xs font-semibold tracking-wide">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7] animate-pulse" />
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#7950F7] text-white text-xs font-semibold tracking-wide">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Coming Soon
             </span>
           </div>
@@ -409,7 +431,6 @@ export default function Home() {
 
       {/* ── Bento Features Section ── */}
       <BentoSection />
-
     </div>
   );
 }
@@ -417,7 +438,9 @@ export default function Home() {
 // ─── Waitlist Form ──────────────────────────────────────────────────────────
 function WaitlistForm() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -433,13 +456,16 @@ function WaitlistForm() {
         body: JSON.stringify({ email }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Something went wrong.");
+      if (!response.ok)
+        throw new Error(data.message || "Something went wrong.");
       setStatus("success");
       setMessage(data.message || "You're on the list! We'll be in touch.");
       setEmail("");
     } catch (err: unknown) {
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "An unexpected error occurred.");
+      setMessage(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+      );
     }
   };
 
@@ -481,7 +507,7 @@ function WaitlistForm() {
             "shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200",
             "bg-[#7950F7] hover:bg-[#6a3de8] active:scale-95",
             "shadow-[0_2px_12px_rgba(121,80,247,0.35)] hover:shadow-[0_4px_20px_rgba(121,80,247,0.5)]",
-            "disabled:opacity-60 disabled:pointer-events-none cursor-pointer"
+            "disabled:opacity-60 disabled:pointer-events-none cursor-pointer",
           )}
         >
           {status === "loading" ? (
@@ -503,7 +529,7 @@ function WaitlistForm() {
         <p
           className={cn(
             "mt-3 text-sm text-center font-medium animate-in fade-in slide-in-from-top-1 duration-300",
-            status === "success" ? "text-[#7950F7]" : "text-rose-500"
+            status === "success" ? "text-[#7950F7]" : "text-rose-500",
           )}
         >
           {message}
