@@ -1,8 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import {
+  Zap,
+  Keyboard,
+  Shield,
+  Link2,
+  Folder,
+  Tag,
+  Star,
+  ExternalLink,
+  History,
+  Sparkles,
+  Plus,
+  Settings,
+  ChevronRight,
+} from "lucide-react";
 
 // ─── Avatar Stack (mock social proof) ──────────────────────────────────────
 const AVATARS = [
@@ -109,7 +124,7 @@ function DomainVisual() {
           fontFamily="monospace"
           className="tracking-tight"
         >
-          lnkr
+          lync
         </text>
       </svg>
 
@@ -228,7 +243,7 @@ function BentoSection() {
         {/* Bento grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 — Detailed Activity & Source Analytics (spans 2 cols on desktop) */}
-          <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl flex flex-col justify-between overflow-hidden relative group  min-h-[460px]">
+          <div className="md:col-span-2 bg-[#fafafa] border border-[#ebebeb] rounded-3xl flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/25 hover:shadow-[0_12px_40px_rgba(121,80,247,0.06)] hover:translate-y-[-2px] transition-all duration-300 min-h-[460px]">
             <div className="mb-4 p-6 md:p-8 pb-0 md:pb-0 ">
               <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
                 Curation Insights
@@ -257,7 +272,7 @@ function BentoSection() {
           </div>
 
           {/* Card 2 — Top Sources & Metrics (spans 1 col on desktop) */}
-          <div className="md:col-span-1 bg-[#fafafa] border border-[#ebebeb] rounded-3xl  flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[460px]">
+          <div className="md:col-span-1 bg-[#fafafa] border border-[#ebebeb] rounded-3xl flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/25 hover:shadow-[0_12px_40px_rgba(121,80,247,0.06)] hover:translate-y-[-2px] transition-all duration-300 min-h-[460px]">
             <div className="mb-4 p-4 md:p-6 pb-0 md:pb-0">
               <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
                 Source Metrics
@@ -285,7 +300,7 @@ function BentoSection() {
           </div>
 
           {/* Card 3 — Organized Vaults (spans 1 col) */}
-          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl  flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/25 hover:shadow-[0_12px_40px_rgba(121,80,247,0.06)] hover:translate-y-[-2px] transition-all duration-300 min-h-[340px] md:h-[410px]">
             <div className="p-6 pb-0">
               <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
                 Custom Categories
@@ -302,7 +317,7 @@ function BentoSection() {
           </div>
 
           {/* Card 4 — Smart Filtering (spans 1 col) */}
-          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/25 hover:shadow-[0_12px_40px_rgba(121,80,247,0.06)] hover:translate-y-[-2px] transition-all duration-300 min-h-[340px] md:h-[410px]">
             <div>
               <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
                 Context-Aware Views
@@ -319,7 +334,7 @@ function BentoSection() {
           </div>
 
           {/* Card 5 — Link Vault Dashboard (spans 1 col) */}
-          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/30 hover:shadow-[0_8px_32px_rgba(121,80,247,0.08)] transition-all duration-300 min-h-[340px] md:h-[410px]">
+          <div className="bg-[#fafafa] border border-[#ebebeb] rounded-3xl p-6 flex flex-col justify-between overflow-hidden relative group hover:border-[#7950F7]/25 hover:shadow-[0_12px_40px_rgba(121,80,247,0.06)] hover:translate-y-[-2px] transition-all duration-300 min-h-[340px] md:h-[410px]">
             <div>
               <span className="text-[10px] text-[#7950F7] uppercase font-bold tracking-wider mb-1 block">
                 Vault Repository
@@ -425,9 +440,304 @@ export default function Home() {
 
       {/* ── Bento Features Section ── */}
       <BentoSection />
+
+      {/* ── Extension Feature Section ── */}
+      <ExtensionSection />
     </div>
   );
 }
+
+function ExtensionSection() {
+  const extensionFeatures = [
+    {
+      title: "Save the active tab",
+      description: "Capture the current page with title, URL, domain, and timestamp already filled in.",
+      icon: Zap,
+    },
+    {
+      title: "Organize before it lands",
+      description: "Choose a vault, add tags, and favorite important resources without opening the dashboard.",
+      icon: Folder,
+    },
+    {
+      title: "Keyboard-first capture",
+      description: "Use a shortcut-driven flow when you are researching fast and do not want to break focus.",
+      icon: Keyboard,
+    },
+    {
+      title: "Private by design",
+      description: "The extension sends saved links to your account through the secured app API.",
+      icon: Shield,
+    },
+  ];
+
+  const currentSiteLinks = [
+    { title: "Prisma relation queries", source: "prisma.io", tag: "Development" },
+    { title: "Next.js route handlers", source: "nextjs.org", tag: "Reference" },
+    { title: "Supabase RLS policies", source: "supabase.com", tag: "Security" },
+  ];
+
+  return (
+    <section className="w-full bg-[#fafafa] border-t border-[#ebebeb] py-24 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-12 lg:gap-16 items-center">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7950F7]/25 bg-[#7950F7]/5 text-xs font-semibold text-[#7950F7] select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7] animate-pulse" />
+                Chrome Extension
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight text-[#0a0a0a] font-display">
+                Save the web while you are still in flow.
+              </h2>
+              <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed max-w-xl">
+                The LyncFlow extension is the fast capture layer for your browser.
+                Save a tab, route it to the right vault, add context, and get back
+                to reading without opening another app.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {extensionFeatures.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="bg-white border border-[#ebebeb] rounded-2xl p-4 shadow-sm hover:border-[#7950F7]/25 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-[#7950F7]/10 text-[#7950F7] flex items-center justify-center mb-3">
+                    <feature.icon className="w-4.5 h-4.5" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#0a0a0a]">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs text-[#6b6b6b] leading-relaxed mt-1.5">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {["One-click save", "Site-aware recall", "Tags and vaults", "Dashboard sync"].map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#7950F7]/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#7950F7]"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7]" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative select-none">
+            <div className="relative rounded-3xl border border-[#e6e6e9] bg-white shadow-[0_28px_90px_rgba(15,23,42,0.10)] overflow-hidden">
+              <div className="h-12 bg-[#f7f7f8] border-b border-[#e6e6e9] px-4 flex items-center gap-3">
+                <div className="flex gap-1.5 shrink-0">
+                  <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+                  <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                  <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                </div>
+                <div className="flex-1 min-w-0 h-8 rounded-xl border border-[#e2e2e5] bg-white px-3 flex items-center gap-2 text-xs text-[#6b6b6b]">
+                  <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span className="truncate">https://docs.example.com/research</span>
+                </div>
+                <div className="w-8 h-8 rounded-xl bg-[#7950F7] text-white flex items-center justify-center text-[10px] font-black shadow-[0_4px_14px_rgba(121,80,247,0.35)]">
+                  lf
+                </div>
+              </div>
+
+              <div className="relative bg-[#fbfbfc] p-5 sm:p-6 lg:p-8 min-h-[560px]">
+                <div className="max-w-[520px] space-y-4 pr-0 lg:pr-28">
+                  <div className="h-8 w-56 rounded-lg bg-[#e9e9ed]" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-full rounded-full bg-[#ededf1]" />
+                    <div className="h-3 w-11/12 rounded-full bg-[#ededf1]" />
+                    <div className="h-3 w-2/3 rounded-full bg-[#ededf1]" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
+                    <div className="rounded-2xl border border-[#e8e8ec] bg-white p-4">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
+                        <Link2 className="w-4 h-4 text-[#7950F7]" />
+                        Matching links
+                      </div>
+                      <p className="text-[11px] text-[#6b6b6b] mt-2 leading-relaxed">
+                        See related saves for the site you are already browsing.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[#e8e8ec] bg-white p-4">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
+                        <History className="w-4 h-4 text-[#06b6d4]" />
+                        Recent captures
+                      </div>
+                      <p className="text-[11px] text-[#6b6b6b] mt-2 leading-relaxed">
+                        Every saved page appears in the dashboard automatically.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative lg:absolute lg:top-8 lg:right-8 mt-6 lg:mt-0 w-full lg:w-[330px] rounded-3xl border border-[#dedee4] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[#efeff2] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-[#7950F7] text-white flex items-center justify-center text-[10px] font-black">
+                        lf
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-[#0a0a0a] leading-none">
+                          LyncFlow
+                        </p>
+                        <p className="text-[10px] text-[#8a8a8f] mt-1">
+                          Browser extension
+                        </p>
+                      </div>
+                    </div>
+                    <Settings className="w-4 h-4 text-[#8a8a8f]" />
+                  </div>
+
+                  <div className="p-4 space-y-4">
+                    <button className="w-full rounded-2xl bg-[#7950F7] text-white px-4 py-3 flex items-center justify-between text-sm font-bold shadow-[0_8px_22px_rgba(121,80,247,0.28)]">
+                      <span className="inline-flex items-center gap-2">
+                        <Plus className="w-4 h-4" />
+                        Save current tab
+                      </span>
+                      <kbd className="rounded-lg bg-white/20 px-2 py-1 text-[10px] font-mono">
+                        CMD K
+                      </kbd>
+                    </button>
+
+                    <div className="rounded-2xl border border-[#eeeeef] bg-[#fafafa] p-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#0f172a] text-white flex items-center justify-center shrink-0">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-[#0a0a0a] truncate">
+                            Building reliable browser workflows
+                          </p>
+                          <p className="text-[11px] text-[#6b6b6b] truncate mt-1">
+                            docs.example.com/research/browser-workflows
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-1.5">
+                          Vault
+                        </p>
+                        <div className="h-10 rounded-xl border border-[#e6e6e9] bg-white px-3 flex items-center justify-between text-xs font-bold text-[#0a0a0a]">
+                          <span className="inline-flex items-center gap-2 min-w-0">
+                            <span className="w-2 h-2 rounded-full bg-[#7950F7] shrink-0" />
+                            <span className="truncate">Research</span>
+                          </span>
+                          <ChevronRight className="w-3.5 h-3.5 text-[#9ca3af]" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-1.5">
+                          Status
+                        </p>
+                        <div className="h-10 rounded-xl border border-[#e6e6e9] bg-white px-3 flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          Favorite
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-2">
+                        Tags
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {["reading", "browser", "workflow"].map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#7950F7]/8 border border-[#7950F7]/15 px-2.5 py-1 text-[11px] font-bold text-[#7950F7]"
+                          >
+                            <Tag className="w-3 h-3" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#eeeeef] bg-white overflow-hidden">
+                      <div className="px-3 py-2 border-b border-[#eeeeef] flex items-center justify-between">
+                        <p className="text-xs font-bold text-[#0a0a0a]">
+                          From this site
+                        </p>
+                        <ExternalLink className="w-3.5 h-3.5 text-[#9ca3af]" />
+                      </div>
+                      <div className="divide-y divide-[#f0f0f2]">
+                        {currentSiteLinks.map((link) => (
+                          <div key={link.title} className="p-3">
+                            <p className="text-xs font-bold text-[#0a0a0a] truncate">
+                              {link.title}
+                            </p>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                              <span className="text-[10px] text-[#8a8a8f] truncate">
+                                {link.source}
+                              </span>
+                              <span className="text-[10px] font-bold text-[#06b6d4] bg-[#06b6d4]/10 rounded-full px-2 py-0.5 shrink-0">
+                                {link.tag}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 lg:mt-8 grid grid-cols-3 gap-3 max-w-[520px]">
+                  {[
+                    { value: "1 click", label: "to capture" },
+                    { value: "3 fields", label: "to organize" },
+                    { value: "0 tabs", label: "to switch" },
+                  ].map((metric) => (
+                    <div
+                      key={metric.label}
+                      className="rounded-2xl border border-[#e8e8ec] bg-white p-3"
+                    >
+                      <p className="text-sm font-extrabold text-[#0a0a0a]">
+                        {metric.value}
+                      </p>
+                      <p className="text-[10px] font-medium text-[#8a8a8f] mt-1">
+                        {metric.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { step: "Capture", text: "Click the toolbar button or shortcut." },
+                { step: "Context", text: "Add vault, tags, and favorite state." },
+                { step: "Recall", text: "Find it later by site, vault, or search." },
+              ].map((item) => (
+                <div
+                  key={item.step}
+                  className="rounded-2xl border border-[#ebebeb] bg-white p-4"
+                >
+                  <p className="text-xs font-extrabold text-[#7950F7]">
+                    {item.step}
+                  </p>
+                  <p className="text-xs text-[#6b6b6b] leading-relaxed mt-1">
+                    {item.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 // ─── Waitlist Form ──────────────────────────────────────────────────────────
 function WaitlistForm() {
