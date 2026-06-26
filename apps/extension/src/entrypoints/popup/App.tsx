@@ -170,7 +170,7 @@ export default function App() {
               <Link2 size={18} className="text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="m-0 text-sm font-bold tracking-tight text-white leading-tight">Link Crust</h1>
+              <h1 className="m-0 text-sm font-bold tracking-tight text-white leading-tight">LNKR</h1>
               <p className="m-0 mt-0.5 text-[10px] text-slate-400 truncate leading-none">
                 {isAuthenticated ? user?.email || "Cloud sync active" : "Local vault mode"}
               </p>

@@ -10,7 +10,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   srcDir: "src",
   manifest: {
-    name: "Link Crust",
+    name: "LNKR",
     description: "Save and revisit links instantly without breaking your flow.",
     permissions: ["storage", "tabs", "activeTab", "cookies", "scripting", "alarms"],
     host_permissions: [

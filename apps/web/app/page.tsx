@@ -16,19 +16,19 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 const MOCK_LINKS = [
-  { id: 1, original: "https://github.com/google-deepmind/alphafold", title: "AlphaFold Structure Analysis", short: "crust.link/alphafold", site: "github.com", category: "Research" },
-  { id: 2, original: "https://nextjs.org/docs/app/building-your-application", title: "Next.js App Router Docs", short: "crust.link/next-docs", site: "nextjs.org", category: "Docs" },
-  { id: 3, original: "https://arxiv.org/abs/1706.03762", title: "Attention Is All You Need", short: "crust.link/transformer", site: "arxiv.org", category: "AI Paper" },
-  { id: 4, original: "https://tailwindcss.com/docs/installation", title: "Tailwind CSS Configuration Guide", short: "crust.link/tw-config", site: "tailwindcss.com", category: "CSS" },
-  { id: 5, original: "https://supabase.com/docs/guides/database", title: "Supabase Database Schema Setup", short: "crust.link/sb-db", site: "supabase.com", category: "Database" },
+  { id: 1, original: "https://github.com/google-deepmind/alphafold", title: "AlphaFold Structure Analysis", short: "lnkr.app/alphafold", site: "github.com", category: "Research" },
+  { id: 2, original: "https://nextjs.org/docs/app/building-your-application", title: "Next.js App Router Docs", short: "lnkr.app/next-docs", site: "nextjs.org", category: "Docs" },
+  { id: 3, original: "https://arxiv.org/abs/1706.03762", title: "Attention Is All You Need", short: "lnkr.app/transformer", site: "arxiv.org", category: "AI Paper" },
+  { id: 4, original: "https://tailwindcss.com/docs/installation", title: "Tailwind CSS Configuration Guide", short: "lnkr.app/tw-config", site: "tailwindcss.com", category: "CSS" },
+  { id: 5, original: "https://supabase.com/docs/guides/database", title: "Supabase Database Schema Setup", short: "lnkr.app/sb-db", site: "supabase.com", category: "Database" },
 ];
 
 const TESTIMONIALS = [
-  { name: "Arjun Mehta", role: "ML Researcher", text: "I save 30+ papers a day. Link Crust's domain isolation means I instantly see only the arXiv links when I'm on arXiv. Genuinely game-changing.", stars: 5 },
+  { name: "Arjun Mehta", role: "ML Researcher", text: "I save 30+ papers a day. LNKR's domain isolation means I instantly see only the arXiv links when I'm on arXiv. Genuinely game-changing.", stars: 5 },
   { name: "Sofia Lindqvist", role: "Senior Frontend Engineer", text: "Alt+S → Alt+K. That's literally the whole workflow. I've retired my bookmark folders entirely. The glassmorphic HUD feels incredible.", stars: 5 },
   { name: "Marcus Webb", role: "Technical Writer", text: "The Shadow DOM isolation means it never breaks the pages I'm reading. It's the first extension I've used that just works everywhere.", stars: 5 },
-  { name: "Priya Natarajan", role: "Product Manager", text: "I share crust.link short links in Notion pages and Slack threads. Having a vault that syncs across all my devices is everything.", stars: 5 },
-  { name: "Daniel Kowalski", role: "PhD Student, CS", text: "Before Link Crust I had 600 tabs open. Now I smash them on save and pull them up filtered by site. My browser RAM usage dropped 80%.", stars: 5 },
+  { name: "Priya Natarajan", role: "Product Manager", text: "I share lnkr.app short links in Notion pages and Slack threads. Having a vault that syncs across all my devices is everything.", stars: 5 },
+  { name: "Daniel Kowalski", role: "PhD Student, CS", text: "Before LNKR I had 600 tabs open. Now I save them on save and pull them up filtered by site. My browser RAM usage dropped 80%.", stars: 5 },
   { name: "Hana Yoshida", role: "Design Engineer", text: "The UI is honestly better designed than most SaaS products I pay for. Free, open-source, and works offline too. There's no downside.", stars: 5 },
 ];
 
@@ -42,9 +42,9 @@ const FEATURES = [
 ];
 
 const HOW_IT_WORKS = [
-  { step: "01", color: "lk-primary",   icon: Keyboard, title: "Press Alt+S on any tab",  desc: "Link Crust captures the URL, page title, and hostname automatically. No typing required. Works on every website." },
+  { step: "01", color: "lk-primary",   icon: Keyboard, title: "Press Alt+S on any tab",  desc: "LNKR captures the URL, page title, and hostname automatically. No typing required. Works on every website." },
   { step: "02", color: "lk-accent",    icon: Command,  title: "Press Alt+K to search",   desc: "The in-context HUD rises over the page, already filtered to the site you're on. Type to search across your full vault." },
-  { step: "03", color: "lk-secondary", icon: Copy,     title: "Copy the short link",     desc: "Every saved URL gets a crust.link alias. Share it in Slack, Notion, or email — it resolves to the original in one click." },
+  { step: "03", color: "lk-secondary", icon: Copy,     title: "Copy the short link",     desc: "Every saved URL gets a lnkr.app alias. Share it in Slack, Notion, or email — it resolves to the original in one click." },
 ];
 
 // Static Tailwind class maps — JIT scanner requires complete strings, no interpolation.
@@ -113,7 +113,7 @@ export default function Home() {
         id: Date.now(),
         original: simUrlInput.startsWith("http") ? simUrlInput : `https://${simUrlInput}`,
         title: simTitleInput || "Saved Link Reference",
-        short: `crust.link/${alias}`,
+        short: `lnkr.app/${alias}`,
         site: domain,
         category: customAliasText ? "Custom" : "Quick Save",
       },
@@ -141,8 +141,8 @@ export default function Home() {
   });
 
   const FAQS = [
-    { q: 'What exactly is a "Link Smasher"?', a: "It smashes a long, messy URL into a short, context-aware crust.link alias. The alias is yours permanently and resolves to the original. Think bit.ly but private, offline-capable, and built into your browser." },
-    { q: "How does domain isolation actually work?", a: "When you open the Alt+K HUD, Link Crust reads the current tab's hostname and pre-filters your vault to only links saved from that same domain. You can toggle it off with one click to see everything." },
+    { q: 'What exactly is "LNKR"?', a: "It shortens a long, messy URL into a short, context-aware lnkr.app alias. The alias is yours permanently and resolves to the original. Think bit.ly but private, offline-capable, and built into your browser." },
+    { q: "How does domain isolation actually work?", a: "When you open the Alt+K HUD, LNKR reads the current tab's hostname and pre-filters your vault to only links saved from that same domain. You can toggle it off with one click to see everything." },
     { q: "Does it work without an account?", a: "Yes. Links are saved locally to chrome.storage instantly. When you create an account, everything that was saved offline is automatically uploaded. You never lose a save." },
     { q: "Will the HUD break my websites?", a: "Never. The entire UI is rendered inside a browser Shadow DOM with a strict shadow root. No global CSS is injected into host pages — the HUD looks perfect regardless of what the page looks like." },
     { q: "Is my data private?", a: "Your vault lives in your own Supabase PostgreSQL instance. We never sell or read your data. You can self-host the entire stack — source is fully open." },
@@ -171,7 +171,7 @@ export default function Home() {
               <Link2 className="h-4.5 w-4.5 text-white" />
             </div>
             <span className="font-display font-bold text-lg tracking-tight text-foreground">
-              Link <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">Crust</span>
+              LN<span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">KR</span>
             </span>
           </a>
 
@@ -272,7 +272,7 @@ export default function Home() {
                   </div>
                   <div className="flex items-center gap-2 mx-auto">
                     <Link2 className="h-3.5 w-3.5 text-lk-primary" />
-                    <span className="text-xs font-semibold text-lk-text-secondary">Link Crust — Web Vault</span>
+                    <span className="text-xs font-semibold text-lk-text-secondary">LNKR — Web Vault</span>
                   </div>
                 </div>
 
@@ -343,8 +343,8 @@ export default function Home() {
                   <Check className="h-4 w-4 text-lk-accent" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-lk-text-muted">Link smashed!</p>
-                  <p className="text-xs font-mono font-bold text-lk-accent">crust.link/tf-paper</p>
+                  <p className="text-[10px] text-lk-text-muted">Link saved!</p>
+                  <p className="text-xs font-mono font-bold text-lk-accent">lnkr.app/tf-paper</p>
                 </div>
               </div>
 
@@ -406,7 +406,7 @@ export default function Home() {
             <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">nothing you don&apos;t</span>
           </h2>
           <p className="text-lk-text-muted text-base leading-relaxed font-light">
-            Bookmark bars are noisy. Generic shorteners have no context. Link Crust fixes both with keyboard-first design and smart isolation.
+            Bookmark bars are noisy. Generic shorteners have no context. LNKR fixes both with keyboard-first design and smart isolation.
           </p>
         </div>
 
@@ -443,7 +443,7 @@ export default function Home() {
               <span className="bg-linear-to-r from-lk-primary to-lk-accent bg-clip-text text-transparent">That&apos;s the whole workflow.</span>
             </h2>
             <p className="text-lk-text-muted text-base font-light leading-relaxed">
-              No tags, folders, or import wizards. Link Crust was designed to disappear into your muscle memory.
+              No tags, folders, or import wizards. LNKR was designed to disappear into your muscle memory.
             </p>
           </div>
 
@@ -481,7 +481,7 @@ export default function Home() {
                 )}
                 {idx === 2 && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lk-secondary/10 border border-lk-secondary/20">
-                    <span className="text-[10px] font-mono text-lk-secondary font-bold">crust.link/alias</span>
+                    <span className="text-[10px] font-mono text-lk-secondary font-bold">lnkr.app/alias</span>
                   </div>
                 )}
               </div>
@@ -529,7 +529,7 @@ export default function Home() {
               <button
                 onClick={() => setIsSimHudOpen(!isSimHudOpen)}
                 className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isSimHudOpen ? "bg-lk-primary text-white" : "bg-white/5 text-lk-text-muted hover:text-white"}`}
-                title="Toggle Link Crust HUD"
+                title="Toggle LNKR HUD"
               >
                 <Link2 className="h-4 w-4" />
               </button>
@@ -587,7 +587,7 @@ export default function Home() {
                       <div className="w-5 h-5 rounded-md bg-linear-to-tr from-lk-primary to-lk-accent flex items-center justify-center">
                         <Link2 className="h-3 w-3 text-white" />
                       </div>
-                      <span className="font-display font-bold text-xs text-white tracking-wide">LINK CRUST</span>
+                      <span className="font-display font-bold text-xs text-white tracking-wide">LNKR</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-lk-primary/15 text-lk-primary font-mono border border-lk-primary/10">Alt+K</span>
                     </div>
                     <button onClick={() => setIsSimHudOpen(false)} className="text-lk-text-muted hover:text-white text-xs p-1 hover:bg-white/5 rounded transition-colors">✕</button>
@@ -758,9 +758,9 @@ export default function Home() {
                     <span>🎯 SHADOW HOST BOUNDARY</span>
                     <span className="bg-lk-primary/15 px-2 py-0.5 rounded text-[9px]">Isolated</span>
                   </div>
-                  <div className="pl-2">&lt;<span className="text-lk-accent">div</span> id=<span className="text-green-400">&quot;link-crust-root&quot;</span>&gt;</div>
+                  <div className="pl-2">&lt;<span className="text-lk-accent">div</span> id=<span className="text-green-400">&quot;lnkr-root&quot;</span>&gt;</div>
                   <div className="pl-6 text-lk-accent font-bold">#shadow-root (open)</div>
-                  <div className="pl-10 text-lk-text-muted/50">&lt;!-- Link Crust injected styles --&gt;</div>
+                  <div className="pl-10 text-lk-text-muted/50">&lt;!-- LNKR injected styles --&gt;</div>
                   <div className="pl-10 text-lk-secondary font-semibold">&lt;!-- 100% CSS-immune HUD --&gt;</div>
                   <div className="pl-2">&lt;/<span className="text-lk-accent">div</span>&gt;</div>
                 </div>
@@ -781,7 +781,7 @@ export default function Home() {
               <span className="bg-linear-to-r from-lk-accent to-lk-primary bg-clip-text text-transparent">break your pages</span>
             </h2>
             <p className="text-lk-text-muted text-base leading-relaxed font-light">
-              Most extension overlays inherit fonts, colors, and margins from whatever site they&apos;re on — breaking the UI on every other website. Link Crust solves this permanently with a browser-native Shadow DOM boundary.
+              Most extension overlays inherit fonts, colors, and margins from whatever site they&apos;re on — breaking the UI on every other website. LNKR solves this permanently with a browser-native Shadow DOM boundary.
             </p>
             <div className="space-y-5">
               {[
@@ -888,7 +888,7 @@ export default function Home() {
                 <div className="h-9 w-9 rounded-xl bg-linear-to-tr from-lk-primary to-lk-accent flex items-center justify-center shadow shadow-lk-primary/10">
                   <Link2 className="h-4 w-4 text-white" />
                 </div>
-                <span className="font-display font-bold text-lg text-white">Link Crust</span>
+                <span className="font-display font-bold text-lg text-white">LNKR</span>
               </div>
               <p className="text-xs text-lk-text-muted font-light leading-relaxed">
                 The keyboard-first link vault for power users. Free, private, and fully open-source.
@@ -948,7 +948,7 @@ export default function Home() {
           </div>
 
           <div className="pt-8 border-t border-lk-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-lk-text-muted/50">
-            <span>© 2026 Link Crust. All rights reserved.</span>
+            <span>© 2026 LNKR. All rights reserved.</span>
             <span className="flex items-center gap-1.5">
               Built with <span className="text-lk-secondary">♥</span> for researchers, developers, and knowledge workers.
             </span>

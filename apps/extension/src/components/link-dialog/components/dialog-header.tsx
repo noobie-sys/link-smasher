@@ -8,7 +8,7 @@ interface DialogHeaderProps {
     className?: string
 }
 
-export function CustomDialogHeader({ title = "Link Crust", logo, onClose, className }: DialogHeaderProps) {
+export function CustomDialogHeader({ title = "LNKR", logo, onClose, className }: DialogHeaderProps) {
     return (
         <div className={`flex items-center justify-between p-4 border-b border-[#2C2C2C] ${className}`}>
             <div className="flex items-center gap-3">

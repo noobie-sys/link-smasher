@@ -220,7 +220,7 @@ export function FloatingBookmark({ onOpenEdit }: FloatingBookmarkProps) {
         <button
           onClick={handleBlacklist}
           title="Hide on this site"
-          aria-label="Hide link crust bookmark icon on this site"
+          aria-label="Hide LNKR bookmark icon on this site"
           className={cn(
             "p-2 rounded-full border shadow-md flex items-center justify-center cursor-pointer transition-colors duration-200 outline-none focus:ring-2 focus:ring-indigo-500",
             theme.subBg,
