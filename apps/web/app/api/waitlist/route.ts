@@ -8,6 +8,12 @@ const waitlistSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
 });
 
+type WaitlistRow = {
+  id: string;
+  email: string;
+  createdAt: Date;
+};
+
 /**
  * POST /api/waitlist
  * Registers a new email for the waitlist.
@@ -23,19 +29,16 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   const { email } = waitlistSchema.parse(body);
   const cleanEmail = email.toLowerCase().trim();
 
-  // Check if already registered
-  const existing = await prisma.waitlistEntry.findUnique({
-    where: { email: cleanEmail },
-  });
+  const [entry] = await prisma.$queryRaw<WaitlistRow[]>`
+    INSERT INTO waitlist_entries (email)
+    VALUES (${cleanEmail})
+    ON CONFLICT (email) DO NOTHING
+    RETURNING id, email, created_at AS "createdAt"
+  `;
 
-  if (existing) {
+  if (!entry) {
     throw new ConflictError("You are already on the waitlist!");
   }
-
-  // Create entry
-  const entry = await prisma.waitlistEntry.create({
-    data: { email: cleanEmail },
-  });
 
   return {
     success: true,
