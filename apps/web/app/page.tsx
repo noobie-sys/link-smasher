@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { SmokeBackground } from "@/components/ui/spooky-smoke-animation";
 import {
   Zap,
   Keyboard,
@@ -443,301 +444,250 @@ export default function Home() {
 
       {/* ── Extension Feature Section ── */}
       <ExtensionSection />
+
+      {/* ── CTA Section ── */}
+      <CTASection />
+
+      {/* ── Footer ── */}
+      <Footer />
     </div>
   );
 }
 
 function ExtensionSection() {
-  const extensionFeatures = [
-    {
-      title: "Save the active tab",
-      description: "Capture the current page with title, URL, domain, and timestamp already filled in.",
-      icon: Zap,
-    },
-    {
-      title: "Organize before it lands",
-      description: "Choose a vault, add tags, and favorite important resources without opening the dashboard.",
-      icon: Folder,
-    },
-    {
-      title: "Keyboard-first capture",
-      description: "Use a shortcut-driven flow when you are researching fast and do not want to break focus.",
-      icon: Keyboard,
-    },
-    {
-      title: "Private by design",
-      description: "The extension sends saved links to your account through the secured app API.",
-      icon: Shield,
-    },
-  ];
-
-  const currentSiteLinks = [
-    { title: "Prisma relation queries", source: "prisma.io", tag: "Development" },
-    { title: "Next.js route handlers", source: "nextjs.org", tag: "Reference" },
-    { title: "Supabase RLS policies", source: "supabase.com", tag: "Security" },
-  ];
-
   return (
-    <section className="w-full bg-[#fafafa] border-t border-[#ebebeb] py-24 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-12 lg:gap-16 items-center">
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7950F7]/25 bg-[#7950F7]/5 text-xs font-semibold text-[#7950F7] select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7] animate-pulse" />
-                Chrome Extension
+    <section 
+      className="relative w-full overflow-hidden border-t border-[#ebebeb] py-28 px-4 sm:px-6 lg:px-8 select-none"
+      style={{
+        background: "radial-gradient(circle at 50% 0%, #ffffff 15%, #f5f0ff 60%, #e8ddff 100%)"
+      }}
+    >
+      {/* Background radial grid glow */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(121,80,247,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(121,80,247,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+
+      <div className="relative z-10 max-w-6xl mx-auto">
+        {/* Split Section Header */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] gap-12 lg:gap-16 items-center mb-20">
+          {/* Left Side: Title & Subtitle */}
+          <div className="space-y-4 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#7950F7]/25 bg-[#7950F7]/5 text-xs font-semibold text-[#7950F7] select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7] animate-pulse" />
+              Chrome Extension
+            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight text-[#0a0a0a] font-display">
+              Save the web while you are still in flow.
+            </h2>
+            <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed max-w-2xl">
+              The LyncFlow extension is the fast capture layer for your browser. Save a tab, 
+              route it to the right vault, add context, and get back to reading without opening another app.
+            </p>
+          </div>
+
+          {/* Right Side: The Box (Chrome Web Store download card) */}
+          <div className="relative group/box w-full max-w-sm mx-auto lg:mr-0">
+            <div className="absolute -inset-2 rounded-[2.5rem] bg-gradient-to-tr from-[#7950F7]/15 via-[#06b6d4]/10 to-transparent blur-2xl group-hover/box:scale-105 transition-all duration-500" />
+            <div className="relative border border-white/80 bg-white/70 backdrop-blur-xl shadow-[0_16px_50px_rgba(15,23,42,0.06)] rounded-3xl p-6 flex flex-col justify-between gap-5 transition-all duration-300 hover:border-[#7950F7]/25 hover:shadow-[0_20px_60px_rgba(121,80,247,0.1)]">
+              <div className="space-y-3">
+                {/* Brand Header */}
+                <div className="flex items-center gap-3">
+                  {/* LyncFlow Actual Logo */}
+                  <Image
+                    src="/lnkr.png"
+                    alt="LyncFlow Logo"
+                    width={40}
+                    height={40}
+                    className="rounded-xl shrink-0"
+                  />
+                  <div>
+                    <h4 className="font-extrabold text-sm text-[#0a0a0a]">LyncFlow for Chrome</h4>
+                    <p className="text-[10px] text-[#8a8a8f] mt-0.5">Offered by lyncflow.com</p>
+                  </div>
+                </div>
+                
+                {/* Ratings & Users */}
+                <div className="flex items-center gap-4 py-1.5 px-3 bg-black/[0.02] rounded-xl border border-black/[0.02] text-xs">
+                  <div className="flex items-center gap-1 text-amber-500 font-extrabold">
+                    <span>4.9</span>
+                    <div className="flex text-[10px]">★★★★★</div>
+                  </div>
+                  <div className="w-px h-3 bg-black/10" />
+                  <span className="text-[#6b6b6b] font-semibold">2,450+ users</span>
+                </div>
               </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight text-[#0a0a0a] font-display">
-                Save the web while you are still in flow.
-              </h2>
-              <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed max-w-xl">
-                The LyncFlow extension is the fast capture layer for your browser.
-                Save a tab, route it to the right vault, add context, and get back
-                to reading without opening another app.
+
+              {/* Install Button CTA */}
+              <a 
+                href="#"
+                onClick={(e) => e.preventDefault()}
+                className="w-full bg-[#7950F7] text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#683ded] shadow-[0_8px_22px_rgba(121,80,247,0.3)] font-extrabold text-sm transition-all duration-300 active:scale-95 cursor-pointer"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Add to Chrome
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Cards Grid (matching the design in the second reference) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Card 1: Fast Capture */}
+          <div className="group bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.03)] hover:shadow-[0_24px_60px_rgba(121,80,247,0.08)] hover:border-[#7950F7]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            {/* Visual Box on top */}
+            <div className="w-full aspect-[16/10] bg-[#faf9ff]/80 border border-[#eeeaff] rounded-2xl overflow-hidden mb-6 flex flex-col justify-between p-4 relative shadow-inner">
+              {/* Mock Browser Header */}
+              <div className="flex items-center justify-between border-b border-black/[0.04] pb-2 w-full">
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                </div>
+                <div className="flex-1 max-w-[120px] mx-2 h-5 rounded-md border border-black/[0.04] bg-white px-2 flex items-center text-[9px] text-[#8a8a8f] truncate font-mono">
+                  nextjs.org/docs
+                </div>
+                <div className="w-3.5 h-3.5 rounded-full bg-[#7950F7]/10 flex items-center justify-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7]" />
+                </div>
+              </div>
+
+              {/* Saved Success Popup */}
+              <div className="flex-1 flex flex-col items-center justify-center py-2 space-y-3">
+                <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-[#7950F7]/15 shadow-[0_8px_20px_rgba(121,80,247,0.06)] group-hover:scale-105 transition-all duration-300">
+                  <div className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-[#0a0a0a]">Saved to LyncFlow</span>
+                </div>
+
+                {/* Keycap Shortcuts */}
+                <div className="flex items-center gap-1 text-[10px] text-[#8a8a8f] font-medium">
+                  <span>Press</span>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">⌘</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">⌥</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">S</kbd>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">One-Click Save</h3>
+              <p className="text-xs text-[#6b6b6b] leading-relaxed">
+                Capture the current page with title, URL, domain, and timestamp pre-filled automatically in a fraction of a second.
               </p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {extensionFeatures.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="bg-white border border-[#ebebeb] rounded-2xl p-4 shadow-sm hover:border-[#7950F7]/25 transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-[#7950F7]/10 text-[#7950F7] flex items-center justify-center mb-3">
-                    <feature.icon className="w-4.5 h-4.5" />
-                  </div>
-                  <h3 className="text-sm font-bold text-[#0a0a0a]">
-                    {feature.title}
-                  </h3>
-                  <p className="text-xs text-[#6b6b6b] leading-relaxed mt-1.5">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {["One-click save", "Site-aware recall", "Tags and vaults", "Dashboard sync"].map((item) => (
-                <span
-                  key={item}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#7950F7]/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#7950F7]"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7950F7]" />
-                  {item}
-                </span>
-              ))}
-            </div>
           </div>
 
-          <div className="relative select-none">
-            <div className="relative rounded-3xl border border-[#e6e6e9] bg-white shadow-[0_28px_90px_rgba(15,23,42,0.10)] overflow-hidden">
-              <div className="h-12 bg-[#f7f7f8] border-b border-[#e6e6e9] px-4 flex items-center gap-3">
-                <div className="flex gap-1.5 shrink-0">
-                  <span className="w-3 h-3 rounded-full bg-[#ff5f56]" />
-                  <span className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                  <span className="w-3 h-3 rounded-full bg-[#27c93f]" />
-                </div>
-                <div className="flex-1 min-w-0 h-8 rounded-xl border border-[#e2e2e5] bg-white px-3 flex items-center gap-2 text-xs text-[#6b6b6b]">
-                  <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span className="truncate">https://docs.example.com/research</span>
-                </div>
-                <div className="w-8 h-8 rounded-xl bg-[#7950F7] text-white flex items-center justify-center text-[10px] font-black shadow-[0_4px_14px_rgba(121,80,247,0.35)]">
-                  lf
+          {/* Card 2: Smart Organization */}
+          <div className="group bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.03)] hover:shadow-[0_24px_60px_rgba(121,80,247,0.08)] hover:border-[#7950F7]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            {/* Visual Box on top */}
+            <div className="w-full aspect-[16/10] bg-[#faf9ff]/80 border border-[#eeeaff] rounded-2xl overflow-hidden mb-6 flex flex-col justify-center p-4 relative shadow-inner space-y-3">
+              {/* Mock Dropdown Selector */}
+              <div className="bg-white rounded-xl border border-[#7950F7]/15 p-2 shadow-sm space-y-1.5">
+                <div className="text-[8px] uppercase tracking-wider font-extrabold text-[#8a8a8f] px-1">Select Vault</div>
+                <div className="flex items-center justify-between bg-[#7950F7]/5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#7950F7]">
+                  <span className="flex items-center gap-1.5">
+                    <Folder className="w-3.5 h-3.5" />
+                    Research & Dev
+                  </span>
+                  <svg className="w-3 h-3 text-[#7950F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
 
-              <div className="relative bg-[#fbfbfc] p-5 sm:p-6 lg:p-8 min-h-[560px]">
-                <div className="max-w-[520px] space-y-4 pr-0 lg:pr-28">
-                  <div className="h-8 w-56 rounded-lg bg-[#e9e9ed]" />
-                  <div className="space-y-2">
-                    <div className="h-3 w-full rounded-full bg-[#ededf1]" />
-                    <div className="h-3 w-11/12 rounded-full bg-[#ededf1]" />
-                    <div className="h-3 w-2/3 rounded-full bg-[#ededf1]" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3">
-                    <div className="rounded-2xl border border-[#e8e8ec] bg-white p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
-                        <Link2 className="w-4 h-4 text-[#7950F7]" />
-                        Matching links
-                      </div>
-                      <p className="text-[11px] text-[#6b6b6b] mt-2 leading-relaxed">
-                        See related saves for the site you are already browsing.
-                      </p>
-                    </div>
-                    <div className="rounded-2xl border border-[#e8e8ec] bg-white p-4">
-                      <div className="flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
-                        <History className="w-4 h-4 text-[#06b6d4]" />
-                        Recent captures
-                      </div>
-                      <p className="text-[11px] text-[#6b6b6b] mt-2 leading-relaxed">
-                        Every saved page appears in the dashboard automatically.
-                      </p>
-                    </div>
-                  </div>
+              {/* Interactive Tag Bubbles */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "nextjs", color: "text-[#7950F7] bg-[#7950F7]/8 border-[#7950F7]/15" },
+                  { label: "learning", color: "text-[#06b6d4] bg-[#06b6d4]/8 border-[#06b6d4]/15" },
+                  { label: "reference", color: "text-[#d946ef] bg-[#d946ef]/8 border-[#d946ef]/15" }
+                ].map((tag, idx) => (
+                  <span
+                    key={tag.label}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold transition-all duration-300 group-hover:scale-105 ${tag.color}`}
+                    style={{ transitionDelay: `${idx * 75}ms` }}
+                  >
+                    <Tag className="w-2.5 h-2.5" />
+                    #{tag.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">Direct Routing</h3>
+              <p className="text-xs text-[#6b6b6b] leading-relaxed">
+                Choose a vault, add tags, and favorite important resources right from the extension popup without opening the web dashboard.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3: Interactive Command Palette */}
+          <div className="group bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.03)] hover:shadow-[0_24px_60px_rgba(121,80,247,0.08)] hover:border-[#7950F7]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+            {/* Visual Box on top */}
+            <div className="w-full aspect-[16/10] bg-[#faf9ff]/80 border border-[#eeeaff] rounded-2xl overflow-hidden mb-6 flex flex-col justify-center p-4 relative shadow-inner">
+              {/* Command Palette Mockup */}
+              <div className="bg-white rounded-xl border border-black/[0.06] shadow-md p-3.5 space-y-2.5 w-full">
+                {/* Search Bar */}
+                <div className="flex items-center gap-2 border-b border-black/[0.04] pb-2 text-[9px] text-[#8a8a8f]">
+                  <svg className="w-3 h-3 text-[#9ca3af]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>Search commands...</span>
                 </div>
 
-                <div className="relative lg:absolute lg:top-8 lg:right-8 mt-6 lg:mt-0 w-full lg:w-[330px] rounded-3xl border border-[#dedee4] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] overflow-hidden">
-                  <div className="px-4 py-3 border-b border-[#efeff2] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-[#7950F7] text-white flex items-center justify-center text-[10px] font-black">
-                        lf
-                      </div>
-                      <div>
-                        <p className="text-sm font-extrabold text-[#0a0a0a] leading-none">
-                          LyncFlow
-                        </p>
-                        <p className="text-[10px] text-[#8a8a8f] mt-1">
-                          Browser extension
-                        </p>
-                      </div>
-                    </div>
-                    <Settings className="w-4 h-4 text-[#8a8a8f]" />
+                {/* Commands list */}
+                <div className="space-y-1">
+                  {/* Active Row */}
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg bg-[#7950F7]/5 border-l-2 border-[#7950F7] text-[#7950F7]">
+                    <span className="text-[10px] font-extrabold flex items-center gap-1.5">
+                      <Zap className="w-3 h-3" />
+                      Save current tab
+                    </span>
+                    <kbd className="text-[8px] bg-white border border-[#7950F7]/20 text-[#7950F7] px-1 rounded shadow-2xs font-mono font-bold">Enter</kbd>
                   </div>
 
-                  <div className="p-4 space-y-4">
-                    <button className="w-full rounded-2xl bg-[#7950F7] text-white px-4 py-3 flex items-center justify-between text-sm font-bold shadow-[0_8px_22px_rgba(121,80,247,0.28)]">
-                      <span className="inline-flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        Save current tab
-                      </span>
-                      <kbd className="rounded-lg bg-white/20 px-2 py-1 text-[10px] font-mono">
-                        CMD K
-                      </kbd>
-                    </button>
-
-                    <div className="rounded-2xl border border-[#eeeeef] bg-[#fafafa] p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#0f172a] text-white flex items-center justify-center shrink-0">
-                          <Sparkles className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-[#0a0a0a] truncate">
-                            Building reliable browser workflows
-                          </p>
-                          <p className="text-[11px] text-[#6b6b6b] truncate mt-1">
-                            docs.example.com/research/browser-workflows
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-1.5">
-                          Vault
-                        </p>
-                        <div className="h-10 rounded-xl border border-[#e6e6e9] bg-white px-3 flex items-center justify-between text-xs font-bold text-[#0a0a0a]">
-                          <span className="inline-flex items-center gap-2 min-w-0">
-                            <span className="w-2 h-2 rounded-full bg-[#7950F7] shrink-0" />
-                            <span className="truncate">Research</span>
-                          </span>
-                          <ChevronRight className="w-3.5 h-3.5 text-[#9ca3af]" />
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-1.5">
-                          Status
-                        </p>
-                        <div className="h-10 rounded-xl border border-[#e6e6e9] bg-white px-3 flex items-center gap-2 text-xs font-bold text-[#0a0a0a]">
-                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          Favorite
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wide font-bold text-[#8a8a8f] mb-2">
-                        Tags
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {["reading", "browser", "workflow"].map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-[#7950F7]/8 border border-[#7950F7]/15 px-2.5 py-1 text-[11px] font-bold text-[#7950F7]"
-                          >
-                            <Tag className="w-3 h-3" />
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-[#eeeeef] bg-white overflow-hidden">
-                      <div className="px-3 py-2 border-b border-[#eeeeef] flex items-center justify-between">
-                        <p className="text-xs font-bold text-[#0a0a0a]">
-                          From this site
-                        </p>
-                        <ExternalLink className="w-3.5 h-3.5 text-[#9ca3af]" />
-                      </div>
-                      <div className="divide-y divide-[#f0f0f2]">
-                        {currentSiteLinks.map((link) => (
-                          <div key={link.title} className="p-3">
-                            <p className="text-xs font-bold text-[#0a0a0a] truncate">
-                              {link.title}
-                            </p>
-                            <div className="flex items-center justify-between gap-2 mt-1">
-                              <span className="text-[10px] text-[#8a8a8f] truncate">
-                                {link.source}
-                              </span>
-                              <span className="text-[10px] font-bold text-[#06b6d4] bg-[#06b6d4]/10 rounded-full px-2 py-0.5 shrink-0">
-                                {link.tag}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Vault command */}
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-zinc-700 hover:bg-black/[0.02]">
+                    <span className="text-[10px] font-bold flex items-center gap-1.5">
+                      <Folder className="w-3 h-3 text-zinc-400" />
+                      Route to Vault...
+                    </span>
+                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">⌥ V</kbd>
                   </div>
-                </div>
 
-                <div className="mt-6 lg:mt-8 grid grid-cols-3 gap-3 max-w-[520px]">
-                  {[
-                    { value: "1 click", label: "to capture" },
-                    { value: "3 fields", label: "to organize" },
-                    { value: "0 tabs", label: "to switch" },
-                  ].map((metric) => (
-                    <div
-                      key={metric.label}
-                      className="rounded-2xl border border-[#e8e8ec] bg-white p-3"
-                    >
-                      <p className="text-sm font-extrabold text-[#0a0a0a]">
-                        {metric.value}
-                      </p>
-                      <p className="text-[10px] font-medium text-[#8a8a8f] mt-1">
-                        {metric.label}
-                      </p>
-                    </div>
-                  ))}
+                  {/* Tags command */}
+                  <div className="flex items-center justify-between px-2 py-1.5 rounded-lg text-zinc-700 hover:bg-black/[0.02]">
+                    <span className="text-[10px] font-bold flex items-center gap-1.5">
+                      <Tag className="w-3 h-3 text-zinc-400" />
+                      Add Custom Tags...
+                    </span>
+                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">⌥ T</kbd>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { step: "Capture", text: "Click the toolbar button or shortcut." },
-                { step: "Context", text: "Add vault, tags, and favorite state." },
-                { step: "Recall", text: "Find it later by site, vault, or search." },
-              ].map((item) => (
-                <div
-                  key={item.step}
-                  className="rounded-2xl border border-[#ebebeb] bg-white p-4"
-                >
-                  <p className="text-xs font-extrabold text-[#7950F7]">
-                    {item.step}
-                  </p>
-                  <p className="text-xs text-[#6b6b6b] leading-relaxed mt-1">
-                    {item.text}
-                  </p>
-                </div>
-              ))}
+            {/* Description */}
+            <div className="space-y-2">
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">Interactive Command Palette</h3>
+              <p className="text-xs text-[#6b6b6b] leading-relaxed">
+                Manage your captures entirely via keyboard shortcuts. Search, tag, or route links to different vaults without lifting your hands.
+              </p>
             </div>
           </div>
+
         </div>
       </div>
     </section>
   );
 }
-
 
 // ─── Waitlist Form ──────────────────────────────────────────────────────────
 function WaitlistForm() {
@@ -843,5 +793,78 @@ function WaitlistForm() {
         </p>
       )}
     </div>
+  );
+}
+
+// ─── CTA Section ────────────────────────────────────────────────────────────
+function CTASection() {
+  return (
+    <section className="w-full px-4 sm:px-6 lg:px-8 py-16 mb-8">
+      <div 
+        className="max-w-6xl mx-auto rounded-[2.5rem] border border-black/[0.04] py-20 px-6 sm:px-12 flex flex-col items-center text-center relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)]"
+        style={{
+          background: "linear-gradient(180deg, #fbfbfe 0%, #f4efff 100%)"
+        }}
+      >
+        {/* Background grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(121,80,247,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(121,80,247,0.012)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+        
+        {/* Actual Logo Badge */}
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-black/[0.05] bg-white text-xs font-bold text-[#0a0a0a] shadow-sm mb-6 select-none relative z-10">
+          <Image
+            src="/lnkr.png"
+            alt="LyncFlow Logo"
+            width={20}
+            height={20}
+            className="rounded-md shrink-0"
+          />
+          <span>LyncFlow</span>
+        </div>
+
+        {/* Title */}
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#0a0a0a] max-w-2xl leading-tight mb-4 relative z-10 font-display">
+          Try our platform today!
+        </h2>
+
+        {/* Description */}
+        <p className="text-[#6b6b6b] text-sm sm:text-base mb-10 max-w-xl leading-relaxed relative z-10">
+          Managing your bookmarks shouldn't be a chore. Skip browser clutter, 
+          organize your research into theme-colored vaults, and keep your flow unbroken.
+        </p>
+
+        {/* Waitlist Form */}
+        <div className="w-full max-w-md relative z-10 mb-6">
+          <WaitlistForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Footer Section ─────────────────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer className="w-full border-t border-black/[0.04] bg-[#fafafa]/50 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8a8a8f]">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/lnkr.png"
+            alt="LyncFlow Logo"
+            width={16}
+            height={16}
+            className="rounded-md opacity-80"
+          />
+          <span className="font-bold text-zinc-700">LyncFlow</span>
+          <span className="text-zinc-400">|</span>
+          <span>© {new Date().getFullYear()} LyncFlow. All rights reserved.</span>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <a href="#" className="hover:text-[#7950F7] transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-[#7950F7] transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-[#7950F7] transition-colors">Contact</a>
+        </div>
+      </div>
+    </footer>
   );
 }
