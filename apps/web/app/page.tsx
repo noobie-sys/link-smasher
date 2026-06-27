@@ -445,6 +445,9 @@ export default function Home() {
       {/* ── Extension Feature Section ── */}
       <ExtensionSection />
 
+      {/* ── FAQ Section ── */}
+      <FAQSection />
+
       {/* ── CTA Section ── */}
       <CTASection />
 
@@ -835,6 +838,99 @@ function CTASection() {
         {/* Waitlist Form */}
         <div className="w-full max-w-md relative z-10 mb-6">
           <WaitlistForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+// ─── FAQ Section ────────────────────────────────────────────────────────────
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      question: "How does LyncFlow organize my links?",
+      answer: "LyncFlow groups your saved links into theme-colored vaults. You can add custom tags and descriptions to search and filter them easily from your dashboard or extension.",
+    },
+    {
+      question: "Is the Chrome extension free to use?",
+      answer: "Yes, the Chrome extension is completely free. It serves as a rapid-capture layer, allowing you to save resources, select vaults, and add tags directly from your active browser tab.",
+    },
+    {
+      question: "Can I query my links offline?",
+      answer: "LyncFlow caches your search history and index locally within the extension database, enabling quick keyboard-first searches even when you lose internet connection.",
+    },
+    {
+      question: "Does LyncFlow support custom keyboard shortcuts?",
+      answer: "Absolutely. You can open LyncFlow using customizable global hotkeys, save with a single click, and navigate the entire popup interface using keyboard shortcuts without touch inputs.",
+    },
+  ];
+
+  return (
+    <section className="w-full bg-white py-24 px-4 sm:px-6 lg:px-8 border-t border-[#ebebeb]">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left Side: Generated Desk Setup Image */}
+          <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square rounded-[2rem] overflow-hidden border border-black/[0.04] shadow-[0_16px_50px_rgba(15,23,42,0.06)] group">
+            <Image
+              src="/faq_desk.png"
+              alt="Workspace Desk Setup"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          </div>
+
+          {/* Right Side: FAQ Accordion */}
+          <div className="space-y-6">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#7950F7]">
+                FAQ's
+              </span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#0a0a0a] font-display mt-2">
+                Looking for answer?
+              </h2>
+              <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed mt-4">
+                Find answers to commonly asked questions about LyncFlow, link organization, 
+                and setting up keyboard-first workflows.
+              </p>
+            </div>
+
+            <div className="divide-y divide-[#efeff2] border-t border-b border-[#efeff2] mt-8">
+              {faqs.map((faq, idx) => (
+                <div key={idx} className="py-4">
+                  <button
+                    onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+                    className="w-full flex items-center justify-between gap-4 text-left font-bold text-sm sm:text-base text-[#0a0a0a] hover:text-[#7950F7] transition-colors py-2 cursor-pointer group"
+                  >
+                    <span>{faq.question}</span>
+                    <svg 
+                      className={cn(
+                        "w-4.5 h-4.5 text-[#8a8a8f] shrink-0 transition-transform duration-300 group-hover:text-[#7950F7]", 
+                        openIndex === idx && "rotate-180 text-[#7950F7]"
+                      )}
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor" 
+                      strokeWidth={2.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  
+                  <div 
+                    className={cn(
+                      "overflow-hidden transition-all duration-300 ease-in-out text-xs sm:text-sm text-[#6b6b6b] leading-relaxed",
+                      openIndex === idx ? "max-h-40 mt-2 opacity-100" : "max-h-0 opacity-0"
+                    )}
+                  >
+                    <p className="pb-2">{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
