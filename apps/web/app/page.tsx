@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { SmokeBackground } from "@/components/ui/spooky-smoke-animation";
 import {
   Zap,
   Keyboard,
@@ -459,10 +458,11 @@ export default function Home() {
 
 function ExtensionSection() {
   return (
-    <section 
+    <section
       className="relative w-full overflow-hidden border-t border-[#ebebeb] py-28 px-4 sm:px-6 lg:px-8 select-none"
       style={{
-        background: "radial-gradient(circle at 50% 0%, #ffffff 15%, #f5f0ff 60%, #e8ddff 100%)"
+        background:
+          "radial-gradient(circle at 50% 0%, #ffffff 15%, #f5f0ff 60%, #e8ddff 100%)",
       }}
     >
       {/* Background radial grid glow */}
@@ -481,8 +481,9 @@ function ExtensionSection() {
               Save the web while you are still in flow.
             </h2>
             <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed max-w-2xl">
-              The LyncFlow extension is the fast capture layer for your browser. Save a tab, 
-              route it to the right vault, add context, and get back to reading without opening another app.
+              The LyncFlow extension is the fast capture layer for your browser.
+              Save a tab, route it to the right vault, add context, and get back
+              to reading without opening another app.
             </p>
           </div>
 
@@ -502,11 +503,15 @@ function ExtensionSection() {
                     className="rounded-xl shrink-0"
                   />
                   <div>
-                    <h4 className="font-extrabold text-sm text-[#0a0a0a]">LyncFlow for Chrome</h4>
-                    <p className="text-[10px] text-[#8a8a8f] mt-0.5">Offered by lyncflow.com</p>
+                    <h4 className="font-extrabold text-sm text-[#0a0a0a]">
+                      LyncFlow for Chrome
+                    </h4>
+                    <p className="text-[10px] text-[#8a8a8f] mt-0.5">
+                      Offered by lyncflow.com
+                    </p>
                   </div>
                 </div>
-                
+
                 {/* Ratings & Users */}
                 <div className="flex items-center gap-4 py-1.5 px-3 bg-black/[0.02] rounded-xl border border-black/[0.02] text-xs">
                   <div className="flex items-center gap-1 text-amber-500 font-extrabold">
@@ -514,18 +519,30 @@ function ExtensionSection() {
                     <div className="flex text-[10px]">★★★★★</div>
                   </div>
                   <div className="w-px h-3 bg-black/10" />
-                  <span className="text-[#6b6b6b] font-semibold">2,450+ users</span>
+                  <span className="text-[#6b6b6b] font-semibold">
+                    2,450+ users
+                  </span>
                 </div>
               </div>
 
               {/* Install Button CTA */}
-              <a 
+              <a
                 href="#"
                 onClick={(e) => e.preventDefault()}
                 className="w-full bg-[#7950F7] text-white px-5 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-[#683ded] shadow-[0_8px_22px_rgba(121,80,247,0.3)] font-extrabold text-sm transition-all duration-300 active:scale-95 cursor-pointer"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 Add to Chrome
               </a>
@@ -535,7 +552,6 @@ function ExtensionSection() {
 
         {/* Feature Cards Grid (matching the design in the second reference) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
           {/* Card 1: Fast Capture */}
           <div className="group bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-6 shadow-[0_12px_40px_rgba(15,23,42,0.03)] hover:shadow-[0_24px_60px_rgba(121,80,247,0.08)] hover:border-[#7950F7]/20 hover:-translate-y-1 transition-all duration-300 flex flex-col">
             {/* Visual Box on top */}
@@ -559,28 +575,49 @@ function ExtensionSection() {
               <div className="flex-1 flex flex-col items-center justify-center py-2 space-y-3">
                 <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl border border-[#7950F7]/15 shadow-[0_8px_20px_rgba(121,80,247,0.06)] group-hover:scale-105 transition-all duration-300">
                   <div className="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   </div>
-                  <span className="text-[11px] font-extrabold text-[#0a0a0a]">Saved to LyncFlow</span>
+                  <span className="text-[11px] font-extrabold text-[#0a0a0a]">
+                    Saved to LyncFlow
+                  </span>
                 </div>
 
                 {/* Keycap Shortcuts */}
                 <div className="flex items-center gap-1 text-[10px] text-[#8a8a8f] font-medium">
                   <span>Press</span>
-                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">⌘</kbd>
-                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">⌥</kbd>
-                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">S</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">
+                    ⌘
+                  </kbd>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">
+                    ⌥
+                  </kbd>
+                  <kbd className="px-1.5 py-0.5 rounded border border-black/[0.08] bg-white shadow-sm font-sans font-bold text-[#444] text-[9px]">
+                    S
+                  </kbd>
                 </div>
               </div>
             </div>
 
             {/* Description */}
             <div className="space-y-2">
-              <h3 className="text-base font-extrabold text-[#0a0a0a]">One-Click Save</h3>
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">
+                One-Click Save
+              </h3>
               <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                Capture the current page with title, URL, domain, and timestamp pre-filled automatically in a fraction of a second.
+                Capture the current page with title, URL, domain, and timestamp
+                pre-filled automatically in a fraction of a second.
               </p>
             </div>
           </div>
@@ -591,14 +628,26 @@ function ExtensionSection() {
             <div className="w-full aspect-[16/10] bg-[#faf9ff]/80 border border-[#eeeaff] rounded-2xl overflow-hidden mb-6 flex flex-col justify-center p-4 relative shadow-inner space-y-3">
               {/* Mock Dropdown Selector */}
               <div className="bg-white rounded-xl border border-[#7950F7]/15 p-2 shadow-sm space-y-1.5">
-                <div className="text-[8px] uppercase tracking-wider font-extrabold text-[#8a8a8f] px-1">Select Vault</div>
+                <div className="text-[8px] uppercase tracking-wider font-extrabold text-[#8a8a8f] px-1">
+                  Select Vault
+                </div>
                 <div className="flex items-center justify-between bg-[#7950F7]/5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#7950F7]">
                   <span className="flex items-center gap-1.5">
                     <Folder className="w-3.5 h-3.5" />
                     Research & Dev
                   </span>
-                  <svg className="w-3 h-3 text-[#7950F7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-3 h-3 text-[#7950F7]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -606,17 +655,25 @@ function ExtensionSection() {
               {/* Interactive Tag Bubbles */}
               <div className="flex flex-wrap gap-1.5">
                 {[
-                  { label: "nextjs", color: "text-[#7950F7] bg-[#7950F7]/8 border-[#7950F7]/15" },
-                  { label: "learning", color: "text-[#06b6d4] bg-[#06b6d4]/8 border-[#06b6d4]/15" },
-                  { label: "reference", color: "text-[#d946ef] bg-[#d946ef]/8 border-[#d946ef]/15" }
+                  {
+                    label: "nextjs",
+                    color: "text-[#7950F7] bg-[#7950F7]/8 border-[#7950F7]/15",
+                  },
+                  {
+                    label: "learning",
+                    color: "text-[#06b6d4] bg-[#06b6d4]/8 border-[#06b6d4]/15",
+                  },
+                  {
+                    label: "reference",
+                    color: "text-[#d946ef] bg-[#d946ef]/8 border-[#d946ef]/15",
+                  },
                 ].map((tag, idx) => (
                   <span
                     key={tag.label}
                     className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold transition-all duration-300 group-hover:scale-105 ${tag.color}`}
                     style={{ transitionDelay: `${idx * 75}ms` }}
                   >
-                    <Tag className="w-2.5 h-2.5" />
-                    #{tag.label}
+                    <Tag className="w-2.5 h-2.5" />#{tag.label}
                   </span>
                 ))}
               </div>
@@ -624,9 +681,12 @@ function ExtensionSection() {
 
             {/* Description */}
             <div className="space-y-2">
-              <h3 className="text-base font-extrabold text-[#0a0a0a]">Direct Routing</h3>
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">
+                Direct Routing
+              </h3>
               <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                Choose a vault, add tags, and favorite important resources right from the extension popup without opening the web dashboard.
+                Choose a vault, add tags, and favorite important resources right
+                from the extension popup without opening the web dashboard.
               </p>
             </div>
           </div>
@@ -639,8 +699,18 @@ function ExtensionSection() {
               <div className="bg-white rounded-xl border border-black/[0.06] shadow-md p-3.5 space-y-2.5 w-full">
                 {/* Search Bar */}
                 <div className="flex items-center gap-2 border-b border-black/[0.04] pb-2 text-[9px] text-[#8a8a8f]">
-                  <svg className="w-3 h-3 text-[#9ca3af]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-3 h-3 text-[#9ca3af]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                   <span>Search commands...</span>
                 </div>
@@ -653,7 +723,9 @@ function ExtensionSection() {
                       <Zap className="w-3 h-3" />
                       Save current tab
                     </span>
-                    <kbd className="text-[8px] bg-white border border-[#7950F7]/20 text-[#7950F7] px-1 rounded shadow-2xs font-mono font-bold">Enter</kbd>
+                    <kbd className="text-[8px] bg-white border border-[#7950F7]/20 text-[#7950F7] px-1 rounded shadow-2xs font-mono font-bold">
+                      Enter
+                    </kbd>
                   </div>
 
                   {/* Vault command */}
@@ -662,7 +734,9 @@ function ExtensionSection() {
                       <Folder className="w-3 h-3 text-zinc-400" />
                       Route to Vault...
                     </span>
-                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">⌥ V</kbd>
+                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">
+                      ⌥ V
+                    </kbd>
                   </div>
 
                   {/* Tags command */}
@@ -671,7 +745,9 @@ function ExtensionSection() {
                       <Tag className="w-3 h-3 text-zinc-400" />
                       Add Custom Tags...
                     </span>
-                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">⌥ T</kbd>
+                    <kbd className="text-[8px] bg-black/[0.02] border border-black/[0.08] text-zinc-500 px-1 rounded shadow-2xs font-mono font-bold">
+                      ⌥ T
+                    </kbd>
                   </div>
                 </div>
               </div>
@@ -679,13 +755,16 @@ function ExtensionSection() {
 
             {/* Description */}
             <div className="space-y-2">
-              <h3 className="text-base font-extrabold text-[#0a0a0a]">Interactive Command Palette</h3>
+              <h3 className="text-base font-extrabold text-[#0a0a0a]">
+                Interactive Command Palette
+              </h3>
               <p className="text-xs text-[#6b6b6b] leading-relaxed">
-                Manage your captures entirely via keyboard shortcuts. Search, tag, or route links to different vaults without lifting your hands.
+                Manage your captures entirely via keyboard shortcuts. Search,
+                tag, or route links to different vaults without lifting your
+                hands.
               </p>
             </div>
           </div>
-
         </div>
       </div>
     </section>
@@ -803,15 +882,15 @@ function WaitlistForm() {
 function CTASection() {
   return (
     <section className="w-full px-4 sm:px-6 lg:px-8 py-16 mb-8">
-      <div 
+      <div
         className="max-w-6xl mx-auto rounded-[2.5rem] border border-black/[0.04] py-20 px-6 sm:px-12 flex flex-col items-center text-center relative overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.015)]"
         style={{
-          background: "linear-gradient(180deg, #fbfbfe 0%, #f4efff 100%)"
+          background: "linear-gradient(180deg, #fbfbfe 0%, #f4efff 100%)",
         }}
       >
         {/* Background grid */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(121,80,247,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(121,80,247,0.012)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-        
+
         {/* Actual Logo Badge */}
         <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-black/[0.05] bg-white text-xs font-bold text-[#0a0a0a] shadow-sm mb-6 select-none relative z-10">
           <Image
@@ -831,8 +910,9 @@ function CTASection() {
 
         {/* Description */}
         <p className="text-[#6b6b6b] text-sm sm:text-base mb-10 max-w-xl leading-relaxed relative z-10">
-          Managing your bookmarks shouldn't be a chore. Skip browser clutter, 
-          organize your research into theme-colored vaults, and keep your flow unbroken.
+          Managing your bookmarks shouldn't be a chore. Skip browser clutter,
+          organize your research into theme-colored vaults, and keep your flow
+          unbroken.
         </p>
 
         {/* Waitlist Form */}
@@ -844,7 +924,6 @@ function CTASection() {
   );
 }
 
-
 // ─── FAQ Section ────────────────────────────────────────────────────────────
 function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -852,19 +931,23 @@ function FAQSection() {
   const faqs = [
     {
       question: "How does LyncFlow organize my links?",
-      answer: "LyncFlow groups your saved links into theme-colored vaults. You can add custom tags and descriptions to search and filter them easily from your dashboard or extension.",
+      answer:
+        "LyncFlow groups your saved links into theme-colored vaults. You can add custom tags and descriptions to search and filter them easily from your dashboard or extension.",
     },
     {
       question: "Is the Chrome extension free to use?",
-      answer: "Yes, the Chrome extension is completely free. It serves as a rapid-capture layer, allowing you to save resources, select vaults, and add tags directly from your active browser tab.",
+      answer:
+        "Yes, the Chrome extension is completely free. It serves as a rapid-capture layer, allowing you to save resources, select vaults, and add tags directly from your active browser tab.",
     },
     {
       question: "Can I query my links offline?",
-      answer: "LyncFlow caches your search history and index locally within the extension database, enabling quick keyboard-first searches even when you lose internet connection.",
+      answer:
+        "LyncFlow caches your search history and index locally within the extension database, enabling quick keyboard-first searches even when you lose internet connection.",
     },
     {
       question: "Does LyncFlow support custom keyboard shortcuts?",
-      answer: "Absolutely. You can open LyncFlow using customizable global hotkeys, save with a single click, and navigate the entire popup interface using keyboard shortcuts without touch inputs.",
+      answer:
+        "Absolutely. You can open LyncFlow using customizable global hotkeys, save with a single click, and navigate the entire popup interface using keyboard shortcuts without touch inputs.",
     },
   ];
 
@@ -878,6 +961,7 @@ function FAQSection() {
               src="/faq_desk.png"
               alt="Workspace Desk Setup"
               fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           </div>
@@ -892,8 +976,8 @@ function FAQSection() {
                 Looking for answer?
               </h2>
               <p className="text-[#6b6b6b] text-sm sm:text-base leading-relaxed mt-4">
-                Find answers to commonly asked questions about LyncFlow, link organization, 
-                and setting up keyboard-first workflows.
+                Find answers to commonly asked questions about LyncFlow, link
+                organization, and setting up keyboard-first workflows.
               </p>
             </div>
 
@@ -905,24 +989,30 @@ function FAQSection() {
                     className="w-full flex items-center justify-between gap-4 text-left font-bold text-sm sm:text-base text-[#0a0a0a] hover:text-[#7950F7] transition-colors py-2 cursor-pointer group"
                   >
                     <span>{faq.question}</span>
-                    <svg 
+                    <svg
                       className={cn(
-                        "w-4.5 h-4.5 text-[#8a8a8f] shrink-0 transition-transform duration-300 group-hover:text-[#7950F7]", 
-                        openIndex === idx && "rotate-180 text-[#7950F7]"
+                        "w-4.5 h-4.5 text-[#8a8a8f] shrink-0 transition-transform duration-300 group-hover:text-[#7950F7]",
+                        openIndex === idx && "rotate-180 text-[#7950F7]",
                       )}
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor" 
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                       strokeWidth={2.5}
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
-                  
-                  <div 
+
+                  <div
                     className={cn(
                       "overflow-hidden transition-all duration-300 ease-in-out text-xs sm:text-sm text-[#6b6b6b] leading-relaxed",
-                      openIndex === idx ? "max-h-40 mt-2 opacity-100" : "max-h-0 opacity-0"
+                      openIndex === idx
+                        ? "max-h-40 mt-2 opacity-100"
+                        : "max-h-0 opacity-0",
                     )}
                   >
                     <p className="pb-2">{faq.answer}</p>
@@ -952,13 +1042,21 @@ function Footer() {
           />
           <span className="font-bold text-zinc-700">LyncFlow</span>
           <span className="text-zinc-400">|</span>
-          <span>© {new Date().getFullYear()} LyncFlow. All rights reserved.</span>
+          <span>
+            © {new Date().getFullYear()} LyncFlow. All rights reserved.
+          </span>
         </div>
-        
+
         <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-[#7950F7] transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-[#7950F7] transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-[#7950F7] transition-colors">Contact</a>
+          <a href="#" className="hover:text-[#7950F7] transition-colors">
+            Privacy Policy
+          </a>
+          <a href="#" className="hover:text-[#7950F7] transition-colors">
+            Terms of Service
+          </a>
+          <a href="#" className="hover:text-[#7950F7] transition-colors">
+            Contact
+          </a>
         </div>
       </div>
     </footer>
