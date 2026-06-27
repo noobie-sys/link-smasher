@@ -905,7 +905,7 @@ function CTASection() {
 
         {/* Title */}
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#0a0a0a] max-w-2xl leading-tight mb-4 relative z-10 font-display">
-          Try our platform today!
+          Join the waitlist today!
         </h2>
 
         {/* Description */}
