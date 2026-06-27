@@ -20,6 +20,7 @@
     "@prisma/client": "^7.8.0",
     "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "@visx/curve": "4.0.1-alpha.0",
     "@visx/event": "4.0.1-alpha.0",
     "@visx/gradient": "4.0.1-alpha.0",

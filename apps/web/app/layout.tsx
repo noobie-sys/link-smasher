@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <TooltipProvider>
             {children}
             <Analytics />
+            <SpeedInsights />
           </TooltipProvider>
         </ThemeProvider>
       </body>
