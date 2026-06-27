@@ -18,10 +18,7 @@
 - The `links` table references `user.id` from Better Auth's user table. Update the foreign key accordingly.
 - Do NOT use Supabase Auth RLS policies tied to `auth.uid()` — use Better Auth sessions to identify the user server-side and query with explicit `WHERE user_id = ?` clauses.
 
-### Environment Variables
-- `BETTER_AUTH_SECRET` — a strong random secret for signing sessions/tokens. Required. Never commit this.
-- `BETTER_AUTH_URL` — the base URL of the app (e.g., `http://localhost:3000` in dev). Required.
-- `DATABASE_URL` — PostgreSQL connection string pointing to Supabase's database.
+### Environment Variable
 - Never hardcode secrets. Always read from environment variables.
 
 ### Session & Token Handling

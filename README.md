@@ -84,17 +84,6 @@ Copy the template and fill in your values:
 cp .env.example .env
 ```
 
-| Variable | Used by | Description |
-|---|---|---|
-| `DATABASE_URL` | web | Supabase Postgres connection string (Prisma) |
-| `BETTER_AUTH_SECRET` | web | Random secret for Better Auth sessions |
-| `BETTER_AUTH_URL` | web | Auth base URL (e.g. `http://localhost:3000`) |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | web | Google OAuth credentials |
-| `NEXT_PUBLIC_APP_URL` | web | Public app URL |
-| `WXT_SUPABASE_URL` | extension | Supabase project URL |
-| `WXT_SUPABASE_PUBLISHABLE_KEY` | extension | Supabase anon/publishable key |
-| `WXT_BACKEND_URL` | extension | Web app URL the extension calls |
-
 > ⚠️ Never commit `.env`. Extension vars **must** be prefixed with `WXT_`; client-exposed web vars with `NEXT_PUBLIC_`.
 
 ### 3. Set up the database

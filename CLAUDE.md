@@ -78,8 +78,6 @@ link-smasher/
 
 ## Environment Variables
 
-- **Extension**: Prefixed with `WXT_` (required by WXT). Variables: `WXT_SUPABASE_URL`, `WXT_SUPABASE_ANON_KEY`.
-- **Web**: Use `NEXT_PUBLIC_` for client-exposed vars. Server-only vars: `BETTER_AUTH_SECRET`, `DATABASE_URL`.
 - Never commit `.env` files. Use `.env.example` as a template.
 - Never hardcode secrets or API keys.
 
