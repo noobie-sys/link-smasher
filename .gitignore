@@ -34,3 +34,7 @@ web-ext.config.ts
 
 
 next-env.d.ts
+
+# Netlify generated files (plugin binaries, cache)
+.netlify/plugins/
+.netlify/cache/

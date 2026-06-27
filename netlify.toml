@@ -1,0 +1,9 @@
+[build]
+  command = "pnpm --filter web... run build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  # The Deno CLI binary downloaded by Netlify for Edge Functions contains
+  # URL strings that match BETTER_AUTH_URL — this is a false positive.
+  # Omit the Netlify-managed plugin path from secrets scanning.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/plugins/deno-cli/deno_di"
